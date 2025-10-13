@@ -3,138 +3,487 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>遊技記録アプリ（試作版）</title>
+  <title>遊技記録アプリ</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen p-4">
-  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl p-6">
-    <h1 class="text-xl font-bold mb-4">🎰 遊技記録アプリ（試作版）</h1>
+<body class="bg-gray-100 p-4 min-h-screen">
+  <div class="max-w-4xl mx-auto bg-white p-4 rounded-2xl shadow-lg">
+    <h1 class="text-xl font-bold mb-4">🎰 遊技記録アプリ</h1>
 
-    <!-- 入力フォーム -->
-<form id="recordForm" class="space-y-2">
-  <div class="grid grid-cols-3 gap-2">
-    <input type="date" id="date" class="border rounded p-2 col-span-2" value="">
-    <input type="number" id="addBall" class="border rounded p-2 col-span-1" placeholder="追加玉数" inputmode="numeric" pattern="[0-9]*">
+    <!-- タブ切替 -->
+    <div class="flex border-b mb-4">
+      <button class="tab-button px-4 py-2 border-b-2 border-blue-500 font-semibold text-blue-500" data-tab="input">入力</button>
+      <button class="tab-button px-4 py-2 text-gray-500" data-tab="history">履歴</button>
+      <button class="tab-button px-4 py-2 text-gray-500" data-tab="summary">集計</button>
+      <button class="tab-button px-4 py-2 text-gray-500" data-tab="machineData">台データ</button>
+    </div>
+
+    <!-- 入力タブ -->
+    <div id="input" class="tab-content">
+      <form id="recordForm" class="space-y-3">
+        <!-- 1行目 -->
+        <div class="grid grid-cols-4 gap-2">
+          <div><input type="date" id="date" class="border rounded w-full p-2" required></div>
+          <div class="col-span-2"><input type="text" id="shop" class="border rounded w-full p-2" placeholder="店名" value="エスパス高田馬場"></div>
+          <div><input type="number" id="machineNo" class="border rounded w-full p-2" placeholder="台番号"></div>
+        </div>
+
+        <!-- 2行目 -->
+        <div class="grid grid-cols-5 gap-2">
+          <div class="col-span-3"><input type="text" id="machineName" class="border rounded w-full p-2" placeholder="機種名"></div>
+          <div class="col-span-2">
+            <select id="gameType" class="border rounded w-full p-2">
+              <option value="slot5">5円スロット</option>
+              <option value="slot46">46枚スロット</option>
+              <option value="pachi1">1円パチンコ</option>
+              <option value="pachi4">4円パチンコ</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3行目 -->
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-sm font-semibold">開始G数</label>
+            <input type="number" id="startGame" class="border rounded w-full p-2">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold">開始玉数</label>
+            <input type="number" id="startBall" class="border rounded w-full p-2">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold">追加玉数</label>
+            <input type="number" id="addBall" class="border rounded w-full p-2 bg-gray-100" value="0">
+            <div class="flex justify-between mt-1">
+              <button type="button" id="decBall" class="bg-blue-500 text-white rounded px-3 py-1 w-1/2 mr-1">-</button>
+              <button type="button" id="incBall" class="bg-blue-500 text-white rounded px-3 py-1 w-1/2">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4行目 -->
+        <div class="grid grid-cols-6 gap-2 items-end">
+          <div class="col-span-2">
+            <label class="block text-sm font-semibold">初当りG数</label>
+            <input type="number" id="firstHitGame" class="border rounded w-full p-2">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-semibold">初当り玉数</label>
+            <input type="number" id="firstHitBall" class="border rounded w-full p-2">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-semibold">終了玉数</label>
+            <input type="number" id="endBall" class="border rounded w-full p-2 bg-pink-50">
+          </div>
+        </div>
+
+        <!-- 回転率・収支 + 登録ボタン -->
+        <div class="mt-2 text-lg font-bold">
+          <div class="flex justify-between">
+            <div id="rotationDisplay">回転率：0.00</div>
+            <div id="incomeDisplay">玉数（円）：0（0円）</div>
+          </div>
+          <div class="flex justify-end mt-2">
+            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white rounded w-16 py-1">登録</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- 履歴タブ -->
+    <div id="history" class="tab-content hidden">
+      <table class="w-full border text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border p-1">日付</th>
+            <th class="border p-1">店名</th>
+            <th class="border p-1">台番</th>
+            <th class="border p-1">機種名</th>
+            <th class="border p-1">種別</th>
+            <th class="border p-1">初当りG（自G）</th>
+            <th class="border p-1">回転率</th>
+            <th class="border p-1">投資</th>
+            <th class="border p-1">出玉</th>
+            <th class="border p-1">収支</th>
+            <th class="border p-1">削除</th>
+          </tr>
+        </thead>
+        <tbody id="recordList"></tbody>
+      </table>
+    </div>
+
+    <!-- 集計タブ -->
+    <div id="summary" class="tab-content hidden">
+      <div class="space-y-3">
+        <div class="text-lg font-semibold">総収支（円）：<span id="totalYen" class="font-bold text-blue-600">0</span></div>
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <div>46枚スロット残高：<span id="bal46">0</span></div>
+          <div>5円スロット残高：<span id="bal5">0</span></div>
+          <div>4円パチンコ残高：<span id="bal4">0</span></div>
+          <div>1円パチンコ残高：<span id="bal1">0</span></div>
+        </div>
+
+        <div class="flex space-x-2 mt-4">
+          <button class="period-btn bg-blue-500 text-white rounded px-3 py-1" data-period="1">直近1ヶ月</button>
+          <button class="period-btn bg-gray-300 rounded px-3 py-1" data-period="3">直近3ヶ月</button>
+          <button class="period-btn bg-gray-300 rounded px-3 py-1" data-period="6">直近半年</button>
+          <button class="period-btn bg-gray-300 rounded px-3 py-1" data-period="all">全期間</button>
+        </div>
+
+        <canvas id="chart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- 台データタブ -->
+    <div id="machineData" class="tab-content hidden">
+      <div class="space-y-3">
+        <form class="grid grid-cols-5 gap-2 items-end">
+          <div><input type="text" id="searchShop" class="border rounded w-full p-2" placeholder="店名"></div>
+          <div><input type="text" id="searchMachineName" class="border rounded w-full p-2" placeholder="機種名"></div>
+          <div>
+            <select id="searchGameType" class="border rounded w-full p-2">
+              <option value="">全ての種別</option>
+              <option value="slot5">5円スロット</option>
+              <option value="slot46">46枚スロット</option>
+              <option value="pachi1">1円パチンコ</option>
+              <option value="pachi4">4円パチンコ</option>
+            </select>
+          </div>
+          <div><input type="text" id="searchMachineNo" class="border rounded w-full p-2" placeholder="台番号"></div>
+          <div><button id="searchMachineBtn" class="bg-blue-500 text-white rounded px-3 py-1">検索</button></div>
+        </form>
+
+        <table class="w-full border text-sm mt-2">
+          <thead class="bg-gray-200 cursor-pointer">
+            <tr>
+              <th class="border p-1" data-key="shop">店名</th>
+              <th class="border p-1" data-key="machineNo">台番号</th>
+              <th class="border p-1" data-key="playCount">プレイ回数</th>
+              <th class="border p-1" data-key="firstHitCount">初当たりGデータ数</th>
+              <th class="border p-1" data-key="avgFirstHitG">平均初当たりG数</th>
+              <th class="border p-1" data-key="avgInvest">初当たりまでの平均投資</th>
+              <th class="border p-1" data-key="totalIncome">合計収支</th>
+              <th class="border p-1" data-key="maxOutBall">最大出玉</th>
+              <th class="border p-1" data-key="recoveryRate">回収率（％）</th>
+            </tr>
+          </thead>
+          <tbody id="machineDataList"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <div class="grid grid-cols-3 gap-2">
-    <input type="text" id="shop" class="border rounded p-2 col-span-2" placeholder="エスパス高田馬場">
-    <input type="number" id="machineNo" class="border rounded p-2 col-span-1" placeholder="台番号" inputmode="numeric" pattern="[0-9]*">
-  </div>
+<script>
+const key = "pachi_records";
+const rate = {pachi4:280, pachi1:1120, slot46:52, slot5:224};
+const step = {pachi4:125, pachi1:100, slot46:46, slot5:100};
+const investUnit = {pachi4:250, pachi1:200, slot46:46, slot5:200};
 
-  <div class="grid grid-cols-3 gap-2">
-    <input type="text" id="machineName" class="border rounded p-2 col-span-2" placeholder="機種名">
-    <select id="gameType" class="border rounded p-2 col-span-1">
-      <option value="pachi4">4円パチンコ</option>
-      <option value="pachi1">1円パチンコ</option>
-      <option value="slot46">46枚スロット</option>
-      <option value="slot5">5円スロット</option>
-    </select>
-  </div>
+// ===== タブ切替 =====
+document.querySelectorAll(".tab-button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("border-blue-500","text-blue-500","font-semibold"));
+    btn.classList.add("border-blue-500","text-blue-500","font-semibold");
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+    document.getElementById(btn.dataset.tab).classList.remove("hidden");
+    if (btn.dataset.tab === "history") loadRecords();
+    if (btn.dataset.tab === "summary") updateSummary();
+    if (btn.dataset.tab === "machineData") loadMachineData();
+  });
+});
 
-  <div class="grid grid-cols-3 gap-2">
-    <input type="number" id="startGame" class="border rounded p-2 col-span-1" placeholder="開始G数" inputmode="numeric" pattern="[0-9]*">
-    <input type="number" id="endGame" class="border rounded p-2 col-span-1" placeholder="終了G数" inputmode="numeric" pattern="[0-9]*">
-    <input type="number" id="startBall" class="border rounded p-2 col-span-1" placeholder="開始玉数" inputmode="numeric" pattern="[0-9]*">
-  </div>
+// ===== 入力処理 =====
+const form = document.getElementById("recordForm");
+const addBallInput = document.getElementById("addBall");
+const gameTypeSelect = document.getElementById("gameType");
 
-  <div class="grid grid-cols-3 gap-2">
-    <input type="number" id="endBall" class="border rounded p-2 col-span-1" placeholder="終了玉数" inputmode="numeric" pattern="[0-9]*">
-    <input type="number" id="addBall2" class="border rounded p-2 col-span-1" placeholder="追加玉数" inputmode="numeric" pattern="[0-9]*">
-    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded col-span-1">登録</button>
-  </div>
-</form>
+document.getElementById("incBall").addEventListener("click", () => {
+  const type = gameTypeSelect.value;
+  addBallInput.value = Number(addBallInput.value || 0) + step[type];
+  updateIncome();
+});
+document.getElementById("decBall").addEventListener("click", () => {
+  const type = gameTypeSelect.value;
+  addBallInput.value = Math.max(0, Number(addBallInput.value || 0) - step[type]);
+  updateIncome();
+});
 
-    <!-- 登録一覧 -->
-    <h2 class="text-lg font-semibold mt-8 mb-2">📋 登録履歴</h2>
-    <table class="w-full border text-sm">
-      <thead class="bg-gray-200">
-        <tr>
-          <th class="border p-1">日付</th>
-          <th class="border p-1">店名</th>
-          <th class="border p-1">機種名</th>
-          <th class="border p-1">種別</th>
-          <th class="border p-1">収支（円）</th>
-        </tr>
-      </thead>
-      <tbody id="recordList"></tbody>
-    </table>
-  </div>
+function updateIncome() {
+  const startGame = Number(form.startGame.value || 0);
+  const firstHitGame = Number(form.firstHitGame.value || 0);
+  const startBall = Number(form.startBall.value || 0);
+  const addBall = Number(form.addBall.value || 0);
+  const firstHitBall = Number(form.firstHitBall.value || 0);
+  const endBall = Number(form.endBall.value || 0);
+  const type = gameTypeSelect.value;
 
-  <script>
-    const form = document.getElementById("recordForm");
-    const recordList = document.getElementById("recordList");
-    const key = "pachi_records";
+  const diff = endBall - (startBall + addBall);
+  const yen = Math.round((diff / rate[type])*1000);
+  document.getElementById("incomeDisplay").textContent = `玉数（円）：${diff}（${yen}円）`;
 
-    // 日付初期値を今日に
-    document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  const invest = (startBall + addBall - firstHitBall);
+  const gameDiff = firstHitGame - startGame;
+  let rotation = invest > 0 ? (gameDiff / invest) * investUnit[type] : 0;
+  document.getElementById("rotationDisplay").textContent = `回転率：${rotation.toFixed(2)}`;
+}
 
-    // 保存データ読込
-    function loadRecords() {
-      const data = JSON.parse(localStorage.getItem(key) || "[]");
-      recordList.innerHTML = "";
-      data.forEach((r) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="border p-1">${r.date}</td>
-          <td class="border p-1">${r.shop}</td>
-          <td class="border p-1">${r.machineName}</td>
-          <td class="border p-1">${r.gameTypeLabel}</td>
-          <td class="border p-1 text-right">${r.income}</td>
-        `;
-        recordList.appendChild(tr);
-      });
-    }
+["startBall","endBall","addBall","startGame","gameType","firstHitBall","firstHitGame"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", updateIncome);
+});
 
-    // 登録処理
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
+form.addEventListener("submit",(e)=>{
+  e.preventDefault();
+  if(!confirm("登録しますか？")) return;
 
-      const record = {
-        date: form.date.value,
-        shop: form.shop.value,
-        machineNo: form.machineNo.value,
-        machineName: form.machineName.value,
-        gameType: form.gameType.value,
-        startGame: Number(form.startGame.value || 0),
-        endGame: Number(form.endGame.value || 0),
-        startBall: Number(form.startBall.value || 0),
-        endBall: Number(form.endBall.value || 0),
-        addBall: Number(form.addBall.value || 0),
-      };
+  const record = {
+    date: form.date.value,
+    shop: form.shop.value,
+    machineNo: form.machineNo.value,
+    machineName: form.machineName.value,
+    gameType: form.gameType.value,
+    startGame: Number(form.startGame.value||0),
+    startBall: Number(form.startBall.value||0),
+    addBall: Number(form.addBall.value||0),
+    firstHitGame: Number(form.firstHitGame.value||0),
+    firstHitBall: Number(form.firstHitBall.value||0),
+    endBall: Number(form.endBall.value||0),
+    created: new Date().toISOString()
+  };
 
-      // 遊技種ごとのレート換算比率
-      const rate = {
-        pachi4: 280, // 1000円 = 280玉
-        pachi1: 1120,
-        slot46: 52,
-        slot5: 224,
-      };
+  record.outBall = record.endBall - record.firstHitBall;
+  const diff = record.endBall - (record.startBall + record.addBall);
+  const yen = Math.round((diff / rate[record.gameType])*1000);
+  record.incomeYen = yen;
+  record.incomeText = `${diff}（${yen}円）`;
+  const invest = (record.startBall + record.addBall - record.firstHitBall);
+  const gameDiff = record.firstHitGame - record.startGame;
+  record.rotation = invest > 0 ? (gameDiff / invest) * investUnit[record.gameType] : 0;
 
-      // 収支計算
-      const diff = record.endBall - (record.startBall + record.addBall);
-      const yen = Math.round((diff / rate[record.gameType]) * 1000);
+  const data = JSON.parse(localStorage.getItem(key) || "[]");
+  data.push(record);
+  localStorage.setItem(key, JSON.stringify(data));
+  form.reset();
+  form.shop.value = "エスパス高田馬場";
+  addBallInput.value = 0;
+  updateIncome();
+});
 
-      record.income = yen;
-      record.gameTypeLabel = {
-        pachi4: "4円パチンコ",
-        pachi1: "1円パチンコ",
-        slot46: "46枚スロット",
-        slot5: "5円スロット",
-      }[record.gameType];
+// ===== 履歴 =====
+function loadRecords() {
+  const tbody = document.getElementById("recordList");
+  tbody.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem(key) || "[]").reverse().slice(0,100);
+  data.forEach((r,i)=>{
+    const selfG = r.firstHitGame - r.startGame;
+    const shopShort = r.shop.length>6 ? r.shop.slice(0,6)+"…" : r.shop;
 
-      const data = JSON.parse(localStorage.getItem(key) || "[]");
-      data.push(record);
-      localStorage.setItem(key, JSON.stringify(data));
+    // 投資計算
+    const invest = r.startBall + r.addBall - r.firstHitBall;
 
-      form.reset();
-      document.getElementById("date").value = new Date().toISOString().split("T")[0];
-      document.getElementById("shop").value = "エスパス高田馬場";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="border p-1">${r.date.slice(5)}</td>
+      <td class="border p-1">${shopShort}</td>
+      <td class="border p-1">${r.machineNo||""}</td>
+      <td class="border p-1">${r.machineName||""}</td>
+      <td class="border p-1">${{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[r.gameType]}</td>
+      <td class="border p-1">${r.firstHitGame}（${selfG}）</td>
+      <td class="border p-1">${r.rotation?.toFixed(2)||"0.00"}</td>
+      <td class="border p-1 text-right">${invest}</td>
+      <td class="border p-1 text-right">${r.outBall}</td>
+      <td class="border p-1 text-right">${r.incomeText}</td>
+      <td class="border p-1 text-center"><button data-index="${i}" class="delete-btn text-red-500">削除</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
 
+  document.querySelectorAll(".delete-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const data = JSON.parse(localStorage.getItem(key)||"[]").reverse();
+      data.splice(btn.dataset.index,1);
+      localStorage.setItem(key, JSON.stringify(data.reverse()));
       loadRecords();
     });
+  });
+}
 
-    loadRecords();
-  </script>
+// ===== 集計 =====
+let chart;
+function updateSummary(period="all") {
+  const data = JSON.parse(localStorage.getItem(key) || "[]");
+  const now = new Date();
+  const filtered = data.filter(r=>{
+    if(period==="all") return true;
+    const d = new Date(r.date);
+    const diffM = (now - d)/(1000*60*60*24*30);
+    return diffM <= Number(period);
+  });
+
+  filtered.sort((a,b)=> new Date(a.date) - new Date(b.date));
+  const labels = filtered.map(r=>r.date);
+  let sum = 0;
+  const sumArr = filtered.map(r=>{
+    sum += r.incomeYen;
+    return sum;
+  });
+
+  const ctx = document.getElementById("chart").getContext("2d");
+  if(chart) chart.destroy();
+  chart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels,
+      datasets:[{label:"収支推移",data:sumArr,borderColor:"blue",tension:0.1}]
+    }
+  });
+
+  document.getElementById("totalYen").textContent = sum;
+
+  const balances = {slot46:0,slot5:0,pachi4:0,pachi1:0};
+  filtered.forEach(r=>balances[r.gameType]+=r.incomeYen);
+  document.getElementById("bal46").textContent = balances.slot46;
+  document.getElementById("bal5").textContent = balances.slot5;
+  document.getElementById("bal4").textContent = balances.pachi4;
+  document.getElementById("bal1").textContent = balances.pachi1;
+}
+
+document.querySelectorAll(".period-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".period-btn").forEach(b=>b.classList.replace("bg-blue-500","bg-gray-300"));
+    btn.classList.replace("bg-gray-300","bg-blue-500");
+    updateSummary(btn.dataset.period);
+  });
+});
+
+// ===== 台データタブ =====
+let currentSortKey = "";
+let currentSortAsc = true;
+
+function loadMachineData() {
+  const shop = document.getElementById("searchShop").value.trim();
+  const machineName = document.getElementById("searchMachineName").value.trim();
+  const gameType = document.getElementById("searchGameType").value;
+  const machineNo = document.getElementById("searchMachineNo").value.trim();
+
+  const data = JSON.parse(localStorage.getItem(key) || "[]");
+  const filtered = data.filter(r=>{
+    if(shop && !r.shop.includes(shop)) return false;
+    if(machineName && !r.machineName.includes(machineName)) return false;
+    if(gameType && r.gameType !== gameType) return false;
+    if(machineNo && r.machineNo !== machineNo) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById("machineDataList");
+  tbody.innerHTML = "";
+
+  const grouped = {};
+  filtered.forEach(r=>{
+    const key = r.machineNo || "__ALL__";
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push(r);
+  });
+
+  const rows = [];
+
+  if(!machineNo && filtered.length>0) {
+    const allRecords = filtered;
+    const playCount = allRecords.length;
+    const firstHitRecords = allRecords.filter(r=>r.firstHitGame>0);
+    const firstHitCount = firstHitRecords.length;
+    const avgFirstHitG = firstHitCount>0 ? (firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(2) : "-";
+    const avgInvest = firstHitCount>0 ? (firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(2) : "-";
+    const totalIncome = allRecords.reduce((a,r)=>a+r.incomeYen,0);
+    const maxOutBall = allRecords.reduce((a,r)=>Math.max(a,r.outBall),0);
+    const totalInvest = allRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
+    const recoveryRate = totalInvest>0 ? ((allRecords.reduce((a,r)=>a+r.outBall,0)/totalInvest)*100).toFixed(2) : "-";
+
+    rows.push({
+      shop:"全台合算",
+      machineNo:"-",
+      playCount,
+      firstHitCount,
+      avgFirstHitG,
+      avgInvest,
+      totalIncome,
+      maxOutBall,
+      recoveryRate,
+      isAll:true
+    });
+  }
+
+  Object.keys(grouped).sort().forEach(no=>{
+    if(no==="__ALL__") return;
+    const records = grouped[no];
+    const shopName = records[0]?.shop || "-";
+    const playCount = records.length;
+    const firstHitRecords = records.filter(r=>r.firstHitGame>0);
+    const firstHitCount = firstHitRecords.length;
+    const avgFirstHitG = firstHitCount>0 ? (firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(2) : "-";
+    const avgInvest = firstHitCount>0 ? (firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(2) : "-";
+    const totalIncome = records.reduce((a,r)=>a+r.incomeYen,0);
+    const maxOutBall = records.reduce((a,r)=>Math.max(a,r.outBall),0);
+    const totalInvest = records.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
+    const recoveryRate = totalInvest>0 ? ((records.reduce((a,r)=>a+r.outBall,0)/totalInvest)*100).toFixed(2) : "-";
+
+    rows.push({
+      shop:shopName,
+      machineNo:no,
+      playCount,
+      firstHitCount,
+      avgFirstHitG,
+      avgInvest,
+      totalIncome,
+      maxOutBall,
+      recoveryRate,
+      isAll:false
+    });
+  });
+
+  if(currentSortKey) {
+    rows.sort((a,b)=>{
+      if(a.isAll) return -1;
+      if(b.isAll) return 1;
+      const valA = isNaN(a[currentSortKey]) ? a[currentSortKey] : Number(a[currentSortKey]);
+      const valB = isNaN(b[currentSortKey]) ? b[currentSortKey] : Number(b[currentSortKey]);
+      if(valA<valB) return currentSortAsc?-1:1;
+      if(valA>valB) return currentSortAsc?1:-1;
+      return 0;
+    });
+  }
+
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    if(r.isAll) tr.classList.add("bg-pink-100");
+    tr.innerHTML = `
+      <td class="border p-1">${r.shop}</td>
+      <td class="border p-1">${r.machineNo}</td>
+      <td class="border p-1">${r.playCount}</td>
+      <td class="border p-1">${r.firstHitCount}</td>
+      <td class="border p-1">${r.avgFirstHitG}</td>
+      <td class="border p-1">${r.avgInvest}</td>
+      <td class="border p-1">${r.totalIncome}</td>
+      <td class="border p-1">${r.maxOutBall}</td>
+      <td class="border p-1">${r.recoveryRate}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.querySelectorAll("#machineData th[data-key]").forEach(th=>{
+  th.addEventListener("click",()=>{
+    const key = th.dataset.key;
+    if(currentSortKey===key) currentSortAsc = !currentSortAsc;
+    else { currentSortKey=key; currentSortAsc=true; }
+    loadMachineData();
+  });
+});
+
+document.getElementById("searchMachineBtn").addEventListener("click",e=>{
+  e.preventDefault();
+  loadMachineData();
+});
+</script>
 </body>
 </html>
