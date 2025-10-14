@@ -140,6 +140,7 @@
       <div class="space-y-3">
         <form class="grid grid-cols-5 gap-2 items-end">
           <div><input type="text" id="searchShop" class="border rounded w-full p-2" placeholder="店名"></div>
+          <div><input type="text" id="searchMachineNo" class="border rounded w-full p-2" placeholder="台番号"></div>
           <div><input type="text" id="searchMachineName" class="border rounded w-full p-2" placeholder="機種名"></div>
           <div>
             <select id="searchGameType" class="border rounded w-full p-2">
@@ -150,7 +151,7 @@
               <option value="pachi4">4円パチンコ</option>
             </select>
           </div>
-          <div><input type="text" id="searchMachineNo" class="border rounded w-full p-2" placeholder="台番号"></div>
+
           <div><button id="searchMachineBtn" class="bg-blue-500 text-white rounded px-3 py-1">検索</button></div>
         </form>
 
@@ -159,13 +160,13 @@
             <tr>
               <th class="border p-1" data-key="shop">店名</th>
               <th class="border p-1" data-key="machineNo">台番号</th>
-              <th class="border p-1" data-key="playCount">プレイ回数</th>
-              <th class="border p-1" data-key="firstHitCount">初当たりGデータ数</th>
-              <th class="border p-1" data-key="avgFirstHitG">平均初当たりG数</th>
-              <th class="border p-1" data-key="avgInvest">初当たりまでの平均投資</th>
+              <th class="border p-1" data-key="playCount">プレイ数</th>
+              <th class="border p-1" data-key="firstHitCount">初当り</th>
+              <th class="border p-1" data-key="avgFirstHitG">平均初当りG</th>
+              <th class="border p-1" data-key="avgInvest">平均初当り投資</th>
               <th class="border p-1" data-key="totalIncome">合計収支</th>
               <th class="border p-1" data-key="maxOutBall">最大出玉</th>
-              <th class="border p-1" data-key="recoveryRate">回収率（％）</th>
+              <th class="border p-1" data-key="recoveryRate">回収率(%)</th>
             </tr>
           </thead>
           <tbody id="machineDataList"></tbody>
@@ -179,6 +180,11 @@ const key = "pachi_records";
 const rate = {pachi4:280, pachi1:1120, slot46:52, slot5:224};
 const step = {pachi4:125, pachi1:100, slot46:46, slot5:100};
 const investUnit = {pachi4:250, pachi1:200, slot46:46, slot5:200};
+
+// ===== 日付初期設定 =====
+const dateInput = document.getElementById("date");
+const today = new Date();
+dateInput.value = today.toISOString().slice(0,10);
 
 // ===== タブ切替 =====
 document.querySelectorAll(".tab-button").forEach(btn => {
