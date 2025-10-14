@@ -7,6 +7,27 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
+<style>
+/* 台データ・履歴両方に適用 */
+#machineData th, #machineData td,
+#recordList th, #recordList td {
+  white-space: normal; /* 折り返し */
+  word-break: break-word;
+}
+
+/* 列ごとの最大幅 */
+.col-shop { max-width: 80px; }
+.col-date, .col-machineNo, .col-gameType { max-width: 60px; }
+.col-machineName { max-width: 100px; }
+.col-firstHitG { max-width: 40px; }
+.col-income { max-width: 80px; }
+.col-playCount, .col-firstHitCount { max-width: 30px; }
+
+/* 横スクロールが出る場合はテーブル全体に */
+table { table-layout: fixed; }
+</style>
+
 <body class="bg-gray-100 p-4 min-h-screen">
   <div class="max-w-4xl mx-auto bg-white p-4 rounded-2xl shadow-lg">
     <h1 class="text-xl font-bold mb-4">🎰 遊技記録アプリ</h1>
@@ -101,21 +122,21 @@
 <div id="history" class="tab-content hidden">
   <div class="overflow-x-auto">
     <table class="border text-sm min-w-[900px]">
-      <thead class="bg-gray-200">
-        <tr>
-          <th class="border p-1">日付</th>
-          <th class="border p-1">店名</th>
-          <th class="border p-1">台番</th>
-          <th class="border p-1">機種名</th>
-          <th class="border p-1">種別</th>
-          <th class="border p-1">初当りG（自G）</th>
-          <th class="border p-1">回転率</th>
-          <th class="border p-1">投資</th>
-          <th class="border p-1">出玉</th>
-          <th class="border p-1">収支</th>
-          <th class="border p-1">削除</th>
-        </tr>
-      </thead>
+     <thead class="bg-gray-200">
+  <tr>
+    <th class="border p-1 col-date">日付</th>
+    <th class="border p-1 col-shop">店名</th>
+    <th class="border p-1 col-machineNo">台番</th>
+    <th class="border p-1 col-machineName">機種名</th>
+    <th class="border p-1 col-gameType">種別</th>
+    <th class="border p-1 col-firstHitG">初当りG（自G）</th>
+    <th class="border p-1 col-firstHitG">回転率</th>
+    <th class="border p-1 col-playCount">投資</th>
+    <th class="border p-1 col-income">出玉</th>
+    <th class="border p-1 col-income">収支</th>
+    <th class="border p-1">削除</th>
+  </tr>
+</thead>
       <tbody id="recordList"></tbody>
     </table>
   </div>
@@ -165,21 +186,22 @@
 
   <div class="overflow-x-auto">
     <table class="border text-sm min-w-[900px] mt-2">
-      <thead class="bg-gray-200 cursor-pointer">
-        <tr>
-          <th class="border p-1" data-key="shop">店名</th>
-          <th class="border p-1" data-key="machineNo">台番号</th>
-          <th class="border p-1" data-key="machineName">機種名</th>
-          <th class="border p-1" data-key="gameType">種別</th>
-          <th class="border p-1" data-key="playCount">プレイ数</th>
-          <th class="border p-1" data-key="firstHitCount">初当り</th>
-          <th class="border p-1" data-key="avgFirstHitG">平均当G</th>
-          <th class="border p-1" data-key="avgInvest">平均当投資</th>
-          <th class="border p-1" data-key="totalIncome">収支</th>
-          <th class="border p-1" data-key="maxOutBall">最大出玉</th>
-          <th class="border p-1" data-key="recoveryRate">回収率</th>
-        </tr>
-      </thead>
+     <thead class="bg-gray-200 cursor-pointer">
+  <tr>
+    <th class="border p-1 col-shop" data-key="shop">店名</th>
+    <th class="border p-1 col-machineNo" data-key="machineNo">台番</th>
+    <th class="border p-1 col-machineName" data-key="machineName">機種名</th>
+    <th class="border p-1 col-gameType" data-key="gameType">種別</th>
+    <th class="border p-1 col-playCount" data-key="playCount">プレイ数</th>
+    <th class="border p-1 col-firstHitCount" data-key="firstHitCount">初当り</th>
+    <th class="border p-1 col-firstHitG" data-key="avgFirstHitG">平均当G</th>
+    <th class="border p-1 col-firstHitG" data-key="avgInvest">平均当投資</th>
+    <th class="border p-1 col-income" data-key="totalIncome">合計収支</th>
+    <th class="border p-1 col-income" data-key="maxOutBall">最大出玉</th>
+    <th class="border p-1 col-income" data-key="recoveryRate">回収率</th>
+  </tr>
+</thead>
+
       <tbody id="machineDataList"></tbody>
     </table>
   </div>
