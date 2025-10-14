@@ -160,6 +160,8 @@
             <tr>
               <th class="border p-1" data-key="shop">店名</th>
               <th class="border p-1" data-key="machineNo">台番号</th>
+              <th class="border p-1" data-key="machineName">機種名</th>
+              <th class="border p-1" data-key="gameType">種別</th>
               <th class="border p-1" data-key="playCount">プレイ数</th>
               <th class="border p-1" data-key="firstHitCount">初当り</th>
               <th class="border p-1" data-key="avgFirstHitG">平均初当りG</th>
@@ -176,129 +178,131 @@
   </div>
 
 <script>
+/* ===== JavaScript 完全版 ===== */
 const key = "pachi_records";
 const rate = {pachi4:280, pachi1:1120, slot46:52, slot5:224};
 const step = {pachi4:125, pachi1:100, slot46:46, slot5:100};
 const investUnit = {pachi4:250, pachi1:200, slot46:46, slot5:200};
 
-// ===== 日付初期設定 =====
 const dateInput = document.getElementById("date");
 const today = new Date();
 dateInput.value = today.toISOString().slice(0,10);
 
-// ===== タブ切替 =====
-document.querySelectorAll(".tab-button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("border-blue-500","text-blue-500","font-semibold"));
+// タブ切替
+document.querySelectorAll(".tab-button").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab-button").forEach(b=>b.classList.remove("border-blue-500","text-blue-500","font-semibold"));
     btn.classList.add("border-blue-500","text-blue-500","font-semibold");
-    document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+    document.querySelectorAll(".tab-content").forEach(c=>c.classList.add("hidden"));
     document.getElementById(btn.dataset.tab).classList.remove("hidden");
-    if (btn.dataset.tab === "history") loadRecords();
-    if (btn.dataset.tab === "summary") updateSummary();
-    if (btn.dataset.tab === "machineData") loadMachineData();
+    if(btn.dataset.tab==="history") loadRecords();
+    if(btn.dataset.tab==="summary") updateSummary();
+    if(btn.dataset.tab==="machineData") loadMachineData();
   });
 });
 
-// ===== 入力処理 =====
+// 入力処理
 const form = document.getElementById("recordForm");
 const addBallInput = document.getElementById("addBall");
 const gameTypeSelect = document.getElementById("gameType");
 
-document.getElementById("incBall").addEventListener("click", () => {
-  const type = gameTypeSelect.value;
-  addBallInput.value = Number(addBallInput.value || 0) + step[type];
+document.getElementById("incBall").addEventListener("click",()=>{
+  const type=gameTypeSelect.value;
+  addBallInput.value=Number(addBallInput.value||0)+(step[type]||0);
   updateIncome();
 });
-document.getElementById("decBall").addEventListener("click", () => {
-  const type = gameTypeSelect.value;
-  addBallInput.value = Math.max(0, Number(addBallInput.value || 0) - step[type]);
+document.getElementById("decBall").addEventListener("click",()=>{
+  const type=gameTypeSelect.value;
+  addBallInput.value=Math.max(0,Number(addBallInput.value||0)-(step[type]||0));
   updateIncome();
 });
 
-function updateIncome() {
-  const startGame = Number(form.startGame.value || 0);
-  const firstHitGame = Number(form.firstHitGame.value || 0);
-  const startBall = Number(form.startBall.value || 0);
-  const addBall = Number(form.addBall.value || 0);
-  const firstHitBall = Number(form.firstHitBall.value || 0);
-  const endBall = Number(form.endBall.value || 0);
-  const type = gameTypeSelect.value;
+function updateIncome(){
+  const startGame=Number(form.startGame.value||0);
+  const firstHitGame=Number(form.firstHitGame.value||0);
+  const startBall=Number(form.startBall.value||0);
+  const addBall=Number(form.addBall.value||0);
+  const firstHitBall=Number(form.firstHitBall.value||0);
+  const endBall=Number(form.endBall.value||0);
+  const type=gameTypeSelect.value;
 
-  const diff = endBall - (startBall + addBall);
-  const yen = Math.round((diff / rate[type])*1000);
-  document.getElementById("incomeDisplay").textContent = `玉数（円）：${diff}（${yen}円）`;
+  const diff=endBall-(startBall+addBall);
+  const yen=rate[type]?Math.round((diff/rate[type])*1000):0;
+  document.getElementById("incomeDisplay").textContent=`玉数（円）：${diff}（${yen}円）`;
 
-  const invest = (startBall + addBall - firstHitBall);
-  const gameDiff = firstHitGame - startGame;
-  let rotation = invest > 0 ? (gameDiff / invest) * investUnit[type] : 0;
-  document.getElementById("rotationDisplay").textContent = `回転率：${rotation.toFixed(2)}`;
+  const invest=startBall+addBall-firstHitBall;
+  const gameDiff=firstHitGame-startGame;
+  let rotation=0;
+  if(invest>0 && gameDiff>0 && investUnit[type]) rotation=(gameDiff/invest)*investUnit[type];
+  document.getElementById("rotationDisplay").textContent=`回転率：${rotation.toFixed(2)}`;
 }
 
 ["startBall","endBall","addBall","startGame","gameType","firstHitBall","firstHitGame"].forEach(id=>{
-  document.getElementById(id).addEventListener("input", updateIncome);
+  document.getElementById(id).addEventListener("input",updateIncome);
 });
 
 form.addEventListener("submit",(e)=>{
   e.preventDefault();
   if(!confirm("登録しますか？")) return;
 
-  const record = {
+  const record={
     date: form.date.value,
-    shop: form.shop.value,
-    machineNo: form.machineNo.value,
-    machineName: form.machineName.value,
+    shop: form.shop.value||"",
+    machineNo: form.machineNo.value||"",
+    machineName: form.machineName.value||"",
     gameType: form.gameType.value,
-    startGame: Number(form.startGame.value||0),
-    startBall: Number(form.startBall.value||0),
-    addBall: Number(form.addBall.value||0),
-    firstHitGame: Number(form.firstHitGame.value||0),
-    firstHitBall: Number(form.firstHitBall.value||0),
-    endBall: Number(form.endBall.value||0),
-    created: new Date().toISOString()
+    startGame:Number(form.startGame.value||0),
+    startBall:Number(form.startBall.value||0),
+    addBall:Number(form.addBall.value||0),
+    firstHitGame:Number(form.firstHitGame.value||0),
+    firstHitBall:Number(form.firstHitBall.value||0),
+    endBall:Number(form.endBall.value||0),
+    created:new Date().toISOString()
   };
 
-  record.outBall = record.endBall - record.firstHitBall;
-  const diff = record.endBall - (record.startBall + record.addBall);
-  const yen = Math.round((diff / rate[record.gameType])*1000);
-  record.incomeYen = yen;
-  record.incomeText = `${diff}（${yen}円）`;
-  const invest = (record.startBall + record.addBall - record.firstHitBall);
-  const gameDiff = record.firstHitGame - record.startGame;
-  record.rotation = invest > 0 ? (gameDiff / invest) * investUnit[record.gameType] : 0;
+  record.outBall=record.endBall-record.firstHitBall;
+  const diff=record.endBall-(record.startBall+record.addBall);
+  const yen=rate[record.gameType]?Math.round((diff/rate[record.gameType])*1000):0;
+  record.incomeYen=yen;
+  record.incomeText=`${diff}（${yen}円）`;
+  const invest=record.startBall+record.addBall-record.firstHitBall;
+  const gameDiff=record.firstHitGame-record.startGame;
+  record.rotation=invest>0&&gameDiff>0&&investUnit[record.gameType]?(gameDiff/invest)*investUnit[record.gameType]:0;
 
-  const data = JSON.parse(localStorage.getItem(key) || "[]");
+  const data=JSON.parse(localStorage.getItem(key)||"[]");
   data.push(record);
-  localStorage.setItem(key, JSON.stringify(data));
+  localStorage.setItem(key,JSON.stringify(data));
+
   form.reset();
-  form.shop.value = "エスパス高田馬場";
-  addBallInput.value = 0;
+  form.shop.value="エスパス高田馬場";
+  addBallInput.value=0;
+  dateInput.value=today.toISOString().slice(0,10);
   updateIncome();
 });
 
 // ===== 履歴 =====
-function loadRecords() {
-  const tbody = document.getElementById("recordList");
-  tbody.innerHTML = "";
-  const data = JSON.parse(localStorage.getItem(key) || "[]").reverse().slice(0,100);
+function loadRecords(){
+  const tbody=document.getElementById("recordList");
+  tbody.innerHTML="";
+  const data=JSON.parse(localStorage.getItem(key)||"[]").slice(-100).reverse();
+
   data.forEach((r,i)=>{
-    const selfG = r.firstHitGame - r.startGame;
-    const shopShort = r.shop.length>6 ? r.shop.slice(0,6)+"…" : r.shop;
+    const selfG=(r.firstHitGame||0)-(r.startGame||0);
+    const shopShort=r.shop?.length>6?r.shop.slice(0,6)+"…":r.shop||"";
+    const invest=(r.startBall||0)+(r.addBall||0)-(r.firstHitBall||0);
 
-    // 投資計算
-    const invest = r.startBall + r.addBall - r.firstHitBall;
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="border p-1">${r.date.slice(5)}</td>
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td class="border p-1">${r.date?.slice(5)||""}</td>
       <td class="border p-1">${shopShort}</td>
       <td class="border p-1">${r.machineNo||""}</td>
       <td class="border p-1">${r.machineName||""}</td>
-      <td class="border p-1">${{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[r.gameType]}</td>
-      <td class="border p-1">${r.firstHitGame}（${selfG}）</td>
-      <td class="border p-1">${r.rotation?.toFixed(2)||"0.00"}</td>
+      <td class="border p-1">${{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[r.gameType]||""}</td>
+      <td class="border p-1">${r.firstHitGame||0}（${selfG}）</td>
+      <td class="border p-1">${(typeof r.rotation==="number"?r.rotation.toFixed(2):"0.00")}</td>
       <td class="border p-1 text-right">${invest}</td>
-      <td class="border p-1 text-right">${r.outBall}</td>
-      <td class="border p-1 text-right">${r.incomeText}</td>
+      <td class="border p-1 text-right">${r.outBall||0}</td>
+      <td class="border p-1 text-right">${r.incomeText||"0（0円）"}</td>
       <td class="border p-1 text-center"><button data-index="${i}" class="delete-btn text-red-500">削除</button></td>
     `;
     tbody.appendChild(tr);
@@ -306,52 +310,52 @@ function loadRecords() {
 
   document.querySelectorAll(".delete-btn").forEach(btn=>{
     btn.addEventListener("click",()=>{
-      const data = JSON.parse(localStorage.getItem(key)||"[]").reverse();
-      data.splice(btn.dataset.index,1);
-      localStorage.setItem(key, JSON.stringify(data.reverse()));
-      loadRecords();
+      if(!confirm("本当に削除しますか？")) return;
+      const index=Number(btn.dataset.index);
+      const data=JSON.parse(localStorage.getItem(key)||"[]");
+      const reversedIndex=data.length-1-index;
+      if(reversedIndex>=0 && reversedIndex<data.length){
+        data.splice(reversedIndex,1);
+        localStorage.setItem(key,JSON.stringify(data));
+        loadRecords();
+      }
     });
   });
 }
 
 // ===== 集計 =====
 let chart;
-function updateSummary(period="all") {
-  const data = JSON.parse(localStorage.getItem(key) || "[]");
-  const now = new Date();
-  const filtered = data.filter(r=>{
+function updateSummary(period="all"){
+  const data=JSON.parse(localStorage.getItem(key)||"[]");
+  const now=new Date();
+  const filtered=data.filter(r=>{
     if(period==="all") return true;
-    const d = new Date(r.date);
-    const diffM = (now - d)/(1000*60*60*24*30);
-    return diffM <= Number(period);
+    const d=new Date(r.date);
+    const diffM=(now-d)/(1000*60*60*24*30);
+    return diffM<=Number(period);
   });
 
-  filtered.sort((a,b)=> new Date(a.date) - new Date(b.date));
-  const labels = filtered.map(r=>r.date);
-  let sum = 0;
-  const sumArr = filtered.map(r=>{
-    sum += r.incomeYen;
-    return sum;
-  });
+  filtered.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const labels=filtered.map(r=>r.date);
+  let sum=0;
+  const sumArr=filtered.map(r=>{sum+=r.incomeYen||0;return sum;});
 
-  const ctx = document.getElementById("chart").getContext("2d");
+  const ctx=document.getElementById("chart").getContext("2d");
   if(chart) chart.destroy();
-  chart = new Chart(ctx,{
+  chart=new Chart(ctx,{
     type:"line",
-    data:{
-      labels,
-      datasets:[{label:"収支推移",data:sumArr,borderColor:"blue",tension:0.1}]
-    }
+    data:{labels,datasets:[{label:"収支推移",data:sumArr,borderColor:"blue",tension:0.1}]},
+    options:{responsive:true,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}
   });
 
-  document.getElementById("totalYen").textContent = sum;
+  document.getElementById("totalYen").textContent=sum;
 
-  const balances = {slot46:0,slot5:0,pachi4:0,pachi1:0};
-  filtered.forEach(r=>balances[r.gameType]+=r.incomeYen);
-  document.getElementById("bal46").textContent = balances.slot46;
-  document.getElementById("bal5").textContent = balances.slot5;
-  document.getElementById("bal4").textContent = balances.pachi4;
-  document.getElementById("bal1").textContent = balances.pachi1;
+  const balances={slot46:0,slot5:0,pachi4:0,pachi1:0};
+  filtered.forEach(r=>{if(r.gameType && balances[r.gameType]!==undefined) balances[r.gameType]+=r.incomeYen||0;});
+  document.getElementById("bal46").textContent=balances.slot46;
+  document.getElementById("bal5").textContent=balances.slot5;
+  document.getElementById("bal4").textContent=balances.pachi4;
+  document.getElementById("bal1").textContent=balances.pachi1;
 }
 
 document.querySelectorAll(".period-btn").forEach(btn=>{
@@ -362,109 +366,82 @@ document.querySelectorAll(".period-btn").forEach(btn=>{
   });
 });
 
-// ===== 台データタブ =====
-let currentSortKey = "";
-let currentSortAsc = true;
+// ===== 台データ =====
+let currentSortKey="", currentSortAsc=true;
+function loadMachineData(){
+  const shop=document.getElementById("searchShop").value.trim();
+  const machineName=document.getElementById("searchMachineName").value.trim();
+  const gameType=document.getElementById("searchGameType").value;
+  const machineNo=document.getElementById("searchMachineNo").value.trim();
 
-function loadMachineData() {
-  const shop = document.getElementById("searchShop").value.trim();
-  const machineName = document.getElementById("searchMachineName").value.trim();
-  const gameType = document.getElementById("searchGameType").value;
-  const machineNo = document.getElementById("searchMachineNo").value.trim();
-
-  const data = JSON.parse(localStorage.getItem(key) || "[]");
-  const filtered = data.filter(r=>{
+  const data=JSON.parse(localStorage.getItem(key)||"[]");
+  const filtered=data.filter(r=>{
     if(shop && !r.shop.includes(shop)) return false;
     if(machineName && !r.machineName.includes(machineName)) return false;
-    if(gameType && r.gameType !== gameType) return false;
-    if(machineNo && r.machineNo !== machineNo) return false;
+    if(gameType && r.gameType!==gameType) return false;
+    if(machineNo && r.machineNo!==machineNo) return false;
     return true;
   });
 
-  const tbody = document.getElementById("machineDataList");
-  tbody.innerHTML = "";
+  const tbody=document.getElementById("machineDataList");
+  tbody.innerHTML="";
 
-  const grouped = {};
+  const grouped={};
   filtered.forEach(r=>{
-    const key = r.machineNo || "__ALL__";
-    if(!grouped[key]) grouped[key] = [];
-    grouped[key].push(r);
+    const k=r.machineNo||"__ALL__";
+    if(!grouped[k]) grouped[k]=[];
+    grouped[k].push(r);
   });
 
-  const rows = [];
+  const rows=[];
+  if(!machineNo && filtered.length>0){
+    const allRecords=filtered;
+    const playCount=allRecords.length;
+    const firstHitRecords=allRecords.filter(r=>r.firstHitGame>0);
+    const firstHitCount=firstHitRecords.length;
+    const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(2):"-";
+    const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(2):"-";
+    const totalIncome=allRecords.reduce((a,r)=>a+r.incomeYen||0,0);
+    const maxOutBall=allRecords.reduce((a,r)=>Math.max(a,r.outBall||0),0);
+    const totalInvest=allRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
+    const recoveryRate=totalInvest>0?((allRecords.reduce((a,r)=>a+(r.outBall||0),0)/totalInvest)*100).toFixed(2):"-";
 
-  if(!machineNo && filtered.length>0) {
-    const allRecords = filtered;
-    const playCount = allRecords.length;
-    const firstHitRecords = allRecords.filter(r=>r.firstHitGame>0);
-    const firstHitCount = firstHitRecords.length;
-    const avgFirstHitG = firstHitCount>0 ? (firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(2) : "-";
-    const avgInvest = firstHitCount>0 ? (firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(2) : "-";
-    const totalIncome = allRecords.reduce((a,r)=>a+r.incomeYen,0);
-    const maxOutBall = allRecords.reduce((a,r)=>Math.max(a,r.outBall),0);
-    const totalInvest = allRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
-    const recoveryRate = totalInvest>0 ? ((allRecords.reduce((a,r)=>a+r.outBall,0)/totalInvest)*100).toFixed(2) : "-";
-
-    rows.push({
-      shop:"全台合算",
-      machineNo:"-",
-      playCount,
-      firstHitCount,
-      avgFirstHitG,
-      avgInvest,
-      totalIncome,
-      maxOutBall,
-      recoveryRate,
-      isAll:true
-    });
+    rows.push({shop:"全台合算",machineNo:"-",machineName:"-",gameType:"-",playCount,firstHitCount,avgFirstHitG,avgInvest,totalIncome,maxOutBall,recoveryRate,isAll:true});
   }
 
   Object.keys(grouped).sort().forEach(no=>{
     if(no==="__ALL__") return;
-    const records = grouped[no];
-    const shopName = records[0]?.shop || "-";
-    const playCount = records.length;
-    const firstHitRecords = records.filter(r=>r.firstHitGame>0);
-    const firstHitCount = firstHitRecords.length;
-    const avgFirstHitG = firstHitCount>0 ? (firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(2) : "-";
-    const avgInvest = firstHitCount>0 ? (firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(2) : "-";
-    const totalIncome = records.reduce((a,r)=>a+r.incomeYen,0);
-    const maxOutBall = records.reduce((a,r)=>Math.max(a,r.outBall),0);
-    const totalInvest = records.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
-    const recoveryRate = totalInvest>0 ? ((records.reduce((a,r)=>a+r.outBall,0)/totalInvest)*100).toFixed(2) : "-";
+    const recs=grouped[no];
+    const shopName=recs[0]?.shop||"-";
+    const playCount=recs.length;
+    const firstHitRecords=recs.filter(r=>r.firstHitGame>0);
+    const firstHitCount=firstHitRecords.length;
+    const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(2):"-";
+    const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(2):"-";
+    const totalIncome=recs.reduce((a,r)=>a+r.incomeYen||0,0);
+    const maxOutBall=recs.reduce((a,r)=>Math.max(a,r.outBall||0),0);
+    const totalInvest=recs.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
+    const recoveryRate=totalInvest>0?((recs.reduce((a,r)=>a+(r.outBall||0),0)/totalInvest)*100).toFixed(2):"-";
 
-    rows.push({
-      shop:shopName,
-      machineNo:no,
-      playCount,
-      firstHitCount,
-      avgFirstHitG,
-      avgInvest,
-      totalIncome,
-      maxOutBall,
-      recoveryRate,
-      isAll:false
-    });
+    rows.push({shop:shopName,machineNo:no,machineName:recs[0]?.machineName||"-",gameType:{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[recs[0]?.gameType]||"-",playCount,firstHitCount,avgFirstHitG,avgInvest,totalIncome,maxOutBall,recoveryRate,isAll:false});
   });
 
-  if(currentSortKey) {
-    rows.sort((a,b)=>{
-      if(a.isAll) return -1;
-      if(b.isAll) return 1;
-      const valA = isNaN(a[currentSortKey]) ? a[currentSortKey] : Number(a[currentSortKey]);
-      const valB = isNaN(b[currentSortKey]) ? b[currentSortKey] : Number(b[currentSortKey]);
-      if(valA<valB) return currentSortAsc?-1:1;
-      if(valA>valB) return currentSortAsc?1:-1;
-      return 0;
-    });
-  }
+  if(currentSortKey) rows.sort((a,b)=>{
+    if(a.isAll) return -1;
+    if(b.isAll) return 1;
+    const valA=isNaN(a[currentSortKey])?a[currentSortKey]:Number(a[currentSortKey]);
+    const valB=isNaN(b[currentSortKey])?b[currentSortKey]:Number(b[currentSortKey]);
+    return valA<valB?(currentSortAsc?-1:1):valA>valB?(currentSortAsc?1:-1):0;
+  });
 
   rows.forEach(r=>{
-    const tr = document.createElement("tr");
+    const tr=document.createElement("tr");
     if(r.isAll) tr.classList.add("bg-pink-100");
-    tr.innerHTML = `
+    tr.innerHTML=`
       <td class="border p-1">${r.shop}</td>
       <td class="border p-1">${r.machineNo}</td>
+      <td class="border p-1">${r.machineName}</td>
+      <td class="border p-1">${r.gameType}</td>
       <td class="border p-1">${r.playCount}</td>
       <td class="border p-1">${r.firstHitCount}</td>
       <td class="border p-1">${r.avgFirstHitG}</td>
@@ -479,9 +456,9 @@ function loadMachineData() {
 
 document.querySelectorAll("#machineData th[data-key]").forEach(th=>{
   th.addEventListener("click",()=>{
-    const key = th.dataset.key;
-    if(currentSortKey===key) currentSortAsc = !currentSortAsc;
-    else { currentSortKey=key; currentSortAsc=true; }
+    const k=th.dataset.key;
+    if(currentSortKey===k) currentSortAsc=!currentSortAsc;
+    else{currentSortKey=k;currentSortAsc=true;}
     loadMachineData();
   });
 });
@@ -491,5 +468,6 @@ document.getElementById("searchMachineBtn").addEventListener("click",e=>{
   loadMachineData();
 });
 </script>
+
 </body>
 </html>
