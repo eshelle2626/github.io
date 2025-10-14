@@ -97,30 +97,29 @@
       </form>
     </div>
 
-    <!-- 履歴タブ -->
-    <div id="history" class="tab-content hidden">
-
-     <div class="overflow-x-auto">
-      <table class="w-full border text-sm">
-        <thead class="bg-gray-200">
-          <tr>
-            <th class="border p-1">日付</th>
-            <th class="border p-1">店名</th>
-            <th class="border p-1">台番</th>
-            <th class="border p-1">機種名</th>
-            <th class="border p-1">種別</th>
-            <th class="border p-1">初当りG（自G）</th>
-            <th class="border p-1">回転率</th>
-            <th class="border p-1">投資</th>
-            <th class="border p-1">出玉</th>
-            <th class="border p-1">収支</th>
-            <th class="border p-1">削除</th>
-          </tr>
-        </thead>
-        <tbody id="recordList"></tbody>
-      </table>
-    </div>
-   </div>
+<!-- 履歴タブ -->
+<div id="history" class="tab-content hidden">
+  <div class="overflow-x-auto">
+    <table class="border text-sm min-w-[900px]">
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="border p-1">日付</th>
+          <th class="border p-1">店名</th>
+          <th class="border p-1">台番</th>
+          <th class="border p-1">機種名</th>
+          <th class="border p-1">種別</th>
+          <th class="border p-1">初当りG（自G）</th>
+          <th class="border p-1">回転率</th>
+          <th class="border p-1">投資</th>
+          <th class="border p-1">出玉</th>
+          <th class="border p-1">収支</th>
+          <th class="border p-1">削除</th>
+        </tr>
+      </thead>
+      <tbody id="recordList"></tbody>
+    </table>
+  </div>
+</div>
 
     <!-- 集計タブ -->
     <div id="summary" class="tab-content hidden">
@@ -164,29 +163,27 @@
           <div><button id="searchMachineBtn" class="bg-blue-500 text-white rounded px-3 py-1">検索</button></div>
         </form>
 
-        <div class="overflow-x-auto">
-        <table class="w-full border text-sm mt-2">
-          <thead class="bg-gray-200 cursor-pointer">
-            <tr>
-              <th class="border p-1" data-key="shop">店名</th>
-              <th class="border p-1" data-key="machineNo">台番号</th>
-              <th class="border p-1" data-key="machineName">機種名</th>
-              <th class="border p-1" data-key="gameType">種別</th>
-              <th class="border p-1" data-key="playCount">プレイ数</th>
-              <th class="border p-1" data-key="firstHitCount">初当り</th>
-              <th class="border p-1" data-key="avgFirstHitG">平均初当りG</th>
-              <th class="border p-1" data-key="avgInvest">平均初当り投資</th>
-              <th class="border p-1" data-key="totalIncome">合計収支</th>
-              <th class="border p-1" data-key="maxOutBall">最大出玉</th>
-              <th class="border p-1" data-key="recoveryRate">回収率(%)</th>
-              </tr>
-            </thead>
-            <tbody id="machineDataList"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+  <div class="overflow-x-auto">
+    <table class="border text-sm min-w-[900px] mt-2">
+      <thead class="bg-gray-200 cursor-pointer">
+        <tr>
+          <th class="border p-1" data-key="shop">店名</th>
+          <th class="border p-1" data-key="machineNo">台番号</th>
+          <th class="border p-1" data-key="machineName">機種名</th>
+          <th class="border p-1" data-key="gameType">種別</th>
+          <th class="border p-1" data-key="playCount">プレイ数</th>
+          <th class="border p-1" data-key="firstHitCount">初当り</th>
+          <th class="border p-1" data-key="avgFirstHitG">平均初当りG</th>
+          <th class="border p-1" data-key="avgInvest">平均初当り投資</th>
+          <th class="border p-1" data-key="totalIncome">合計収支</th>
+          <th class="border p-1" data-key="maxOutBall">最大出玉</th>
+          <th class="border p-1" data-key="recoveryRate">回収率(%)</th>
+        </tr>
+      </thead>
+      <tbody id="machineDataList"></tbody>
+    </table>
   </div>
+</div>
 
 <script>
 /* ===== JavaScript 完全版 ===== */
