@@ -173,11 +173,11 @@
           <th class="border p-1" data-key="gameType">種別</th>
           <th class="border p-1" data-key="playCount">プレイ数</th>
           <th class="border p-1" data-key="firstHitCount">初当り</th>
-          <th class="border p-1" data-key="avgFirstHitG">平均初当りG</th>
-          <th class="border p-1" data-key="avgInvest">平均初当り投資</th>
-          <th class="border p-1" data-key="totalIncome">合計収支</th>
+          <th class="border p-1" data-key="avgFirstHitG">平均当G</th>
+          <th class="border p-1" data-key="avgInvest">平均当投資</th>
+          <th class="border p-1" data-key="totalIncome">収支</th>
           <th class="border p-1" data-key="maxOutBall">最大出玉</th>
-          <th class="border p-1" data-key="recoveryRate">回収率(%)</th>
+          <th class="border p-1" data-key="recoveryRate">回収率</th>
         </tr>
       </thead>
       <tbody id="machineDataList"></tbody>
@@ -402,6 +402,8 @@ function loadMachineData(){
   });
 
   const rows=[];
+
+  // 全台合算
   if(!machineNo && filtered.length>0){
     const allRecords=filtered;
     const playCount=allRecords.length;
@@ -412,11 +414,25 @@ function loadMachineData(){
     const totalIncome=allRecords.reduce((a,r)=>a+r.incomeYen||0,0);
     const maxOutBall=allRecords.reduce((a,r)=>Math.max(a,r.outBall||0),0);
     const totalInvest=allRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
-    const recoveryRate=totalInvest>0?((allRecords.reduce((a,r)=>a+(r.outBall||0),0)/totalInvest)*100).toFixed(2):"-";
+    const recoveryRateValue=totalInvest>0?((allRecords.reduce((a,r)=>a+(r.outBall||0),0)/totalInvest)*100):null;
 
-    rows.push({shop:"全台合算",machineNo:"-",machineName:"-",gameType:"-",playCount,firstHitCount,avgFirstHitG,avgInvest,totalIncome,maxOutBall,recoveryRate,isAll:true});
+    rows.push({
+      shop:"全台合算",
+      machineNo:"-",
+      machineName:"-",
+      gameType:"-",
+      playCount,
+      firstHitCount,
+      avgFirstHitG,
+      avgInvest,
+      totalIncome,
+      maxOutBall,
+      recoveryRate: recoveryRateValue, // 数値で保持
+      isAll:true
+    });
   }
 
+  // 個別台
   Object.keys(grouped).sort().forEach(no=>{
     if(no==="__ALL__") return;
     const recs=grouped[no];
@@ -429,11 +445,25 @@ function loadMachineData(){
     const totalIncome=recs.reduce((a,r)=>a+r.incomeYen||0,0);
     const maxOutBall=recs.reduce((a,r)=>Math.max(a,r.outBall||0),0);
     const totalInvest=recs.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
-    const recoveryRate=totalInvest>0?((recs.reduce((a,r)=>a+(r.outBall||0),0)/totalInvest)*100).toFixed(2):"-";
+    const recoveryRateValue=totalInvest>0?((recs.reduce((a,r)=>a+(r.outBall||0),0)/totalInvest)*100):null;
 
-    rows.push({shop:shopName,machineNo:no,machineName:recs[0]?.machineName||"-",gameType:{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[recs[0]?.gameType]||"-",playCount,firstHitCount,avgFirstHitG,avgInvest,totalIncome,maxOutBall,recoveryRate,isAll:false});
+    rows.push({
+      shop:shopName,
+      machineNo:no,
+      machineName:recs[0]?.machineName||"-",
+      gameType:{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[recs[0]?.gameType]||"-",
+      playCount,
+      firstHitCount,
+      avgFirstHitG,
+      avgInvest,
+      totalIncome,
+      maxOutBall,
+      recoveryRate: recoveryRateValue,
+      isAll:false
+    });
   });
 
+  // ソート
   if(currentSortKey) rows.sort((a,b)=>{
     if(a.isAll) return -1;
     if(b.isAll) return 1;
@@ -442,9 +472,13 @@ function loadMachineData(){
     return valA<valB?(currentSortAsc?-1:1):valA>valB?(currentSortAsc?1:-1):0;
   });
 
+  // 描画
   rows.forEach(r=>{
     const tr=document.createElement("tr");
     if(r.isAll) tr.classList.add("bg-pink-100");
+    const recoveryText=r.recoveryRate!=null
+      ? ((r.recoveryRate-100)>=0?"+":"") + (r.recoveryRate-100).toFixed(2) + "%"
+      : "-";
     tr.innerHTML=`
       <td class="border p-1">${r.shop}</td>
       <td class="border p-1">${r.machineNo}</td>
@@ -456,7 +490,7 @@ function loadMachineData(){
       <td class="border p-1">${r.avgInvest}</td>
       <td class="border p-1">${r.totalIncome}</td>
       <td class="border p-1">${r.maxOutBall}</td>
-      <td class="border p-1">${r.recoveryRate}</td>
+      <td class="border p-1">${recoveryText}</td>
     `;
     tbody.appendChild(tr);
   });
