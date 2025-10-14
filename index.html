@@ -22,12 +22,18 @@
     <!-- 入力タブ -->
     <div id="input" class="tab-content">
       <form id="recordForm" class="space-y-3">
-        <!-- 1行目：日付3/8、店名3/8、台番号1/4 -->
-        <div class="grid grid-cols-8 gap-2">
-          <div class="col-span-3"><input type="text" id="date" class="border rounded w-full p-2" placeholder="日付 (YYYY-MM-DD)" required pattern="\d{4}-\d{2}-\d{2}"></div>
-          <div class="col-span-3"><input type="text" id="shop" class="border rounded w-full p-2" placeholder="店名" value="エスパス高田馬場"></div>
-          <div class="col-span-2"><input type="text" id="machineNo" class="border rounded w-full p-2" placeholder="台番号" inputmode="numeric" pattern="[0-9]*"></div>
-        </div>
+<!-- 1行目：日付110px、店名残り、台番号70px -->
+<div class="flex gap-2">
+  <div class="flex-none w-[130px]">
+    <input type="date" id="date" class="border rounded w-full p-2" required>
+  </div>
+  <div class="flex-1">
+    <input type="text" id="shop" class="border rounded w-full p-2" placeholder="店名" value="エスパス高田馬場">
+  </div>
+  <div class="flex-none w-[70px]">
+    <input type="text" id="machineNo" class="border rounded w-full p-2" placeholder="台番号" inputmode="numeric" pattern="[0-9]*">
+  </div>
+</div>
 
         <!-- 2行目 -->
         <div class="grid grid-cols-5 gap-2">
