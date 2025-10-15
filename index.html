@@ -2,14 +2,17 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>遊技記録アプリ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <style>
+input, select, textarea, button {
+  font-size: 16px; /* iPhone自動拡大防止 */
+}
+
 /* ===== 履歴・台データ共通 ===== */
 #machineData th, #machineData td,
 #recordList th, #recordList td {
@@ -29,7 +32,7 @@ table {
 
 <body class="bg-gray-100 p-4 min-h-screen">
   <div class="max-w-4xl mx-auto bg-white p-4 rounded-2xl shadow-lg">
-    <h1 class="text-xl font-bold mb-4">パワーアップバーンアウト</h1>
+    <h1 class="text-xl font-bold mb-4">パワーアップ</h1>
 
     <!-- タブ切替 -->
     <div class="flex border-b mb-4">
@@ -125,7 +128,7 @@ table {
 <table class="border text-sm min-w-[900px] table-fixed">
   <colgroup>
     <col style="width: 35px;">  <!-- 日付 -->
-    <col style="width: 45px;"> <!-- 店名 -->
+    <col style="width: 40px;"> <!-- 店名 -->
     <col style="width: 35px;">  <!-- 台番 -->
     <col style="width: 80px;"> <!-- 機種名 -->
     <col style="width: 35px;">  <!-- 種別 -->
