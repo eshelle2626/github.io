@@ -954,13 +954,19 @@ rows.push({
     const firstHitCount=firstHitRecords.length;
 
     // 平均回転率
-    let avgRotation = "-";
-    if(firstHitCount > 0){
-      const sumRotation = firstHitRecords.reduce((a,r)=>a+(r.rotation||0),0);
-      const unitMap = { slot46:"/46枚", slot5:"/50枚", pachi1:"/200玉", pachi4:"/250玉" };
-      const unit = unitMap[recs[0].gameType] || "";
-      avgRotation = (sumRotation / firstHitCount).toFixed(1) + "<br>" + unit;
-    }
+let totalRotation = 0;
+recs.forEach(r => {
+  const usedBalls = r.firstHitBall === null
+    ? (r.startBall + r.addBall - r.endBall)  // ヤメ時点での投資
+    : (r.startBall + r.addBall - r.firstHitBall); // 初当りあり
+  const totalG = r.firstHitGame && r.firstHitGame > 0
+    ? r.firstHitGame - r.startGame
+    : r.endBall - r.startGame; // ヤメ時点のG数
+  const base = investUnit[r.gameType] || 0;
+  const rotation = (usedBalls > 0 && totalG > 0) ? (totalG * base / usedBalls) : 0;
+  totalRotation += rotation;
+});
+avgRotation = (totalRotation / recs.length).toFixed(1);
 
     const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(1):"-";
     const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1):"-";
