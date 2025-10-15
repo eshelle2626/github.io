@@ -209,6 +209,7 @@ table {
         <col style="width: 40px;">  <!-- 種別 -->
         <col style="width: 30px;">  <!-- プレイ数 -->
         <col style="width: 30px;">  <!-- 初当り -->
+        <col style="width: 50px;">  <!-- 平均回転率 -->
         <col style="width: 60px;">  <!-- 平均当G -->
         <col style="width: 70px;">  <!-- 平均当投資 -->
         <col style="width: 80px;">  <!-- 合計収支 -->
@@ -217,17 +218,18 @@ table {
       </colgroup>
       <thead class="bg-gray-200">
         <tr>
-          <th class="border p-1">店名</th>
-          <th class="border p-1">台番</th>
-          <th class="border p-1">機種名</th>
-          <th class="border p-1">種別</th>
-          <th class="border p-1">プレイ数</th>
-          <th class="border p-1">初当り</th>
-          <th class="border p-1">平均当G</th>
-          <th class="border p-1">平均必要投資玉</th>
-          <th class="border p-1">合計玉収支</th>
-          <th class="border p-1">最大出玉</th>
-          <th class="border p-1">回収率</th>
+<th class="border p-1" data-key="shop">店名</th>
+<th class="border p-1" data-key="machineNo">台番</th>
+<th class="border p-1" data-key="machineName">機種名</th>
+<th class="border p-1" data-key="gameType">種別</th>
+<th class="border p-1" data-key="playCount">プレイ数</th>
+<th class="border p-1" data-key="firstHitCount">初<br>当り</th>
+<th class="border p-1" data-key="avgRotation">平均<br>回転率</th>
+<th class="border p-1" data-key="avgFirstHitG">平均当G</th>
+<th class="border p-1" data-key="avgInvest">平均<br>必要投資玉</th>
+<th class="border p-1" data-key="totalIncome">合計玉収支</th>
+<th class="border p-1" data-key="maxOutBall">最大出玉</th>
+<th class="border p-1" data-key="recoveryRate">回収率</th>
         </tr>
       </thead>
       <tbody id="machineDataList"></tbody>
@@ -281,6 +283,35 @@ document.querySelectorAll(".tab-button").forEach(btn=>{
 const form = document.getElementById("recordForm");
 const addBallInput = document.getElementById("addBall");
 const gameTypeSelect = document.getElementById("gameType");
+
+function updateSelectColor() {
+  switch (gameTypeSelect.value) {
+    case "slot5":
+      gameTypeSelect.classList.remove("bg-blue-200","bg-green-200","bg-yellow-200");
+      gameTypeSelect.classList.add("bg-blue-200");
+      break;
+    case "slot46":
+      gameTypeSelect.classList.remove("bg-red-200","bg-green-200","bg-yellow-200");
+      gameTypeSelect.classList.add("bg-red-200");
+      break;
+    case "pachi1":
+      gameTypeSelect.classList.remove("bg-red-200","bg-blue-200","bg-yellow-200");
+      gameTypeSelect.classList.add("bg-green-200");
+      break;
+    case "pachi4":
+      gameTypeSelect.classList.remove("bg-red-200","bg-blue-200","bg-green-200");
+      gameTypeSelect.classList.add("bg-yellow-200");
+      break;
+    default:
+      gameTypeSelect.classList.remove("bg-red-200","bg-blue-200","bg-green-200","bg-yellow-200");
+  }
+}
+
+// 初期表示用
+updateSelectColor();
+
+// 値変更時
+gameTypeSelect.addEventListener("change", updateSelectColor);
 
 document.getElementById("incBall").addEventListener("click",()=>{
   const type=gameTypeSelect.value;
@@ -448,6 +479,9 @@ function loadRecords(){
     const shopShort=r.shop?.length>6?r.shop.slice(0,10):r.shop||"";
     const invest=(r.startBall||0)+(r.addBall||0)-(r.firstHitBall||0);
 
+const rotationUnit = { slot46:"/46枚", slot5:"/50枚", pachi1:"/200玉", pachi4:"/250玉" };
+  const rotationText = (typeof r.rotation==="number" ? r.rotation.toFixed(1) : "0.00") + "<br>" + (rotationUnit[r.gameType]||"");
+
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td class="border p-1">${r.date?.slice(5)||""}</td>
@@ -455,12 +489,13 @@ function loadRecords(){
       <td class="border p-1">${r.machineNo||""}</td>
       <td class="border p-1">${r.machineName||""}</td>
       <td class="border p-1">${{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[r.gameType]||""}</td>
-      <td class="border p-1">${firstHitDisplay}（${selfG}）</td>
-      <td class="border p-1">${(typeof r.rotation==="number"?r.rotation.toFixed(1):"0.00")}</td>
+      <td class="border p-1">${firstHitDisplay}<br>（${selfG}）</td>
+      <td class="border p-1">${rotationText}</td>
       <td class="border p-1 text-right">${invest}</td>
       <td class="border p-1 text-right">${r.outBall||0}</td>
-      <td class="border p-1 text-right">${r.incomeText||"0（0円）"}</td>
-      <td class="border p-1 text-center"><button data-index="${i}" class="delete-btn text-red-500">削除</button></td>
+      <td class="border p-1 text-right ${r.incomeYen<0?'text-red-500':''}">${r.incomeText||"0（0円）"}</td>
+      <td class="border p-1 text-center bg-yellow-200"><button data-index="${i}" class="delete-btn text-red-500">削除</button></td>
+
     `;
     tbody.appendChild(tr);
   });
@@ -599,6 +634,7 @@ function loadMachineData(){
     const playCount=allRecords.length;
     const firstHitRecords=allRecords.filter(r=>r.firstHitGame>0);
     const firstHitCount=firstHitRecords.length;
+    const avgRotation = "-"
     const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(1):"-";
     const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1):"-";
     const totalIncome=allRecords.reduce((a,r)=>a+r.incomeYen||0,0);
@@ -615,9 +651,10 @@ function loadMachineData(){
       firstHitCount,
       avgFirstHitG,
       avgInvest,
-      totalIncome,
-      maxOutBall,
-      recoveryRate: recoveryRateValue, // 数値で保持
+  avgRotation,       // ← 追加
+  totalIncome,
+  maxOutBall,
+  recoveryRate: recoveryRateValue, // 数値で保持
       isAll:true
     });
   }
@@ -630,6 +667,14 @@ function loadMachineData(){
     const playCount=recs.length;
     const firstHitRecords=recs.filter(r=>r.firstHitGame>0);
     const firstHitCount=firstHitRecords.length;
+  let avgRotation = "-";
+  if(firstHitCount > 0){
+    const sumRotation = firstHitRecords.reduce((a,r)=>a+(r.rotation||0),0);
+    const unitMap = { slot46:"/46枚", slot5:"/50枚", pachi1:"/200玉", pachi4:"/250玉" };
+    const unit = unitMap[recs[0].gameType] || "";
+    avgRotation = sumRotation / firstHitCount;
+    avgRotation = avgRotation.toFixed(1) + "<br>" + unit;
+  }
     const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(1):"-";
     const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1):"-";
     const totalIncome=recs.reduce((a,r)=>a+r.incomeYen||0,0);
@@ -646,6 +691,7 @@ function loadMachineData(){
       firstHitCount,
       avgFirstHitG,
       avgInvest,
+      avgRotation,
       totalIncome,
       maxOutBall,
       recoveryRate: recoveryRateValue,
@@ -669,18 +715,23 @@ function loadMachineData(){
     const recoveryText=r.recoveryRate!=null
       ? ((r.recoveryRate-100)>=0?"+":"") + (r.recoveryRate-100).toFixed(1) + "%"
       : "-";
+
+const recoveryClass = (r.recoveryRate-100)<0 ? "text-red-500" : "";
+const totalIncomeClass = r.totalIncome < 0 ? "text-red-500" : "";
+
     tr.innerHTML=`
-      <td class="border p-1">${r.shop}</td>
-      <td class="border p-1">${r.machineNo}</td>
-      <td class="border p-1">${r.machineName}</td>
-      <td class="border p-1">${r.gameType}</td>
-      <td class="border p-1">${r.playCount}</td>
-      <td class="border p-1">${r.firstHitCount}</td>
-      <td class="border p-1">${r.avgFirstHitG}</td>
-      <td class="border p-1">${r.avgInvest}</td>
-      <td class="border p-1">${r.totalIncome}</td>
-      <td class="border p-1">${r.maxOutBall}</td>
-      <td class="border p-1">${recoveryText}</td>
+  <td class="border p-1">${r.shop}</td>
+  <td class="border p-1">${r.machineNo}</td>
+  <td class="border p-1">${r.machineName}</td>
+  <td class="border p-1">${r.gameType}</td>
+  <td class="border p-1">${r.playCount}</td>
+  <td class="border p-1">${r.firstHitCount}</td>
+  <td class="border p-1">${r.avgRotation}</td>
+  <td class="border p-1">${r.avgFirstHitG}</td>
+  <td class="border p-1">${r.avgInvest}</td>
+  <td class="border p-1 ${totalIncomeClass}">${r.totalIncome}</td>
+  <td class="border p-1">${r.maxOutBall}</td>
+  <td class="border p-1 ${recoveryClass}">${recoveryText}</td>
     `;
     tbody.appendChild(tr);
   });
