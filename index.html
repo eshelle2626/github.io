@@ -9,23 +9,21 @@
 </head>
 
 <style>
-/* 台データ・履歴両方に適用 */
+/* ===== 履歴・台データ共通 ===== */
 #machineData th, #machineData td,
 #recordList th, #recordList td {
-  white-space: normal; /* 折り返し */
+  white-space: normal; /* 折り返し有効 */
   word-break: break-word;
+  text-align: center;
+  padding: 4px;
 }
 
-/* 列ごとの最大幅 */
-.col-shop { max-width: 80px; }
-.col-date, .col-machineNo, .col-gameType { max-width: 60px; }
-.col-machineName { max-width: 100px; }
-.col-firstHitG { max-width: 40px; }
-.col-income { max-width: 80px; }
-.col-playCount, .col-firstHitCount { max-width: 30px; }
+/* ✅ 自動幅に戻す */
+table {
+  table-layout: auto;
+  width: 100%;
+}
 
-/* 横スクロールが出る場合はテーブル全体に */
-table { table-layout: fixed; }
 </style>
 
 <body class="bg-gray-100 p-4 min-h-screen">
@@ -76,11 +74,11 @@ table { table-layout: fixed; }
             <input type="text" id="startGame" class="border rounded w-full p-2" inputmode="numeric" pattern="[0-9]*">
           </div>
           <div>
-            <label class="block text-sm font-semibold">開始玉数</label>
+            <label class="block text-sm font-semibold">開始時玉数</label>
             <input type="text" id="startBall" class="border rounded w-full p-2" inputmode="numeric" pattern="[0-9]*">
           </div>
           <div>
-            <label class="block text-sm font-semibold">追加玉数</label>
+            <label class="block text-sm font-semibold">追加玉</label>
             <input type="text" id="addBall" class="border rounded w-full p-2 bg-gray-100" value="0" inputmode="numeric" pattern="[0-9]*">
             <div class="flex justify-between mt-1">
               <button type="button" id="decBall" class="bg-blue-500 text-white rounded px-3 py-1 w-1/2 mr-1">-</button>
@@ -92,53 +90,68 @@ table { table-layout: fixed; }
         <!-- 4行目 -->
         <div class="grid grid-cols-6 gap-2 items-end">
           <div class="col-span-2">
-            <label class="block text-sm font-semibold">初当りG数</label>
+            <label class="block text-sm font-semibold">初当り/ヤメG数</label>
             <input type="text" id="firstHitGame" class="border rounded w-full p-2" inputmode="numeric" pattern="[0-9]*">
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-semibold">初当り玉数</label>
+            <label class="block text-sm font-semibold">初当り時玉数</label>
             <input type="text" id="firstHitBall" class="border rounded w-full p-2" inputmode="numeric" pattern="[0-9]*">
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-semibold">終了玉数</label>
+            <label class="block text-sm font-semibold">終了時玉数</label>
             <input type="text" id="endBall" class="border rounded w-full p-2 bg-pink-50" inputmode="numeric" pattern="[0-9]*">
           </div>
         </div>
 
-        <!-- 回転率・収支 + 登録ボタン -->
-        <div class="mt-2 text-lg font-bold">
-          <div class="flex justify-between">
-            <div id="rotationDisplay">回転率：0.00</div>
-            <div id="incomeDisplay">玉数（円）：0（0円）</div>
-          </div>
-          <div class="flex justify-end mt-2">
-            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white rounded w-16 py-1">登録</button>
-          </div>
-        </div>
+<!-- 回転率・収支 + 登録ボタン -->
+<div class="mt-2 text-lg font-bold">
+  <div class="flex justify-between">
+    <div id="rotationDisplay">回転率：0.00</div>
+    <div id="incomeDisplay">玉数（円）：0（0円）</div>
+  </div>
+  <div class="flex justify-between mt-2">
+    <button type="button" id="clearBtn" class="bg-gray-400 hover:bg-gray-500 text-white rounded w-16 py-1">クリア</button>
+    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white rounded w-16 py-1">登録</button>
+  </div>
+</div>
+
       </form>
     </div>
 
 <!-- 履歴タブ -->
 <div id="history" class="tab-content hidden">
   <div class="overflow-x-auto">
-    <table class="border text-sm min-w-[900px]">
-     <thead class="bg-gray-200">
-  <tr>
-    <th class="border p-1 col-date">日付</th>
-    <th class="border p-1 col-shop">店名</th>
-    <th class="border p-1 col-machineNo">台番</th>
-    <th class="border p-1 col-machineName">機種名</th>
-    <th class="border p-1 col-gameType">種別</th>
-    <th class="border p-1 col-firstHitG">初当りG（自G）</th>
-    <th class="border p-1 col-firstHitG">回転率</th>
-    <th class="border p-1 col-playCount">投資</th>
-    <th class="border p-1 col-income">出玉</th>
-    <th class="border p-1 col-income">収支</th>
-    <th class="border p-1">削除</th>
-  </tr>
-</thead>
-      <tbody id="recordList"></tbody>
-    </table>
+<table class="border text-sm min-w-[900px] table-fixed">
+  <colgroup>
+    <col style="width: 40px;">  <!-- 日付 -->
+    <col style="width: 60px;"> <!-- 店名 -->
+    <col style="width: 30px;">  <!-- 台番 -->
+    <col style="width: 120px;"> <!-- 機種名 -->
+    <col style="width: 40px;">  <!-- 種別 -->
+    <col style="width: 50px;">  <!-- 初当りG -->
+    <col style="width: 50px;">  <!-- 回転率 -->
+    <col style="width: 60px;">  <!-- 投資 -->
+    <col style="width: 60px;">  <!-- 出玉 -->
+    <col style="width: 110px;">  <!-- 収支 -->
+    <col style="width: 40px;">  <!-- 削除 -->
+  </colgroup>
+  <thead class="bg-gray-200">
+    <tr>
+      <th class="border p-1">日付</th>
+      <th class="border p-1">店名</th>
+      <th class="border p-1">台番</th>
+      <th class="border p-1">機種名</th>
+      <th class="border p-1">種別</th>
+      <th class="border p-1">初当りG（自G）</th>
+      <th class="border p-1">回転率</th>
+      <th class="border p-1">投資玉</th>
+      <th class="border p-1">出玉</th>
+      <th class="border p-1">収支</th>
+      <th class="border p-1">削除</th>
+    </tr>
+  </thead>
+  <tbody id="recordList"></tbody>
+</table>
   </div>
 </div>
 
@@ -146,6 +159,9 @@ table { table-layout: fixed; }
     <div id="summary" class="tab-content hidden">
       <div class="space-y-3">
         <div class="text-lg font-semibold">総収支（円）：<span id="totalYen" class="font-bold text-blue-600">0</span></div>
+<div class="text-lg font-semibold">
+  現在資産残高（円）：<span id="totalAssetYen" class="font-bold text-green-600">0円</span>
+</div>
         <div class="grid grid-cols-2 gap-2 text-sm">
           <div>46枚スロット残高：<span id="bal46">0</span></div>
           <div>5円スロット残高：<span id="bal5">0</span></div>
@@ -185,23 +201,35 @@ table { table-layout: fixed; }
         </form>
 
   <div class="overflow-x-auto">
-    <table class="border text-sm min-w-[900px] mt-2">
-     <thead class="bg-gray-200 cursor-pointer">
-  <tr>
-    <th class="border p-1 col-shop" data-key="shop">店名</th>
-    <th class="border p-1 col-machineNo" data-key="machineNo">台番</th>
-    <th class="border p-1 col-machineName" data-key="machineName">機種名</th>
-    <th class="border p-1 col-gameType" data-key="gameType">種別</th>
-    <th class="border p-1 col-playCount" data-key="playCount">プレイ数</th>
-    <th class="border p-1 col-firstHitCount" data-key="firstHitCount">初当り</th>
-    <th class="border p-1 col-firstHitG" data-key="avgFirstHitG">平均当G</th>
-    <th class="border p-1 col-firstHitG" data-key="avgInvest">平均当投資</th>
-    <th class="border p-1 col-income" data-key="totalIncome">合計収支</th>
-    <th class="border p-1 col-income" data-key="maxOutBall">最大出玉</th>
-    <th class="border p-1 col-income" data-key="recoveryRate">回収率</th>
-  </tr>
-</thead>
-
+    <table class="border text-sm min-w-[900px] table-fixed mt-2">
+      <colgroup>
+        <col style="width: 60px;"> <!-- 店名 -->
+        <col style="width: 30px;">  <!-- 台番 -->
+        <col style="width: 120px;"> <!-- 機種名 -->
+        <col style="width: 40px;">  <!-- 種別 -->
+        <col style="width: 30px;">  <!-- プレイ数 -->
+        <col style="width: 30px;">  <!-- 初当り -->
+        <col style="width: 60px;">  <!-- 平均当G -->
+        <col style="width: 70px;">  <!-- 平均当投資 -->
+        <col style="width: 80px;">  <!-- 合計収支 -->
+        <col style="width: 80px;">  <!-- 最大出玉 -->
+        <col style="width: 60px;">  <!-- 回収率 -->
+      </colgroup>
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="border p-1">店名</th>
+          <th class="border p-1">台番</th>
+          <th class="border p-1">機種名</th>
+          <th class="border p-1">種別</th>
+          <th class="border p-1">プレイ数</th>
+          <th class="border p-1">初当り</th>
+          <th class="border p-1">平均当G</th>
+          <th class="border p-1">平均必要投資玉</th>
+          <th class="border p-1">合計玉収支</th>
+          <th class="border p-1">最大出玉</th>
+          <th class="border p-1">回収率</th>
+        </tr>
+      </thead>
       <tbody id="machineDataList"></tbody>
     </table>
   </div>
@@ -209,8 +237,15 @@ table { table-layout: fixed; }
 
 <script>
 /* ===== JavaScript 完全版 ===== */
+const fmt1 = v => (isNaN(v) || v === null || v === "") ? "-" : Number(v).toFixed(1);
 const key = "pachi_records";
-const rate = {pachi4:280, pachi1:1120, slot46:52, slot5:224};
+// 1玉・1枚あたりの円換算レート
+const rate = {
+  pachi1: 0.892,    // 1円パチンコ
+  pachi4: 3.568,    // 4円パチンコ
+  slot46: 19.23,    // 46枚スロット
+  slot5: 4.42       // 5円スロット
+};
 const step = {pachi4:125, pachi1:100, slot46:46, slot5:100};
 const investUnit = {pachi4:250, pachi1:200, slot46:46, slot5:200};
 
@@ -221,15 +256,26 @@ dateInput.value = today.toISOString().slice(0,10);
 // タブ切替
 document.querySelectorAll(".tab-button").forEach(btn=>{
   btn.addEventListener("click",()=>{
-    document.querySelectorAll(".tab-button").forEach(b=>b.classList.remove("border-blue-500","text-blue-500","font-semibold"));
-    btn.classList.add("border-blue-500","text-blue-500","font-semibold");
+    // 全タブボタンの見た目をリセット
+    document.querySelectorAll(".tab-button").forEach(b=>{
+      b.classList.remove("border-blue-500","text-blue-500","font-semibold","bg-blue-100");
+      b.classList.add("text-gray-500");
+    });
+    // 選択中タブを強調
+    btn.classList.add("border-blue-500","text-blue-500","font-semibold","bg-blue-100");
+    btn.classList.remove("text-gray-500");
+
+    // コンテンツ切替
     document.querySelectorAll(".tab-content").forEach(c=>c.classList.add("hidden"));
     document.getElementById(btn.dataset.tab).classList.remove("hidden");
+
+    // 各タブ読み込み処理
     if(btn.dataset.tab==="history") loadRecords();
     if(btn.dataset.tab==="summary") updateSummary();
     if(btn.dataset.tab==="machineData") loadMachineData();
   });
 });
+
 
 // 入力処理
 const form = document.getElementById("recordForm");
@@ -247,68 +293,146 @@ document.getElementById("decBall").addEventListener("click",()=>{
   updateIncome();
 });
 
-function updateIncome(){
-  const startGame=Number(form.startGame.value||0);
-  const firstHitGame=Number(form.firstHitGame.value||0);
-  const startBall=Number(form.startBall.value||0);
-  const addBall=Number(form.addBall.value||0);
-  const firstHitBall=Number(form.firstHitBall.value||0);
-  const endBall=Number(form.endBall.value||0);
-  const type=gameTypeSelect.value;
+function updateIncome() {
+  const startBall = Number(form.startBall.value) || 0;
+  const endBall = Number(form.endBall.value) || 0;
+  const addBall = Number(form.addBall.value) || 0;
+  const firstHitBall = form.firstHitBall.value === "" ? null : Number(form.firstHitBall.value);
+  const startG = Number(form.startGame.value) || 0;
+  const endG = Number(form.firstHitGame.value) || 0;
+  const type = form.gameType.value;
 
-  const diff=endBall-(startBall+addBall);
-  const yen=rate[type]?Math.round((diff/rate[type])*1000):0;
-  document.getElementById("incomeDisplay").textContent=`玉数（円）：${diff}（${yen}円）`;
+  // 使用玉数（初当り玉数が空欄 → 終了時玉数を使う）
+  let usedBalls;
+  if (firstHitBall === null || isNaN(firstHitBall)) {
+    usedBalls = (startBall + addBall) - endBall;
+  } else {
+    usedBalls = (startBall + addBall) - firstHitBall;
+  }
+  if (usedBalls < 0) usedBalls = 0;
 
-  const invest=startBall+addBall-firstHitBall;
-  const gameDiff=firstHitGame-startGame;
-  let rotation=0;
-  if(invest>0 && gameDiff>0 && investUnit[type]) rotation=(gameDiff/invest)*investUnit[type];
-  document.getElementById("rotationDisplay").textContent=`回転率：${rotation.toFixed(2)}`;
+  // 回転率計算
+  const totalG = endG - startG;
+  let rotationRate = 0;
+  let rateUnit = "";
+
+  if (usedBalls > 0 && totalG > 0) {
+    switch (type) {
+      case "slot46":
+        rotationRate = (totalG / usedBalls) * 46;
+        rateUnit = "/46枚";
+        break;
+      case "slot5":
+        rotationRate = (totalG / usedBalls) * 50;
+        rateUnit = "/50枚";
+        break;
+      case "pachi1":
+        rotationRate = (totalG / usedBalls) * 200;
+        rateUnit = "/200玉";
+        break;
+      case "pachi4":
+        rotationRate = (totalG / usedBalls) * 250;
+        rateUnit = "/250玉";
+        break;
+    }
+  }
+
+  document.getElementById("rotationDisplay").textContent =
+    "回転率：" + (rotationRate ? rotationRate.toFixed(1) + "回" + rateUnit : "-");
+
+  // 収支
+  const diff = endBall - (startBall + addBall);
+  const yen = rate[type] ? Math.round(diff * rate[type]) : 0;
+  document.getElementById("incomeDisplay").textContent = `玉数（円）：${diff}（${yen}円）`;
 }
 
 ["startBall","endBall","addBall","startGame","gameType","firstHitBall","firstHitGame"].forEach(id=>{
   document.getElementById(id).addEventListener("input",updateIncome);
 });
 
-form.addEventListener("submit",(e)=>{
+// 登録ボタン押下時の処理
+form.addEventListener("submit", (e) => {
   e.preventDefault();
-  if(!confirm("登録しますか？")) return;
 
-  const record={
+  if (!form.endBall.value) {
+    alert("終了時玉数を入力してください。");
+    return;
+  }
+  if (!confirm("登録しますか？")) return;
+
+  const record = {
     date: form.date.value,
-    shop: form.shop.value||"",
-    machineNo: form.machineNo.value||"",
-    machineName: form.machineName.value||"",
+    shop: form.shop.value || "",
+    machineNo: form.machineNo.value || "",
+    machineName: form.machineName.value || "",
     gameType: form.gameType.value,
-    startGame:Number(form.startGame.value||0),
-    startBall:Number(form.startBall.value||0),
-    addBall:Number(form.addBall.value||0),
-    firstHitGame:Number(form.firstHitGame.value||0),
-    firstHitBall:Number(form.firstHitBall.value||0),
-    endBall:Number(form.endBall.value||0),
-    created:new Date().toISOString()
+    startGame: Number(form.startGame.value) || 0,
+    startBall: Number(form.startBall.value) || 0,
+    addBall: Number(form.addBall.value) || 0,
+    firstHitGame: Number(form.firstHitGame.value) || 0,
+    firstHitBall: form.firstHitBall.value === "" ? null : Number(form.firstHitBall.value),
+    endBall: Number(form.endBall.value) || 0,
+    created: new Date().toISOString()
   };
 
-  record.outBall=record.endBall-record.firstHitBall;
-  const diff=record.endBall-(record.startBall+record.addBall);
-  const yen=rate[record.gameType]?Math.round((diff/rate[record.gameType])*1000):0;
-  record.incomeYen=yen;
-  record.incomeText=`${diff}（${yen}円）`;
-  const invest=record.startBall+record.addBall-record.firstHitBall;
-  const gameDiff=record.firstHitGame-record.startGame;
-  record.rotation=invest>0&&gameDiff>0&&investUnit[record.gameType]?(gameDiff/invest)*investUnit[record.gameType]:0;
+  // outBall 計算
+  if (record.firstHitBall === null) record.outBall = 0;
+  else record.outBall = Math.max(0, record.endBall - record.firstHitBall);
 
-  const data=JSON.parse(localStorage.getItem(key)||"[]");
+  // rotation 計算
+  const totalG = (record.firstHitGame && record.firstHitGame > 0 ? record.firstHitGame : record.endBall) - record.startGame;
+  const type = record.gameType;
+  const base = investUnit[type] || 0;
+  const usedBalls = (record.startBall + record.addBall) - (record.firstHitBall || record.endBall);
+  record.rotation = (usedBalls > 0 && totalG > 0) ? Number(((totalG * base) / usedBalls).toFixed(1)) : 0;
+
+  // 収支
+  const diff = record.endBall - (record.startBall + record.addBall);
+  record.incomeYen = rate[type] ? Math.round(diff * rate[type]) : 0;
+  record.incomeText = `${diff}（${record.incomeYen}円）`;
+
+  // 保存
+  const data = JSON.parse(localStorage.getItem(key) || "[]");
   data.push(record);
-  localStorage.setItem(key,JSON.stringify(data));
+  localStorage.setItem(key, JSON.stringify(data));
 
+  // 前回値保持
+  localStorage.setItem("lastShop", record.shop);
+  localStorage.setItem("lastMachineNo", record.machineNo);
+  localStorage.setItem("lastModelName", record.machineName);
+  localStorage.setItem("lastGameType", record.gameType);
+
+  // リセット
   form.reset();
-  form.shop.value="エスパス高田馬場";
-  addBallInput.value=0;
-  dateInput.value=today.toISOString().slice(0,10);
+  form.shop.value = localStorage.getItem("lastShop") || "エスパス高田馬場";
+  form.machineNo.value = localStorage.getItem("lastMachineNo") || "";
+  form.machineName.value = localStorage.getItem("lastModelName") || "";
+  form.gameType.value = localStorage.getItem("lastGameType") || "slot5";
+  addBallInput.value = 0;
+  dateInput.value = today.toISOString().slice(0,10);
   updateIncome();
+
+  loadRecords();
+  updateSummary();
 });
+
+
+// クリアボタン
+document.getElementById("clearBtn").addEventListener("click", () => {
+  if (!confirm("入力内容をクリアしますか？")) return;
+  form.reset();
+  form.shop.value = "エスパス高田馬場";
+  addBallInput.value = 0;
+  dateInput.value = today.toISOString().slice(0, 10);
+  updateIncome();
+
+  // 保存していた前回値を削除
+  localStorage.removeItem("lastShop");
+  localStorage.removeItem("lastMachineNo");
+  localStorage.removeItem("lastModelName");
+  localStorage.removeItem("lastGameType");
+});
+
 
 // ===== 履歴 =====
 function loadRecords(){
@@ -317,8 +441,11 @@ function loadRecords(){
   const data=JSON.parse(localStorage.getItem(key)||"[]").slice(-100).reverse();
 
   data.forEach((r,i)=>{
-    const selfG=(r.firstHitGame||0)-(r.startGame||0);
-    const shopShort=r.shop?.length>6?r.shop.slice(0,6)+"…":r.shop||"";
+    const selfG = (r.firstHitGame || r.endBall || 0) - (r.startGame || 0); // 自G数計算
+    const firstHitDisplay = r.firstHitGame
+  ? r.firstHitGame // 初当りあり
+  : "ヤメ";        // 初当りなし
+    const shopShort=r.shop?.length>6?r.shop.slice(0,10):r.shop||"";
     const invest=(r.startBall||0)+(r.addBall||0)-(r.firstHitBall||0);
 
     const tr=document.createElement("tr");
@@ -328,8 +455,8 @@ function loadRecords(){
       <td class="border p-1">${r.machineNo||""}</td>
       <td class="border p-1">${r.machineName||""}</td>
       <td class="border p-1">${{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[r.gameType]||""}</td>
-      <td class="border p-1">${r.firstHitGame||0}（${selfG}）</td>
-      <td class="border p-1">${(typeof r.rotation==="number"?r.rotation.toFixed(2):"0.00")}</td>
+      <td class="border p-1">${firstHitDisplay}（${selfG}）</td>
+      <td class="border p-1">${(typeof r.rotation==="number"?r.rotation.toFixed(1):"0.00")}</td>
       <td class="border p-1 text-right">${invest}</td>
       <td class="border p-1 text-right">${r.outBall||0}</td>
       <td class="border p-1 text-right">${r.incomeText||"0（0円）"}</td>
@@ -356,36 +483,77 @@ function loadRecords(){
 // ===== 集計 =====
 let chart;
 function updateSummary(period="all"){
-  const data=JSON.parse(localStorage.getItem(key)||"[]");
-  const now=new Date();
-  const filtered=data.filter(r=>{
+  const data = JSON.parse(localStorage.getItem(key)||"[]");
+  const now = new Date();
+
+  // フィルター
+  const filtered = data.filter(r=>{
     if(period==="all") return true;
-    const d=new Date(r.date);
-    const diffM=(now-d)/(1000*60*60*24*30);
-    return diffM<=Number(period);
+    const d = new Date(r.date);
+    const diffM = (now - d) / (1000*60*60*24*30);
+    return diffM <= Number(period);
   });
 
-  filtered.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const labels=filtered.map(r=>r.date);
-  let sum=0;
-  const sumArr=filtered.map(r=>{sum+=r.incomeYen||0;return sum;});
+  // 日付ごとに合算
+  const dailySum = {};
+  filtered.forEach(r=>{
+    const day = r.date; // yyyy-mm-dd
+    if(!dailySum[day]) dailySum[day] = 0;
+    dailySum[day] += r.incomeYen || 0;
+  });
 
-  const ctx=document.getElementById("chart").getContext("2d");
+  // 日付でソート
+  const dates = Object.keys(dailySum).sort();
+  let sum = 0;
+  const sumArr = [];
+  const labels = [];
+
+  dates.forEach(d => {
+    sum += dailySum[d];
+    sumArr.push(sum);
+
+    const dt = new Date(d);
+    const mm = String(dt.getMonth() + 1).padStart(2,'0');
+    const dd = String(dt.getDate()).padStart(2,'0');
+    labels.push(`${mm}/${dd}`);
+  });
+
+  // グラフ描画
+  const ctx = document.getElementById("chart").getContext("2d");
   if(chart) chart.destroy();
-  chart=new Chart(ctx,{
-    type:"line",
-    data:{labels,datasets:[{label:"収支推移",data:sumArr,borderColor:"blue",tension:0.1}]},
-    options:{responsive:true,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}
+  chart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets:[{label:"収支推移", data:sumArr, borderColor:"blue", tension:0.1}] },
+    options: { responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}} }
   });
 
-  document.getElementById("totalYen").textContent=sum;
+  document.getElementById("totalYen").textContent = sum;
 
-  const balances={slot46:0,slot5:0,pachi4:0,pachi1:0};
-  filtered.forEach(r=>{if(r.gameType && balances[r.gameType]!==undefined) balances[r.gameType]+=r.incomeYen||0;});
-  document.getElementById("bal46").textContent=balances.slot46;
-  document.getElementById("bal5").textContent=balances.slot5;
-  document.getElementById("bal4").textContent=balances.pachi4;
-  document.getElementById("bal1").textContent=balances.pachi1;
+// 種別ごとの玉数残高計算（追加玉 + 収支の累積）
+const balances = {slot46:0, slot5:0, pachi4:0, pachi1:0};
+filtered.forEach(r => {
+  if (!r.gameType || balances[r.gameType] === undefined) return;
+  // 玉数収支 = endBall - (startBall + addBall)
+  const diff = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
+  balances[r.gameType] += (r.addBall || 0) + diff;
+});
+
+  document.getElementById("bal46").textContent = balances.slot46;
+  document.getElementById("bal5").textContent = balances.slot5;
+  document.getElementById("bal4").textContent = balances.pachi4;
+  document.getElementById("bal1").textContent = balances.pachi1;
+
+  // 現在資産残高（円）を計算して表示
+  let totalAssetYen = 0;
+  for(const type of ["slot46","slot5","pachi4","pachi1"]){
+  const ball = balances[type]; // 残高（玉数）
+  const yen = rate[type] ? Math.round(ball * rate[type]) : 0; // ここが重要！
+  totalAssetYen += yen;
+}
+document.getElementById("totalAssetYen").textContent = totalAssetYen.toLocaleString() + "円";
+
+
+  document.getElementById("totalYen").textContent = sum;
 }
 
 document.querySelectorAll(".period-btn").forEach(btn=>{
@@ -431,8 +599,8 @@ function loadMachineData(){
     const playCount=allRecords.length;
     const firstHitRecords=allRecords.filter(r=>r.firstHitGame>0);
     const firstHitCount=firstHitRecords.length;
-    const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(2):"-";
-    const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(2):"-";
+    const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(1):"-";
+    const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1):"-";
     const totalIncome=allRecords.reduce((a,r)=>a+r.incomeYen||0,0);
     const maxOutBall=allRecords.reduce((a,r)=>Math.max(a,r.outBall||0),0);
     const totalInvest=allRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
@@ -462,8 +630,8 @@ function loadMachineData(){
     const playCount=recs.length;
     const firstHitRecords=recs.filter(r=>r.firstHitGame>0);
     const firstHitCount=firstHitRecords.length;
-    const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(2):"-";
-    const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(2):"-";
+    const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(1):"-";
+    const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1):"-";
     const totalIncome=recs.reduce((a,r)=>a+r.incomeYen||0,0);
     const maxOutBall=recs.reduce((a,r)=>Math.max(a,r.outBall||0),0);
     const totalInvest=recs.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0);
@@ -499,7 +667,7 @@ function loadMachineData(){
     const tr=document.createElement("tr");
     if(r.isAll) tr.classList.add("bg-pink-100");
     const recoveryText=r.recoveryRate!=null
-      ? ((r.recoveryRate-100)>=0?"+":"") + (r.recoveryRate-100).toFixed(2) + "%"
+      ? ((r.recoveryRate-100)>=0?"+":"") + (r.recoveryRate-100).toFixed(1) + "%"
       : "-";
     tr.innerHTML=`
       <td class="border p-1">${r.shop}</td>
