@@ -527,7 +527,7 @@ function updateSummary(period="all"){
     options: { responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}} }
   });
 
-  document.getElementById("totalYen").textContent = sum;
+  document.getElementById("totalYen").textContent = sum.toLocaleString() + "円";
 
 // 種別ごとの玉数残高計算（追加玉 + 収支の累積）
 const balances = {slot46:0, slot5:0, pachi4:0, pachi1:0};
@@ -538,10 +538,10 @@ filtered.forEach(r => {
   balances[r.gameType] += (r.addBall || 0) + diff;
 });
 
-  document.getElementById("bal46").textContent = balances.slot46;
-  document.getElementById("bal5").textContent = balances.slot5;
-  document.getElementById("bal4").textContent = balances.pachi4;
-  document.getElementById("bal1").textContent = balances.pachi1;
+document.getElementById("bal46").textContent = balances.slot46.toLocaleString() + "枚";
+document.getElementById("bal5").textContent = balances.slot5.toLocaleString() + "枚";
+document.getElementById("bal4").textContent = balances.pachi4.toLocaleString() + "玉";
+document.getElementById("bal1").textContent = balances.pachi1.toLocaleString() + "玉";
 
   // 現在資産残高（円）を計算して表示
   let totalAssetYen = 0;
@@ -553,7 +553,7 @@ filtered.forEach(r => {
 document.getElementById("totalAssetYen").textContent = totalAssetYen.toLocaleString() + "円";
 
 
-  document.getElementById("totalYen").textContent = sum;
+  document.getElementById("totalYen").textContent = sum.toLocaleString() + "円";
 }
 
 document.querySelectorAll(".period-btn").forEach(btn=>{
