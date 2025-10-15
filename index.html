@@ -9,9 +9,6 @@
 </head>
 
 <style>
-input, select, textarea, button {
-  font-size: 16px; /* iPhone自動拡大防止 */
-}
 
 /* ===== 履歴・台データ共通 ===== */
 #machineData th, #machineData td,
@@ -32,7 +29,7 @@ table {
 
 <body class="bg-gray-100 p-4 min-h-screen">
   <div class="max-w-4xl mx-auto bg-white p-4 rounded-2xl shadow-lg">
-    <h1 class="text-xl font-bold mb-4">パワーアップ</h1>
+    <h1 class="text-xl font-bold mb-4">パワーアップバーンアウト</h1>
 
     <!-- タブ切替 -->
     <div class="flex border-b mb-4">
@@ -110,8 +107,8 @@ table {
 <!-- 回転率・収支 + 登録ボタン -->
 <div class="mt-2 text-lg font-bold">
   <div class="flex justify-between">
-    <div id="rotationDisplay">回転率：0.00</div>
-    <div id="incomeDisplay">玉数（円）：0（0円）</div>
+    <div id="rotationDisplay">回転率：<br>0.00</div>
+    <div id="incomeDisplay">現在収支：<br>0（0円）</div>
   </div>
   <div class="flex justify-between mt-2">
     <button type="button" id="clearBtn" class="bg-gray-400 hover:bg-gray-500 text-white rounded w-16 py-1">クリア</button>
@@ -128,7 +125,7 @@ table {
 <table class="border text-sm min-w-[900px] table-fixed">
   <colgroup>
     <col style="width: 35px;">  <!-- 日付 -->
-    <col style="width: 40px;"> <!-- 店名 -->
+    <col style="width: 45px;"> <!-- 店名 -->
     <col style="width: 35px;">  <!-- 台番 -->
     <col style="width: 80px;"> <!-- 機種名 -->
     <col style="width: 35px;">  <!-- 種別 -->
@@ -207,7 +204,7 @@ table {
   <div class="overflow-x-auto">
     <table class="border text-sm min-w-[900px] table-fixed mt-2">
       <colgroup>
-        <col style="width: 50px;"> <!-- 店名 -->
+        <col style="width: 45px;"> <!-- 店名 -->
         <col style="width: 35px;">  <!-- 台番 -->
         <col style="width: 80px;"> <!-- 機種名 -->
         <col style="width: 35px;">  <!-- 種別 -->
@@ -243,6 +240,21 @@ table {
 
 <script>
 /* ===== JavaScript 完全版 ===== */
+document.addEventListener('touchstart', function(event) {
+  if (event.touches.length > 1) {
+    event.preventDefault();
+  }
+}, { passive: false });
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+  const now = new Date().getTime();
+  if (now - lastTouchEnd <= 300) {
+    event.preventDefault();
+  }
+  lastTouchEnd = now;
+}, false);
+
 const fmt1 = v => (isNaN(v) || v === null || v === "") ? "-" : Number(v).toFixed(1);
 const key = "pachi_records";
 // 1玉・1枚あたりの円換算レート
@@ -372,13 +384,13 @@ function updateIncome() {
     }
   }
 
-  document.getElementById("rotationDisplay").textContent =
-    "回転率：" + (rotationRate ? rotationRate.toFixed(1) + "回" + rateUnit : "-");
+  document.getElementById("rotationDisplay").innerHTML =
+  "回転率：<br>" + (rotationRate ? rotationRate.toFixed(1) + "回" + rateUnit : "-");
 
   // 収支
   const diff = endBall - (startBall + addBall);
   const yen = rate[type] ? Math.round(diff * rate[type]) : 0;
-  document.getElementById("incomeDisplay").textContent = `玉数（円）：${diff}（${yen}円）`;
+  document.getElementById("incomeDisplay").innerHTML =  "現在収支（円）：<br>" + (diff + "（" + yen + "円）");
 }
 
 ["startBall","endBall","addBall","startGame","gameType","firstHitBall","firstHitGame"].forEach(id=>{
