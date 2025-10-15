@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>遊技記録アプリ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -123,16 +124,16 @@ table {
   <div class="overflow-x-auto">
 <table class="border text-sm min-w-[900px] table-fixed">
   <colgroup>
-    <col style="width: 40px;">  <!-- 日付 -->
-    <col style="width: 60px;"> <!-- 店名 -->
-    <col style="width: 30px;">  <!-- 台番 -->
-    <col style="width: 120px;"> <!-- 機種名 -->
-    <col style="width: 40px;">  <!-- 種別 -->
-    <col style="width: 50px;">  <!-- 初当りG -->
+    <col style="width: 35px;">  <!-- 日付 -->
+    <col style="width: 50px;"> <!-- 店名 -->
+    <col style="width: 35px;">  <!-- 台番 -->
+    <col style="width: 80px;"> <!-- 機種名 -->
+    <col style="width: 35px;">  <!-- 種別 -->
+    <col style="width: 55px;">  <!-- 初当りG -->
     <col style="width: 50px;">  <!-- 回転率 -->
-    <col style="width: 60px;">  <!-- 投資 -->
-    <col style="width: 60px;">  <!-- 出玉 -->
-    <col style="width: 110px;">  <!-- 収支 -->
+    <col style="width: 50px;">  <!-- 投資 -->
+    <col style="width: 50px;">  <!-- 出玉 -->
+    <col style="width: 60px;">  <!-- 収支 -->
     <col style="width: 40px;">  <!-- 削除 -->
   </colgroup>
   <thead class="bg-gray-200">
@@ -203,18 +204,18 @@ table {
   <div class="overflow-x-auto">
     <table class="border text-sm min-w-[900px] table-fixed mt-2">
       <colgroup>
-        <col style="width: 60px;"> <!-- 店名 -->
-        <col style="width: 30px;">  <!-- 台番 -->
-        <col style="width: 120px;"> <!-- 機種名 -->
-        <col style="width: 40px;">  <!-- 種別 -->
+        <col style="width: 50px;"> <!-- 店名 -->
+        <col style="width: 35px;">  <!-- 台番 -->
+        <col style="width: 80px;"> <!-- 機種名 -->
+        <col style="width: 35px;">  <!-- 種別 -->
         <col style="width: 30px;">  <!-- プレイ数 -->
         <col style="width: 30px;">  <!-- 初当り -->
         <col style="width: 50px;">  <!-- 平均回転率 -->
-        <col style="width: 60px;">  <!-- 平均当G -->
-        <col style="width: 70px;">  <!-- 平均当投資 -->
-        <col style="width: 80px;">  <!-- 合計収支 -->
-        <col style="width: 80px;">  <!-- 最大出玉 -->
-        <col style="width: 60px;">  <!-- 回収率 -->
+        <col style="width: 55px;">  <!-- 平均当G -->
+        <col style="width: 60px;">  <!-- 平均当投資 -->
+        <col style="width: 60px;">  <!-- 合計収支 -->
+        <col style="width: 60px;">  <!-- 最大出玉 -->
+        <col style="width: 65px;">  <!-- 回収率 -->
       </colgroup>
       <thead class="bg-gray-200">
         <tr>
@@ -493,7 +494,10 @@ const rotationUnit = { slot46:"/46枚", slot5:"/50枚", pachi1:"/200玉", pachi4
       <td class="border p-1">${rotationText}</td>
       <td class="border p-1 text-right">${invest}</td>
       <td class="border p-1 text-right">${r.outBall||0}</td>
-      <td class="border p-1 text-right ${r.incomeYen<0?'text-red-500':''}">${r.incomeText||"0（0円）"}</td>
+      <td class="border p-1 text-right ${r.incomeYen<0?'text-red-500':''}">
+  ${r.incomeText ? r.incomeText.replace('（', '<br>（') : "0<br>（0円）"}
+</td>
+
       <td class="border p-1 text-center bg-yellow-200"><button data-index="${i}" class="delete-btn text-red-500">削除</button></td>
 
     `;
