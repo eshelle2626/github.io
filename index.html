@@ -125,7 +125,7 @@ table {
 <table class="border text-sm min-w-[900px] table-fixed">
   <colgroup>
     <col style="width: 35px;">  <!-- 日付 -->
-    <col style="width: 50px;"> <!-- 店名 -->
+    <col style="width: 45px;"> <!-- 店名 -->
     <col style="width: 35px;">  <!-- 台番 -->
     <col style="width: 80px;"> <!-- 機種名 -->
     <col style="width: 35px;">  <!-- 種別 -->
@@ -472,37 +472,52 @@ function loadRecords(){
   tbody.innerHTML="";
   const data=JSON.parse(localStorage.getItem(key)||"[]").slice(-100).reverse();
 
-  data.forEach((r,i)=>{
-    const selfG = (r.firstHitGame || r.endBall || 0) - (r.startGame || 0); // 自G数計算
-    const firstHitDisplay = r.firstHitGame
-  ? r.firstHitGame // 初当りあり
-  : "ヤメ";        // 初当りなし
-    const shopShort=r.shop?.length>6?r.shop.slice(0,10):r.shop||"";
-    const invest=(r.startBall||0)+(r.addBall||0)-(r.firstHitBall||0);
+data.forEach((r,i)=>{
+  const typeColors = { 
+    slot5: "bg-blue-200", 
+    slot46: "bg-red-200", 
+    pachi1: "bg-green-200", 
+    pachi4: "bg-yellow-200" 
+  };
 
-const rotationUnit = { slot46:"/46枚", slot5:"/50枚", pachi1:"/200玉", pachi4:"/250玉" };
-  const rotationText = (typeof r.rotation==="number" ? r.rotation.toFixed(1) : "0.00") + "<br>" + (rotationUnit[r.gameType]||"");
+  const typeLabel = { 
+    pachi4: "4円P", 
+    pachi1: "1円P", 
+    slot46: "46枚S", 
+    slot5: "5円S" 
+  }[r.gameType] || "";
 
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td class="border p-1">${r.date?.slice(5)||""}</td>
-      <td class="border p-1">${shopShort}</td>
-      <td class="border p-1">${r.machineNo||""}</td>
-      <td class="border p-1">${r.machineName||""}</td>
-      <td class="border p-1">${{pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[r.gameType]||""}</td>
-      <td class="border p-1">${firstHitDisplay}<br>（${selfG}）</td>
-      <td class="border p-1">${rotationText}</td>
-      <td class="border p-1 text-right">${invest}</td>
-      <td class="border p-1 text-right">${r.outBall||0}</td>
-      <td class="border p-1 text-right ${r.incomeYen<0?'text-red-500':''}">
-  ${r.incomeText ? r.incomeText.replace('（', '<br>（') : "0<br>（0円）"}
-</td>
+  const rotationUnit = { 
+    slot46: "/46枚", 
+    slot5: "/50枚", 
+    pachi1: "/200玉", 
+    pachi4: "/250玉" 
+  };
+  const rotationText = (typeof r.rotation === "number" ? r.rotation.toFixed(1) : "0.00") + "<br>" + (rotationUnit[r.gameType] || "");
 
-      <td class="border p-1 text-center bg-yellow-200"><button data-index="${i}" class="delete-btn text-red-500">削除</button></td>
+  const selfG = (r.firstHitGame || r.endBall || 0) - (r.startGame || 0);
+  const firstHitDisplay = r.firstHitGame ? r.firstHitGame : "ヤメ";
 
-    `;
-    tbody.appendChild(tr);
-  });
+  const incomeText = r.incomeText ? r.incomeText.replace('（', '<br>（') : "0<br>（0円）";
+
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="border p-1">${r.date?.slice(5) || ""}</td>
+    <td class="border p-1">${r.shop || ""}</td>
+    <td class="border p-1">${r.machineNo || ""}</td>
+    <td class="border p-1">${r.machineName || ""}</td>
+    <td class="border p-1 ${typeColors[r.gameType] || ""}">${typeLabel}</td>
+    <td class="border p-1">${firstHitDisplay}<br>（${selfG}）</td>
+    <td class="border p-1">${rotationText}</td>
+    <td class="border p-1 text-right">${(r.startBall || 0) + (r.addBall || 0) - (r.firstHitBall || 0)}</td>
+    <td class="border p-1 text-right">${r.outBall || 0}</td>
+    <td class="border p-1 text-right ${r.incomeYen < 0 ? "text-red-500" : ""}">${incomeText}</td>
+    <td class="border p-1 text-center bg-yellow-200">
+      <button data-index="${i}" class="delete-btn text-red-500">削除</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+});
 
   document.querySelectorAll(".delete-btn").forEach(btn=>{
     btn.addEventListener("click",()=>{
@@ -714,31 +729,43 @@ function loadMachineData(){
 
   // 描画
   rows.forEach(r=>{
-    const tr=document.createElement("tr");
-    if(r.isAll) tr.classList.add("bg-pink-100");
-    const recoveryText=r.recoveryRate!=null
-      ? ((r.recoveryRate-100)>=0?"+":"") + (r.recoveryRate-100).toFixed(1) + "%"
-      : "-";
+  const typeColors = { 
+    "5円S": "bg-blue-200", 
+    "46枚S": "bg-red-200", 
+    "1円P": "bg-green-200", 
+    "4円P": "bg-yellow-200" 
+  };
 
-const recoveryClass = (r.recoveryRate-100)<0 ? "text-red-500" : "";
-const totalIncomeClass = r.totalIncome < 0 ? "text-red-500" : "";
+  const recoveryText = r.recoveryRate != null
+    ? ((r.recoveryRate - 100) >= 0 ? "+" : "") + (r.recoveryRate - 100).toFixed(1) + "%"
+    : "-";
 
-    tr.innerHTML=`
-  <td class="border p-1">${r.shop}</td>
-  <td class="border p-1">${r.machineNo}</td>
-  <td class="border p-1">${r.machineName}</td>
-  <td class="border p-1">${r.gameType}</td>
-  <td class="border p-1">${r.playCount}</td>
-  <td class="border p-1">${r.firstHitCount}</td>
-  <td class="border p-1">${r.avgRotation}</td>
-  <td class="border p-1">${r.avgFirstHitG}</td>
-  <td class="border p-1">${r.avgInvest}</td>
-  <td class="border p-1 ${totalIncomeClass}">${r.totalIncome}</td>
-  <td class="border p-1">${r.maxOutBall}</td>
-  <td class="border p-1 ${recoveryClass}">${recoveryText}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  const recoveryClass = (r.recoveryRate - 100) < 0 ? "text-red-500" : "";
+  const totalIncomeClass = r.totalIncome < 0 ? "text-red-500" : "";
+
+  // 個別台の平均回転率に改行と単位追加
+  const avgRotationText = r.avgRotation !== "-" && r.gameType && !r.isAll
+    ? r.avgRotation + "<br>" + { "5円S": "/50枚", "46枚S": "/46枚", "1円P": "/200玉", "4円P": "/250玉" }[r.gameType]
+    : r.avgRotation;
+
+  const tr = document.createElement("tr");
+  if(r.isAll) tr.classList.add("bg-pink-100");
+  tr.innerHTML = `
+    <td class="border p-1">${r.shop}</td>
+    <td class="border p-1">${r.machineNo}</td>
+    <td class="border p-1">${r.machineName}</td>
+    <td class="border p-1 ${typeColors[r.gameType] || ""}">${r.gameType}</td>
+    <td class="border p-1">${r.playCount}</td>
+    <td class="border p-1">${r.firstHitCount}</td>
+    <td class="border p-1">${avgRotationText}</td>
+    <td class="border p-1">${r.avgFirstHitG}</td>
+    <td class="border p-1">${r.avgInvest}</td>
+    <td class="border p-1 ${totalIncomeClass}">${r.totalIncome}</td>
+    <td class="border p-1">${r.maxOutBall}</td>
+    <td class="border p-1 ${recoveryClass}">${recoveryText}</td>
+  `;
+  tbody.appendChild(tr);
+});
 }
 
 document.querySelectorAll("#machineData th[data-key]").forEach(th=>{
