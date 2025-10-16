@@ -29,7 +29,7 @@ table {
 
 <body class="bg-gray-100 p-4 min-h-screen">
   <div class="max-w-4xl mx-auto bg-white p-4 rounded-2xl shadow-lg">
-    <h1 class="text-xl font-bold mb-4">パワーアップバーンアウト</h1>
+    <h1 class="text-xl font-bold mb-4">猫のパン屋さん</h1>
 
     <!-- タブ切替 -->
     <div class="flex border-b mb-4">
@@ -113,7 +113,9 @@ table {
             <input type="text" id="firstHitGame" class="border rounded w-full p-2" inputmode="numeric" pattern="[0-9]*">
           </div>
           <div class="col-span-2">
-            <label class="block text-sm font-semibold">初当り時玉数</label>
+            <label class="block text-sm font-semibold">初当り時玉数<label class="ml-2">
+  <input type="checkbox" id="isSingleBonus"> 単発ボーナス
+</label></label>
             <input type="text" id="firstHitBall" class="border rounded w-full p-2" inputmode="numeric" pattern="[0-9]*">
           </div>
           <div class="col-span-2">
@@ -142,16 +144,17 @@ table {
   <div class="overflow-x-auto">
 <table class="border text-sm min-w-[900px] table-fixed">
   <colgroup>
-    <col style="width: 35px;">  <!-- 日付 -->
+    <col style="width: 30px;">  <!-- 日付 -->
     <col style="width: 45px;"> <!-- 店名 -->
     <col style="width: 30px;">  <!-- 台番 -->
     <col style="width: 80px;"> <!-- 機種名 -->
     <col style="width: 30px;">  <!-- 種別 -->
     <col style="width: 45px;">  <!-- 初当りG -->
+    <col style="width: 15px;">  <!-- ボーナス種別 -->
     <col style="width: 40px;">  <!-- 回転率 -->
-    <col style="width: 40px;">  <!-- 投資 -->
-    <col style="width: 40px;">  <!-- 出玉 -->
-    <col style="width: 60px;">  <!-- 収支 -->
+    <col style="width: 30px;">  <!-- 投資 -->
+    <col style="width: 30px;">  <!-- 出玉 -->
+    <col style="width: 50px;">  <!-- 収支 -->
     <col style="width: 30px;">  <!-- 削除 -->
   </colgroup>
   <thead class="bg-gray-200">
@@ -161,7 +164,8 @@ table {
       <th class="border p-1">台番</th>
       <th class="border p-1">機種名</th>
       <th class="border p-1">種別</th>
-      <th class="border p-1">初当りG（自G）</th>
+      <th class="border p-1">初当りG<br>（自G）</th>
+      <th class="border p-1">B</th>
       <th class="border p-1">回転率</th>
       <th class="border p-1">投資玉</th>
       <th class="border p-1">出玉</th>
@@ -245,12 +249,13 @@ table {
         <col style="width: 30px;">  <!-- 種別 -->
         <col style="width: 25px;">  <!-- プレイ数 -->
         <col style="width: 25px;">  <!-- 初当り -->
+        <col style="width: 30px;">  <!-- 突入率 -->
         <col style="width: 45px;">  <!-- 平均回転率 -->
-        <col style="width: 50px;">  <!-- 平均当G -->
+        <col style="width: 40px;">  <!-- 平均当G -->
         <col style="width: 50px;">  <!-- 平均当投資 -->
         <col style="width: 55px;">  <!-- 合計収支 -->
-        <col style="width: 50px;">  <!-- 最大出玉 -->
-        <col style="width: 50px;">  <!-- 回収率 -->
+        <col style="width: 40px;">  <!-- 最大出玉 -->
+        <col style="width: 40px;">  <!-- 回収率 -->
       </colgroup>
       <thead class="bg-gray-200">
         <tr>
@@ -260,11 +265,12 @@ table {
 <th class="border p-1" data-key="gameType">種別</th>
 <th class="border p-1" data-key="playCount">プレイ数</th>
 <th class="border p-1" data-key="firstHitCount">初<br>当り</th>
+<th class="border p-1" data-key="penetrationRate">突入率</th>
 <th class="border p-1" data-key="avgRotation">平均<br>回転率</th>
-<th class="border p-1" data-key="avgFirstHitG">平均当G</th>
+<th class="border p-1" data-key="avgFirstHitG">平均<br>当G</th>
 <th class="border p-1" data-key="avgInvest">平均<br>必要投資玉</th>
-<th class="border p-1" data-key="totalIncome">合計玉収支</th>
-<th class="border p-1" data-key="maxOutBall">最大出玉</th>
+<th class="border p-1" data-key="totalIncome">合計収支</th>
+<th class="border p-1" data-key="maxOutBall">最大<br>出玉</th>
 <th class="border p-1" data-key="recoveryRate">回収率</th>
         </tr>
       </thead>
@@ -308,7 +314,7 @@ const transfarRate = {
 };
 
 const step = {pachi4:125, pachi1:100, slot46:46, slot5:100};
-const investUnit = {pachi4:250, pachi1:200, slot46:46, slot5:200};
+const investUnit = {pachi4:250, pachi1:200, slot46:46, slot5:50};
 
 const dateInput = document.getElementById("date");
 const today = new Date();
@@ -401,6 +407,7 @@ function updateIncome() {
   const transfarBall = Number(transfarInput.value) || 0;
 const cashBall = Number(cashInput.value) || 0;
 const addBall = transfarBall + cashBall;
+const isSingleBonus = document.getElementById("isSingleBonus").checked;
   const firstHitBall = form.firstHitBall.value === "" ? null : Number(form.firstHitBall.value);
   const startG = Number(form.startGame.value) || 0;
   const endG = Number(form.firstHitGame.value) || 0;
@@ -458,9 +465,15 @@ const addBall = transfarBall + cashBall;
 // 登録ボタン押下時の処理
 form.addEventListener("submit", (e) => {
   e.preventDefault();
+  const isSingleBonus = document.getElementById("isSingleBonus").checked; // ← チェックボックスを直接取得
+
 
   if (!form.endBall.value) {
     alert("終了時玉数を入力してください。");
+    return;
+  }
+  if (isSingleBonus && !form.firstHitBall.value) {
+    alert("単発ボーナス初当り時玉数を入力してください。");
     return;
   }
   if (!confirm("登録しますか？")) return;
@@ -476,6 +489,7 @@ form.addEventListener("submit", (e) => {
     addBall: (Number(transfarInput.value) || 0) + (Number(cashInput.value) || 0),
     firstHitGame: Number(form.firstHitGame.value) || 0,
     firstHitBall: form.firstHitBall.value === "" ? null : Number(form.firstHitBall.value),
+    isSingleBonus: isSingleBonus, // ←追加
     endBall: Number(form.endBall.value) || 0,
     created: new Date().toISOString()
   };
@@ -652,6 +666,18 @@ const firstHitDisplay = r.isYame ? "ヤメ" : r.firstHitGame;
 const selfG = r.isYame ? r.endBall - r.startGame : (r.firstHitGame || r.endBall || 0) - (r.startGame || 0);
 
 const tr = document.createElement("tr");
+// ===== ボーナス種別セルの内容とクラスを判定 =====
+let bonusText = "";
+let bonusCellClass = "";
+
+if (r.isSingleBonus) {
+  bonusText = "単発";
+  bonusCellClass = "bg-gray-300";
+} else if (r.firstHitBall === null) {
+  bonusText = "-";
+  bonusCellClass = "bg-gray-300";
+}
+
 tr.innerHTML = `
   <td class="border p-1">${r.date?.slice(5) || ""}</td>
   <td class="border p-1">${r.shop || ""}</td>
@@ -661,6 +687,7 @@ tr.innerHTML = `
   <td class="border p-1 ${r.isYame ? 'bg-gray-300' : ''}">
     ${firstHitDisplay}<br>（${selfG}）
   </td>
+  <td class="border p-1 ${bonusCellClass}">${bonusText}</td>
   <td class="border p-1">${rotationText}</td>
   <td class="border p-1 text-right">${r.startBall + r.addBall - (r.firstHitBall || 0)}</td>
   <td class="border p-1 text-right">${r.outBall || 0}</td>
@@ -889,12 +916,20 @@ function loadMachineData(){
 
 // 全台合算
 if(!machineNo && filtered.length>0){
-  const allRecords = filtered;
+  // 「調整」「出金」は集計対象外
+const allRecords = filtered.filter(r => r.machineName !== "調整" && r.machineName !== "出金");
+
   const playCount = allRecords.length;
 
   // 初当り玉数があるもののみで平均計算
   const firstHitRecords = allRecords.filter(r => r.firstHitBall !== null && !r.isYame);
   const firstHitCount = firstHitRecords.length;
+
+    // === 突入率 ===
+  const nonSingleCount = firstHitRecords.filter(r => !r.singleBonus).length;
+  const penetrationRate = firstHitCount > 0
+    ? `${((nonSingleCount / firstHitCount) * 100).toFixed(0)}%`
+    : "-";
 
   let avgRotation = "-";
   let avgFirstHitG = "-";
@@ -910,7 +945,18 @@ if(!machineNo && filtered.length>0){
     avgInvest = (firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1);
   }
 
-  const totalIncome = allRecords.reduce((a,r)=>a+r.incomeYen||0,0);
+  // 合計：玉収支（玉）と円収支（円）を別で計算
+const totalIncomeBall = allRecords.reduce((a,r) => {
+  const diffBall = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
+  return a + diffBall;
+}, 0);
+
+const totalIncomeYen = allRecords.reduce((a,r) => {
+  const diffBall = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
+  const rrate = rate[r.gameType] || 0; // rate はファイル上部で定義済み
+  return a + Math.round(diffBall * rrate);
+}, 0);
+
   const maxOutBall = allRecords.reduce((a,r)=>Math.max(a,r.outBall||0),0);
   const totalInvest = allRecords.reduce((a,r)=>a + ((r.startBall + r.addBall - (r.firstHitBall||0)) || 0), 0);
   const totalOutBall = allRecords.reduce((a,r)=>a + (r.outBall||0), 0);
@@ -933,15 +979,18 @@ rows.push({
   gameType: "-",
   playCount,
   firstHitCount,
+  penetrationRate,
   avgFirstHitG,
   avgInvest,
   avgRotation,
-  totalIncome,
+  totalIncomeBall,    // 玉収支（玉）
+  totalIncomeYen,     // 円収支（円）
   maxOutBall,
   recoveryRate: recoveryText,
   recoveryClass: recoveryClass,
   isAll: true
 });
+
 }
 
  // ===== 個別台 =====
@@ -953,24 +1002,50 @@ rows.push({
     const firstHitRecords=recs.filter(r=>r.firstHitBall!=null && r.firstHitGame>0);
     const firstHitCount=firstHitRecords.length;
 
-    // 平均回転率
+  // === 突入率 ===
+  const nonSingleCount = firstHitRecords.filter(r => !r.singleBonus).length; // 単発ボーナスが false の件数
+  const penetrationRate = firstHitCount > 0
+    ? `${((nonSingleCount / firstHitCount) * 100).toFixed(0)}%`
+    : "-";
+
+
+   // 平均回転率（件数で割るよう修正）
 let totalRotation = 0;
+let validCount = 0;
+
 recs.forEach(r => {
   const usedBalls = r.firstHitBall === null
-    ? (r.startBall + r.addBall - r.endBall)  // ヤメ時点での投資
-    : (r.startBall + r.addBall - r.firstHitBall); // 初当りあり
-  const totalG = r.firstHitGame && r.firstHitGame > 0
-    ? r.firstHitGame - r.startGame
-    : r.endBall - r.startGame; // ヤメ時点のG数
+    ? (r.startBall + r.addBall - r.endBall)  // 初当りなし→ヤメ時投資
+    : (r.startBall + r.addBall - r.firstHitBall); // 初当りあり→初当りまでの投資
+  const totalG = (r.firstHitGame && r.firstHitGame > 0)
+    ? (r.firstHitGame - r.startGame)
+    : (r.endGame - r.startGame); // 初当りなし→ヤメ時までのG数
+
   const base = investUnit[r.gameType] || 0;
-  const rotation = (usedBalls > 0 && totalG > 0) ? (totalG * base / usedBalls) : 0;
-  totalRotation += rotation;
+  if (usedBalls > 0 && totalG > 0) {
+    const rotation = (totalG * base / usedBalls);
+    totalRotation += rotation;
+    validCount++;
+  }
 });
-avgRotation = (totalRotation / recs.length).toFixed(1);
+
+avgRotation = validCount > 0 ? (totalRotation / validCount).toFixed(1) : "-";
+
 
     const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(1):"-";
     const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1):"-";
-    const totalIncome=recs.reduce((a,r)=>a+r.incomeYen||0,0);
+    // 個別台：玉収支（玉）と円収支（円）を別で計算
+const totalIncomeBall = recs.reduce((a, r) => {
+  const diffBall = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
+  return a + diffBall;
+}, 0);
+
+const totalIncomeYen = recs.reduce((a, r) => {
+  const diffBall = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
+  const rrate = rate[r.gameType] || 0;
+  return a + Math.round(diffBall * rrate);
+}, 0);
+
     const maxOutBall=recs.reduce((a,r)=>Math.max(a,r.outBall||0),0);
 
     const totalInvest = recs.reduce((a,r)=>a + ((r.startBall + r.addBall - (r.firstHitBall||0)) || 0), 0);
@@ -992,10 +1067,12 @@ rows.push({
   gameType: {pachi4:"4円P",pachi1:"1円P",slot46:"46枚S",slot5:"5円S"}[recs[0]?.gameType] || "-",
   playCount,
   firstHitCount,
+  penetrationRate,
   avgFirstHitG,
   avgInvest,
   avgRotation,
-  totalIncome,
+  totalIncomeBall,
+  totalIncomeYen,
   maxOutBall,
   recoveryRate: recoveryText,
   recoveryClass: recoveryClass,
@@ -1042,10 +1119,15 @@ rows.push({
     <td class="border p-1 ${typeColors[r.gameType] || ""}">${r.gameType}</td>
     <td class="border p-1">${r.playCount}</td>
     <td class="border p-1">${r.firstHitCount}</td>
+    <td class="border p-1">${r.penetrationRate}</td>
     <td class="border p-1">${avgRotationText}</td>
     <td class="border p-1">${r.avgFirstHitG}</td>
     <td class="border p-1">${r.avgInvest}</td>
-    <td class="border p-1 ${totalIncomeClass}">${r.totalIncome}</td>
+    <td class="border p-1 ${r.totalIncomeBall < 0 ? 'text-red-500' : ''}">
+  ${r.totalIncomeBall.toLocaleString()}<br>
+  (${r.totalIncomeYen.toLocaleString()}円)
+</td>
+
     <td class="border p-1">${r.maxOutBall}</td>
     <td class="border p-1 ${r.recoveryClass}">${r.recoveryRate}</td>
   `;
