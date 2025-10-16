@@ -29,7 +29,7 @@ table {
 
 <body class="bg-gray-100 p-4 min-h-screen">
   <div class="max-w-4xl mx-auto bg-white p-4 rounded-2xl shadow-lg">
-    <h1 class="text-xl font-bold mb-4">パワーアップバーンアウト</h1>
+    <h1 class="text-xl font-bold mb-4">猫のクッキー屋さん</h1>
 
     <!-- タブ切替 -->
     <div class="flex border-b mb-4">
@@ -113,9 +113,9 @@ table {
             <input type="text" id="firstHitGame" class="border rounded w-full p-2" inputmode="numeric" pattern="[0-9]*">
           </div>
           <div class="col-span-2">
-            <label class="ml-2">
-  <input type="checkbox" id="isSingleBonus"> 単発ボーナス</label>
-            <label class="block text-sm font-semibold">初当り時玉数</label>
+            <label class="block text-sm font-semibold">初当り時玉数<label class="ml-2">
+  <input type="checkbox" id="isSingleBonus"> 単発B終了
+</label></label>
             <input type="text" id="firstHitBall" class="border rounded w-full p-2" inputmode="numeric" pattern="[0-9]*">
           </div>
           <div class="col-span-2">
@@ -141,42 +141,141 @@ table {
 
 <!-- 履歴タブ -->
 <div id="history" class="tab-content hidden">
-  <div class="overflow-x-auto">
-<table class="border text-sm min-w-[900px] table-fixed">
-  <colgroup>
-    <col style="width: 30px;">  <!-- 日付 -->
-    <col style="width: 45px;"> <!-- 店名 -->
-    <col style="width: 30px;">  <!-- 台番 -->
-    <col style="width: 80px;"> <!-- 機種名 -->
-    <col style="width: 30px;">  <!-- 種別 -->
-    <col style="width: 45px;">  <!-- 初当りG -->
-    <col style="width: 15px;">  <!-- ボーナス種別 -->
-    <col style="width: 40px;">  <!-- 回転率 -->
-    <col style="width: 30px;">  <!-- 投資 -->
-    <col style="width: 30px;">  <!-- 出玉 -->
-    <col style="width: 50px;">  <!-- 収支 -->
-    <col style="width: 30px;">  <!-- 削除 -->
-  </colgroup>
-  <thead class="bg-gray-200">
-    <tr>
-      <th class="border p-1">日付</th>
-      <th class="border p-1">店名</th>
-      <th class="border p-1">台番</th>
-      <th class="border p-1">機種名</th>
-      <th class="border p-1">種別</th>
-      <th class="border p-1">初当りG<br>（自G）</th>
-      <th class="border p-1">B</th>
-      <th class="border p-1">回転率</th>
-      <th class="border p-1">投資玉</th>
-      <th class="border p-1">出玉</th>
-      <th class="border p-1">収支</th>
-      <th class="border p-1">削除</th>
-    </tr>
-  </thead>
-  <tbody id="recordList"></tbody>
-</table>
+  <div class="overflow-x-auto max-h-[80vh] overflow-y-auto">
+    <table class="border text-sm min-w-[900px] table-fixed">
+      <colgroup>
+        <col style="width: 30px;">  <!-- 日付 -->
+        <col style="width: 45px;"> <!-- 店名 -->
+        <col style="width: 30px;">  <!-- 台番 -->
+        <col style="width: 80px;"> <!-- 機種名 -->
+        <col style="width: 30px;">  <!-- 種別 -->
+        <col style="width: 45px;">  <!-- 初当りG -->
+        <col style="width: 15px;">  <!-- ボーナス種別 -->
+        <col style="width: 40px;">  <!-- 回転率 -->
+        <col style="width: 30px;">  <!-- 投資 -->
+        <col style="width: 30px;">  <!-- 出玉 -->
+        <col style="width: 50px;">  <!-- 収支 -->
+        <col style="width: 30px;">  <!-- 編集 -->
+        <col style="width: 15px;">  <!-- 削除 -->
+      </colgroup>
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="border p-1">日付</th>
+          <th class="border p-1">店名</th>
+          <th class="border p-1">台番</th>
+          <th class="border p-1">機種名</th>
+          <th class="border p-1">種別</th>
+          <th class="border p-1">初当りG<br>（自G）</th>
+          <th class="border p-1">B</th>
+          <th class="border p-1">回転率</th>
+          <th class="border p-1">投資玉</th>
+          <th class="border p-1">出玉</th>
+          <th class="border p-1">収支</th>
+          <th class="border p-1">編集</th>
+          <th class="border p-1">削除</th>
+        </tr>
+      </thead>
+      <tbody id="recordList"></tbody>
+    </table>
   </div>
 </div>
+
+
+<!-- 編集用モーダル -->
+<div id="editModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50">
+  <div class="bg-white p-6 rounded shadow-lg w-96">
+    <h2 class="text-lg font-bold mb-4">編集フォーム</h2>
+    <form id="editForm" class="space-y-3">
+
+      <!-- 日付・店名 -->
+      <div class="flex gap-2">
+        <div class="flex-none w-1/3">
+          <input type="date" name="date" class="border p-2 w-full">
+        </div>
+        <div class="flex-none w-1/3">
+          <input type="text" name="shop" class="border p-2 w-full" placeholder="店名">
+        </div>
+       <div class="flex-none w-1/3">
+          <select id="gameType" class="border rounded w-full p-2">
+              <option value="slot5">5円スロット</option>
+              <option value="slot46">46枚スロット</option>
+              <option value="pachi1">1円パチンコ</option>
+              <option value="pachi4">4円パチンコ</option>
+            </select>
+        </div>
+      </div>
+
+      <!-- 台番・機種名 -->
+      <div class="flex gap-2">
+        <div class="flex-none w-1/4">
+          <input type="text" name="machineNo" class="border p-1 w-full" placeholder="台番">
+        </div>
+        <div class="flex-none w-3/4">
+          <input type="text" name="machineName" class="border p-1 w-full" placeholder="機種名">
+        </div>
+      </div>
+
+      <!-- 開始G数・開始時玉数 -->
+      <div class="flex gap-2">
+        <div class="flex-none w-1/2">
+          <label class="block">開始G数</label>
+          <input type="text" name="startGame" class="border p-1 w-full">
+        </div>
+        <div class="flex-none w-1/2">
+          <label class="block">開始時玉数</label>
+          <input type="text" name="startBall" class="border p-1 w-full">
+        </div>
+      </div>
+
+      <!-- 追加玉（編集非推奨） -->
+      <div class="flex gap-2">
+        <div class="flex-none w-1/2">
+        </div>
+        <div class="flex-none w-1/2">
+          <label class="block">追加玉（編集非推奨）</label>
+          <input type="text" name="addBall" class="border p-1 w-full">
+        </div>
+      </div>
+
+      <!-- 初当り/ヤメG数・初当り時玉数 -->
+      <div class="flex gap-2">
+        <div class="flex-none w-1/2">
+          <label class="block">初当り/ヤメG数</label>
+          <input type="text" name="firstHitGame" class="border p-1 w-full">
+        </div>
+        <div class="flex-none w-1/2">
+          <label class="block">初当り時玉数</label>
+          <input type="text" name="firstHitBall" class="border p-1 w-full">
+        </div>
+      </div>
+
+      <!-- 単発ボーナス終了 -->
+      <div class="flex justify-end">
+        <label class="mr-2">単発ボーナス終了</label>
+        <input type="checkbox" name="isSingleBonus" class="border p-1">
+      </div>
+
+      <!-- 終了時玉数 -->
+      <div class="flex gap-2">
+        <div class="flex-none w-1/2">
+        </div>
+        <div class="flex-none w-1/2">
+          <label class="block">終了時玉数</label>
+          <input type="text" name="endBall" class="border p-1 w-full">
+        </div>
+      </div>
+
+      <!-- ボタン -->
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" id="closeModal" class="px-3 py-1 bg-gray-300 rounded">キャンセル</button>
+        <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded">保存</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+
 
     <!-- 集計タブ -->
     <div id="summary" class="tab-content hidden">
@@ -241,6 +340,7 @@ table {
         </form>
 
   <div class="overflow-x-auto">
+  <div class="overflow-x-auto max-h-[80vh] overflow-y-auto">
     <table class="border text-sm min-w-[900px] table-fixed mt-2">
       <colgroup>
         <col style="width: 45px;"> <!-- 店名 -->
@@ -632,87 +732,199 @@ clearBtn.addEventListener("click", () => {
 
 
 // ===== 履歴 =====
-function loadRecords(){
-  const tbody=document.getElementById("recordList");
-  tbody.innerHTML="";
-  const data=JSON.parse(localStorage.getItem(key)||"[]").slice(-100).reverse();
+function loadRecords() {
+  const tbody = document.getElementById("recordList");
+  tbody.innerHTML = "";
 
-data.forEach((r,i)=>{
-  const typeColors = { 
-    slot5: "bg-blue-200", 
-    slot46: "bg-red-200", 
-    pachi1: "bg-green-200", 
-    pachi4: "bg-yellow-200" 
-  };
+  const records = JSON.parse(localStorage.getItem(key) || "[]");
+  const data = records.slice(-100).reverse(); // 表示用に逆順
 
-  const typeLabel = { 
-    pachi4: "4円P", 
-    pachi1: "1円P", 
-    slot46: "46枚S", 
-    slot5: "5円S" 
-  }[r.gameType] || "";
+  data.forEach((r) => {
+    const typeColors = { 
+      slot5: "bg-blue-200", 
+      slot46: "bg-red-200", 
+      pachi1: "bg-green-200", 
+      pachi4: "bg-yellow-200" 
+    };
 
-  const rotationUnit = { 
-    slot46: "/46枚", 
-    slot5: "/50枚", 
-    pachi1: "/200玉", 
-    pachi4: "/250玉" 
-  };
-  const rotationText = (typeof r.rotation === "number" ? r.rotation.toFixed(1) : "0.00") + "<br>" + (rotationUnit[r.gameType] || "");
+    const typeLabel = { 
+      pachi4: "4円P", 
+      pachi1: "1円P", 
+      slot46: "46枚S", 
+      slot5: "5円S" 
+    }[r.gameType] || "";
 
-  const incomeText = r.incomeText ? r.incomeText.replace('（', '<br>（') : "0<br>（0円）";
+    const rotationUnit = { 
+      slot46: "/46枚", 
+      slot5: "/50枚", 
+      pachi1: "/200玉", 
+      pachi4: "/250玉" 
+    };
+    const rotationText = (typeof r.rotation === "number" ? r.rotation.toFixed(1) : "0.00") + "<br>" + (rotationUnit[r.gameType] || "");
 
-const firstHitDisplay = r.isYame ? "ヤメ" : r.firstHitGame;
-const selfG = r.isYame ? r.endBall - r.startGame : (r.firstHitGame || r.endBall || 0) - (r.startGame || 0);
+    const incomeText = r.incomeText ? r.incomeText.replace('（', '<br>（') : "0<br>（0円）";
 
-const tr = document.createElement("tr");
-// ===== ボーナス種別セルの内容とクラスを判定 =====
-let bonusText = "";
-let bonusCellClass = "";
+    const firstHitDisplay = r.isYame ? "ヤメ" : r.firstHitGame;
+    const selfG = r.isYame ? r.endBall - r.startGame : (r.firstHitGame || r.endBall || 0) - (r.startGame || 0);
 
-if (r.isSingleBonus) {
-  bonusText = "単発";
-  bonusCellClass = "bg-gray-300";
-} else if (r.firstHitBall === null) {
-  bonusText = "-";
-  bonusCellClass = "bg-gray-300";
-}
+    // ===== ボーナス種別セル =====
+    let bonusText = "";
+    let bonusCellClass = "";
+    if (r.isSingleBonus) {
+      bonusText = "単発";
+      bonusCellClass = "bg-gray-300";
+    } else if (r.firstHitBall === null) {
+      bonusText = "-";
+      bonusCellClass = "bg-gray-300";
+    }
 
-tr.innerHTML = `
-  <td class="border p-1">${r.date?.slice(5) || ""}</td>
-  <td class="border p-1">${r.shop || ""}</td>
-  <td class="border p-1">${r.machineNo || ""}</td>
-  <td class="border p-1">${r.machineName || ""}</td>
-  <td class="border p-1 ${typeColors[r.gameType] || ""}">${typeLabel}</td>
-  <td class="border p-1 ${r.isYame ? 'bg-gray-300' : ''}">
-    ${firstHitDisplay}<br>（${selfG}）
-  </td>
-  <td class="border p-1 ${bonusCellClass}">${bonusText}</td>
-  <td class="border p-1">${rotationText}</td>
-  <td class="border p-1 text-right">${r.startBall + r.addBall - (r.firstHitBall || 0)}</td>
-  <td class="border p-1 text-right">${r.outBall || 0}</td>
-  <td class="border p-1 text-right ${r.incomeYen < 0 ? "text-red-500" : ""}">${incomeText}</td>
-  <td class="border p-1 text-center bg-yellow-200">
-    <button data-index="${i}" class="delete-btn text-red-500">削除</button>
-  </td>
-`;
-  tbody.appendChild(tr);
-});
+    const tr = document.createElement("tr");
 
-  document.querySelectorAll(".delete-btn").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      if(!confirm("本当に削除しますか？")) return;
-      const index=Number(btn.dataset.index);
-      const data=JSON.parse(localStorage.getItem(key)||"[]");
-      const reversedIndex=data.length-1-index;
-      if(reversedIndex>=0 && reversedIndex<data.length){
-        data.splice(reversedIndex,1);
-        localStorage.setItem(key,JSON.stringify(data));
+    // 元配列のインデックスを取得（createdがユニークなIDとして利用）
+    const originalIndex = records.findIndex(rec => rec.created === r.created);
+
+    tr.innerHTML = `
+      <td class="border p-1">${r.date?.slice(5) || ""}</td>
+      <td class="border p-1">${r.shop || ""}</td>
+      <td class="border p-1">${r.machineNo || ""}</td>
+      <td class="border p-1">${r.machineName || ""}</td>
+      <td class="border p-1 ${typeColors[r.gameType] || ""}">${typeLabel}</td>
+      <td class="border p-1 ${r.isYame ? 'bg-gray-300' : ''}">
+        ${firstHitDisplay}<br>（${selfG}）
+      </td>
+      <td class="border p-1 ${bonusCellClass}">${bonusText}</td>
+      <td class="border p-1">${rotationText}</td>
+      <td class="border p-1 text-right">${r.startBall + r.addBall - (r.firstHitBall || 0)}</td>
+      <td class="border p-1 text-right">${r.outBall || 0}</td>
+      <td class="border p-1 text-right ${r.incomeYen < 0 ? "text-red-500" : ""}">${incomeText}</td>
+      <td class="border p-1 text-center">
+        <button class="bg-yellow-300 px-2 py-1 rounded text-xs edit-btn" data-index="${originalIndex}">編集</button>
+      </td>
+      <td class="border p-1 text-center bg-yellow-200">
+        <button data-index="${originalIndex}" class="delete-btn text-red-500">削除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // 編集ボタン押下時処理
+  const editModal = document.getElementById("editModal");
+  const editForm = document.getElementById("editForm");
+  const closeModal = document.getElementById("closeModal");
+const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-green-200", pachi4: "bg-yellow-200" };
+
+  function applyTypeColor() {
+    editForm.gameType.classList.remove(...Object.values(typeColors));
+    const selectedType = editForm.gameType.value;
+    if (typeColors[selectedType]) editForm.gameType.classList.add(typeColors[selectedType]);
+  }
+
+  // 半角数字のみ許可
+  ['machineNo','startGame','startBall','addBall','firstHitGame','firstHitBall','endBall'].forEach(id => {
+    const input = editForm[id];
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^\d]/g, '');
+    });
+  });
+
+  document.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.index);
+      const records = JSON.parse(localStorage.getItem(key)) || [];
+      const r = records[idx];
+      if (!r) return;
+
+      editForm.date.value = r.date;
+      editForm.shop.value = r.shop;
+      editForm.gameType.value = r.gameType || "slot5";
+      editForm.machineNo.value = r.machineNo;
+      editForm.machineName.value = r.machineName;
+      editForm.startGame.value = r.startGame || 0;
+      editForm.startBall.value = r.startBall || 0;
+      editForm.addBall.value = r.addBall || 0;
+      editForm.firstHitGame.value = r.firstHitGame || 0;
+      editForm.firstHitBall.value = r.firstHitBall || "";
+      editForm.isSingleBonus.checked = r.isSingleBonus || false;
+      editForm.endBall.value = r.endBall || 0;
+
+      editForm.dataset.editIndex = idx;
+      applyTypeColor(); // 色適用
+
+      editModal.classList.remove("hidden");
+      editModal.classList.add("flex");
+    });
+  });
+
+  closeModal.addEventListener("click", () => {
+    editModal.classList.add("hidden");
+    editModal.classList.remove("flex");
+  });
+
+  editForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const records = JSON.parse(localStorage.getItem(key)) || [];
+    const idx = Number(editForm.dataset.editIndex);
+    if (idx < 0 || idx >= records.length) return;
+
+    const isSingleBonus = editForm.isSingleBonus.checked;
+    const addBall = Number(editForm.addBall.value) || 0;
+
+    const updated = {
+      date: editForm.date.value,
+      shop: editForm.shop.value,
+      machineNo: editForm.machineNo.value,
+      machineName: editForm.machineName.value,
+      gameType: editForm.gameType?.value || records[idx].gameType,
+      startGame: Number(editForm.startGame.value) || 0,
+      startBall: Number(editForm.startBall.value) || 0,
+      addBall: addBall,
+      firstHitGame: Number(editForm.firstHitGame.value) || 0,
+      firstHitBall: editForm.firstHitBall.value === "" ? null : Number(editForm.firstHitBall.value),
+      isSingleBonus: isSingleBonus,
+      endBall: Number(editForm.endBall.value) || 0,
+      created: records[idx].created
+    };
+
+    // 出玉・投資玉・回転率・収支の再計算
+    const isYame = updated.firstHitBall === null;
+    updated.isYame = isYame;
+    updated.outBall = isYame ? 0 : Math.max(0, updated.endBall - updated.firstHitBall);
+    const usedBalls = isYame ? (updated.startBall + updated.addBall - updated.endBall) 
+                              : (updated.startBall + updated.addBall - updated.firstHitBall);
+    const totalG = (updated.firstHitGame && updated.firstHitGame > 0 ? updated.firstHitGame : updated.endBall) - updated.startGame;
+    const investUnit = {slot46:46, slot5:50, pachi1:200, pachi4:250};
+    const base = investUnit[updated.gameType] || 0;
+    updated.rotation = (usedBalls > 0 && totalG > 0) ? Number(((totalG * base)/usedBalls).toFixed(1)) : 0;
+
+    const rate = {slot46:19.23, slot5:4.42, pachi1:0.892, pachi4:3.568};
+    const diff = updated.endBall - (updated.startBall + updated.addBall);
+    updated.incomeYen = rate[updated.gameType] ? Math.round(diff * rate[updated.gameType]) : 0;
+    updated.incomeText = `${diff}（${updated.incomeYen.toLocaleString()}円）`;
+
+    records[idx] = updated;
+    localStorage.setItem(key, JSON.stringify(records));
+
+    editModal.classList.add("hidden");
+    editModal.classList.remove("flex");
+    loadRecords();
+    updateSummary();
+  });
+
+  // 削除ボタン
+  document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!confirm("本当に削除しますか？")) return;
+      const idx = Number(btn.dataset.index);
+      const data = JSON.parse(localStorage.getItem(key) || "[]");
+      if (idx >= 0 && idx < data.length) {
+        data.splice(idx, 1);
+        localStorage.setItem(key, JSON.stringify(data));
         loadRecords();
       }
     });
   });
 }
+
 
 // ===== 集計 =====
 let chart;
