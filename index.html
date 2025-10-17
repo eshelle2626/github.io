@@ -737,14 +737,24 @@ clearBtn.addEventListener("click", () => {
 
 
 // ===== 履歴 =====
-function loadRecords() {
+let currentPage = 1; // 現在のページ
+const pageSize = 100; // 1ページあたり件数
+
+function loadRecords(page = 1) {
+  currentPage = page;
   const tbody = document.getElementById("recordList");
   tbody.innerHTML = "";
 
   const records = JSON.parse(localStorage.getItem(key) || "[]");
-  const data = records.slice(-100).reverse(); // 表示用に逆順
 
-  data.forEach((r) => {
+  // 日付降順（新しい順）にソート
+  const sorted = records.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const totalPages = Math.ceil(sorted.length / pageSize);
+  const startIdx = (currentPage - 1) * pageSize;
+  const pageData = sorted.slice(startIdx, startIdx + pageSize);
+
+  pageData.forEach((r) => {
     const typeColors = { 
       slot5: "bg-blue-200", 
       slot46: "bg-red-200", 
@@ -811,6 +821,19 @@ function loadRecords() {
     `;
     tbody.appendChild(tr);
   });
+
+ // ページング表示
+  const pagination = document.getElementById("recordPagination");
+  if (pagination) {
+    pagination.innerHTML = "";
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i;
+      btn.className = `px-2 py-1 m-1 rounded ${i === currentPage ? "bg-gray-400 text-white" : "bg-gray-200"}`;
+      btn.addEventListener("click", () => loadRecords(i));
+      pagination.appendChild(btn);
+    }
+  }
 
   // 編集ボタン押下時処理
   const editModal = document.getElementById("editModal");
