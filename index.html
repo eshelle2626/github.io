@@ -819,13 +819,23 @@ const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-gre
     if (typeColors[selectedType]) editForm.gameType.classList.add(typeColors[selectedType]);
   }
 
-  // 半角数字のみ許可
-  ['machineNo','startGame','startBall','addBall','firstHitGame','firstHitBall','endBall'].forEach(id => {
-    const input = editForm[id];
-    input.addEventListener('input', () => {
-      input.value = input.value.replace(/[^\d]/g, '');
+// 🔹半角数字のみ許可する対象フィールド
+[
+  "machineNo",
+  "startGame",
+  "startBall",
+  "addBall",
+  "firstHitGame",
+  "firstHitBall",
+  "endBall"
+].forEach(name => {
+  const input = editForm.querySelector(`[name="${name}"]`);
+  if (input) {
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/[^\d]/g, ""); // 数字以外削除
     });
-  });
+  }
+});
 
   document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1128,8 +1138,8 @@ function loadMachineData(){
 
 // 全台合算
 if(!machineNo && filtered.length>0){
-  // 「調整」「出金」は集計対象外
-const allRecords = filtered.filter(r => r.machineName !== "調整" && r.machineName !== "出金");
+  // 「調整」「出金」「振替」は集計対象外
+const allRecords = filtered.filter(r => r.machineName !== "調整" && r.machineName !== "出金" && r.machineName !== "振替");
 
   const playCount = allRecords.length;
 
@@ -1138,7 +1148,7 @@ const allRecords = filtered.filter(r => r.machineName !== "調整" && r.machineN
   const firstHitCount = firstHitRecords.length;
 
     // === 突入率 ===
-  const nonSingleCount = firstHitRecords.filter(r => !r.singleBonus).length;
+  const nonSingleCount = firstHitRecords.filter(r => !r.isSingleBonus).length;
   const penetrationRate = firstHitCount > 0
     ? `${((nonSingleCount / firstHitCount) * 100).toFixed(0)}%`
     : "-";
@@ -1208,14 +1218,24 @@ rows.push({
  // ===== 個別台 =====
   Object.keys(grouped).sort().forEach(no=>{
     if(no==="__ALL__") return;
-    const recs=grouped[no];
-    const shopName=recs[0]?.shop||"-";
-    const playCount=recs.length;
-    const firstHitRecords=recs.filter(r=>r.firstHitBall!=null && r.firstHitGame>0);
-    const firstHitCount=firstHitRecords.length;
+
+  // グループ化したデータ取得
+  const recs = grouped[no].filter(r =>
+    r.machineName !== "調整" &&
+    r.machineName !== "出金" &&
+    r.machineName !== "振替"
+  );
+
+  // 除外後にデータが空ならスキップ
+  if (recs.length === 0) return;
+
+  const shopName = recs[0]?.shop || "-";
+  const playCount = recs.length;
+  const firstHitRecords = recs.filter(r => r.firstHitBall != null && r.firstHitGame > 0);
+  const firstHitCount = firstHitRecords.length;
 
   // === 突入率 ===
-  const nonSingleCount = firstHitRecords.filter(r => !r.singleBonus).length; // 単発ボーナスが false の件数
+  const nonSingleCount = firstHitRecords.filter(r => !r.isSingleBonus).length; // 単発ボーナスが false の件数
   const penetrationRate = firstHitCount > 0
     ? `${((nonSingleCount / firstHitCount) * 100).toFixed(0)}%`
     : "-";
