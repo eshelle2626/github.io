@@ -747,8 +747,13 @@ function loadRecords(page = 1) {
 
   const records = JSON.parse(localStorage.getItem(key) || "[]");
 
-  // 日付降順（新しい順）にソート
-  const sorted = records.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+// 日付の新しい順、同一日付なら created の新しい順にソート
+const sorted = records.slice().sort((a, b) => {
+  const dateDiff = new Date(b.date) - new Date(a.date);
+  if (dateDiff !== 0) return dateDiff;
+  // 同じ日付なら created の降順（新しい順）
+  return (a.created || 0) < (b.created || 0) ? 1 : -1;
+});
 
   const totalPages = Math.ceil(sorted.length / pageSize);
   const startIdx = (currentPage - 1) * pageSize;
