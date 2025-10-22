@@ -814,7 +814,12 @@ const sorted = records.slice().sort((a, b) => {
       </td>
       <td class="border p-1 ${bonusCellClass}">${bonusText}</td>
       <td class="border p-1">${rotationText}</td>
-      <td class="border p-1 text-right">${r.startBall + r.addBall - (r.firstHitBall || 0)}</td>
+      <td class="border p-1 text-right">${
+  (r.firstHitBall != null && r.firstHitBall !== "")
+    ? (r.startBall + r.addBall - r.firstHitBall)
+    : (r.startBall + r.addBall - r.endBall)
+}</td>
+
       <td class="border p-1 text-right">${r.outBall || 0}</td>
       <td class="border p-1 text-right ${r.incomeYen < 0 ? "text-red-500" : ""}">${incomeText}</td>
       <td class="border p-1 text-center">
@@ -864,11 +869,17 @@ const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-gre
 ].forEach(name => {
   const input = editForm.querySelector(`[name="${name}"]`);
   if (input) {
+    // 数字テンキーを出す
+    input.setAttribute("inputmode", "numeric");
+    input.setAttribute("pattern", "[0-9]*");
+
+    // 数字以外は自動削除
     input.addEventListener("input", () => {
-      input.value = input.value.replace(/[^\d]/g, ""); // 数字以外削除
+      input.value = input.value.replace(/[^\d]/g, "");
     });
   }
 });
+
 
   document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1254,35 +1265,47 @@ for (let d = 1; d <= lastDate; d++) {
       renderCalendar(calYear, calMonth);
     });
 
-  // ===== スワイプ（フリック）で月移動 =====
-  let touchStartX = 0;
-  let touchEndX = 0;
+// ===== スワイプ（フリック）で月移動 =====
+let touchStartX = 0;
+let touchEndX = 0;
 
-  container.addEventListener("touchstart", (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-  });
+container.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+});
 
-  container.addEventListener("touchend", (e) => {
-    touchEndX = e.changedTouches[0].screenX;
-    const diffX = touchEndX - touchStartX;
+container.addEventListener("touchend", (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  const diffX = touchEndX - touchStartX;
 
-    // 一定距離以上スワイプしたら動作
-    if (Math.abs(diffX) > 50) {
-      if (diffX > 0) {
-        // → 右スワイプ（前月）
-        let y = calYear, m = calMonth - 1;
-        if (m === 0) { y--; m = 12; }
-        calYear = y; calMonth = m;
-        renderCalendar(calYear, calMonth);
-      } else {
-        // ← 左スワイプ（次月）
-        let y = calYear, m = calMonth + 1;
-        if (m === 13) { y++; m = 1; }
-        calYear = y; calMonth = m;
-        renderCalendar(calYear, calMonth);
+  // 一定距離以上スワイプしたら動作
+  if (Math.abs(diffX) > 50) {
+    // 現在表示中の年月を都度取得
+    let y = calYear;
+    let m = calMonth;
+
+    if (diffX > 0) {
+      // → 右スワイプ（前月）
+      m--;
+      if (m < 1) {
+        m = 12;
+        y--;
+      }
+    } else {
+      // ← 左スワイプ（次月）
+      m++;
+      if (m > 12) {
+        m = 1;
+        y++;
       }
     }
-  });
+
+    // 値を更新して再描画
+    calYear = y;
+    calMonth = m;
+    renderCalendar(calYear, calMonth);
+  }
+});
+
 
 
   }
