@@ -141,7 +141,7 @@ table {
 
 <!-- 履歴タブ -->
 <div id="history" class="tab-content hidden">
-  <div class="overflow-x-auto max-h-[80vh] overflow-y-auto">
+  <div class="overflow-x-auto max-h-[75vh] overflow-y-auto">
     <table class="border text-sm min-w-[900px] table-fixed">
       <colgroup>
         <col style="width: 30px;">  <!-- 日付 -->
@@ -344,7 +344,7 @@ table {
         </form>
 
   <div class="overflow-x-auto">
-  <div class="overflow-x-auto max-h-[80vh] overflow-y-auto">
+  <div class="overflow-x-auto max-h-[70vh] overflow-y-auto">
     <table class="border text-sm min-w-[900px] table-fixed mt-2">
       <colgroup>
         <col style="width: 45px;"> <!-- 店名 -->
@@ -480,6 +480,12 @@ function updateSelectColor() {
 
 // 初期表示用
 updateSelectColor();
+
+// ===== ダブルタップズーム防止 =====
+["incTransfar", "decTransfar", "incCash", "decCash"].forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) btn.style.touchAction = "manipulation";
+});
 
 // 値変更時
 gameTypeSelect.addEventListener("change", updateSelectColor);
