@@ -142,7 +142,7 @@ table {
 <!-- 履歴タブ -->
 <div id="history" class="tab-content hidden">
   <div class="overflow-x-auto max-h-[75vh] overflow-y-auto">
-    <table class="border text-sm min-w-[900px] table-fixed">
+    <table class="border text-sm min-w-[800px] table-fixed">
       <colgroup>
         <col style="width: 30px;">  <!-- 日付 -->
         <col style="width: 45px;"> <!-- 店名 -->
@@ -154,7 +154,7 @@ table {
         <col style="width: 40px;">  <!-- 回転率 -->
         <col style="width: 30px;">  <!-- 投資 -->
         <col style="width: 30px;">  <!-- 出玉 -->
-        <col style="width: 50px;">  <!-- 収支 -->
+        <col style="width: 55px;">  <!-- 収支 -->
         <col style="width: 30px;">  <!-- 編集 -->
         <col style="width: 15px;">  <!-- 削除 -->
       </colgroup>
@@ -744,7 +744,7 @@ clearBtn.addEventListener("click", () => {
 
 // ===== 履歴 =====
 let currentPage = 1; // 現在のページ
-const pageSize = 100; // 1ページあたり件数
+const pageSize = 300; // 1ページあたり件数
 
 function loadRecords(page = 1) {
   currentPage = page;
