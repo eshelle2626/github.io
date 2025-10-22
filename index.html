@@ -1265,47 +1265,7 @@ for (let d = 1; d <= lastDate; d++) {
       renderCalendar(calYear, calMonth);
     });
 
-// ===== スワイプ（フリック）で月移動 =====
-let touchStartX = 0;
-let touchEndX = 0;
-
-container.addEventListener("touchstart", (e) => {
-  touchStartX = e.changedTouches[0].screenX;
-});
-
-container.addEventListener("touchend", (e) => {
-  touchEndX = e.changedTouches[0].screenX;
-  const diffX = touchEndX - touchStartX;
-
-  // 一定距離以上スワイプしたら動作
-  if (Math.abs(diffX) > 50) {
-    // 現在表示中の年月を都度取得
-    let y = calYear;
-    let m = calMonth;
-
-    if (diffX > 0) {
-      // → 右スワイプ（前月）
-      m--;
-      if (m < 1) {
-        m = 12;
-        y--;
-      }
-    } else {
-      // ← 左スワイプ（次月）
-      m++;
-      if (m > 12) {
-        m = 1;
-        y++;
-      }
-    }
-
-    // 値を更新して再描画
-    calYear = y;
-    calMonth = m;
-    renderCalendar(calYear, calMonth);
-  }
-});
-
+  
 
 
   }
