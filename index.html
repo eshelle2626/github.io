@@ -373,7 +373,7 @@ table {
 <th class="border p-1" data-key="avgRotation">平均<br>回転率</th>
 <th class="border p-1" data-key="avgFirstHitG">平均<br>当G</th>
 <th class="border p-1" data-key="avgInvest">平均<br>必要投資玉</th>
-<th class="border p-1" data-key="totalIncome">合計収支</th>
+<th class="border p-1" data-key="totalIncomeYen">合計収支</th>
 <th class="border p-1" data-key="maxOutBall">最大<br>出玉</th>
 <th class="border p-1" data-key="recoveryRate">回収率</th>
         </tr>
@@ -1253,6 +1253,38 @@ for (let d = 1; d <= lastDate; d++) {
       calYear = Number(y); calMonth = Number(mo);
       renderCalendar(calYear, calMonth);
     });
+
+  // ===== スワイプ（フリック）で月移動 =====
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  container.addEventListener("touchstart", (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  container.addEventListener("touchend", (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    const diffX = touchEndX - touchStartX;
+
+    // 一定距離以上スワイプしたら動作
+    if (Math.abs(diffX) > 50) {
+      if (diffX > 0) {
+        // → 右スワイプ（前月）
+        let y = calYear, m = calMonth - 1;
+        if (m === 0) { y--; m = 12; }
+        calYear = y; calMonth = m;
+        renderCalendar(calYear, calMonth);
+      } else {
+        // ← 左スワイプ（次月）
+        let y = calYear, m = calMonth + 1;
+        if (m === 13) { y++; m = 1; }
+        calYear = y; calMonth = m;
+        renderCalendar(calYear, calMonth);
+      }
+    }
+  });
+
+
   }
 }
 
@@ -1510,7 +1542,9 @@ avgRotation = validCount > 0 ? (totalRotation / validCount).toFixed(1) : "-";
 
 
     const avgFirstHitG=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(1):"-";
-    const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1):"-";
+// 平均必要投資玉数（初当りがあるデータのみ）
+const avgInvest=firstHitCount>0?(firstHitRecords.reduce((a,r)=>a+ ((r.startBall + r.addBall - r.firstHitBall) || 0), 0) / firstHitCount).toFixed(1):"-";
+
     // 個別台：玉収支（玉）と円収支（円）を別で計算
 const totalIncomeBall = recs.reduce((a, r) => {
   const diffBall = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
@@ -1558,13 +1592,27 @@ rows.push({
   });
 
   // ソート
-  if(currentSortKey) rows.sort((a,b)=>{
-    if(a.isAll) return -1;
-    if(b.isAll) return 1;
-    const valA=isNaN(a[currentSortKey])?a[currentSortKey]:Number(a[currentSortKey]);
-    const valB=isNaN(b[currentSortKey])?b[currentSortKey]:Number(b[currentSortKey]);
-    return valA<valB?(currentSortAsc?-1:1):valA>valB?(currentSortAsc?1:-1):0;
+if (currentSortKey) {
+  rows.sort((a, b) => {
+    if (a.isAll) return -1;
+    if (b.isAll) return 1;
+
+    // 合計収支ソート専用：円換算の数値を使う
+    if (currentSortKey === "totalIncomeYen") {
+      const valA = a.totalIncomeYen || 0;
+      const valB = b.totalIncomeYen || 0;
+      return currentSortAsc ? valA - valB : valB - valA;
+    }
+
+    // 通常のソート
+    const valA = isNaN(a[currentSortKey]) ? a[currentSortKey] : Number(a[currentSortKey]);
+    const valB = isNaN(b[currentSortKey]) ? b[currentSortKey] : Number(b[currentSortKey]);
+    if (valA < valB) return currentSortAsc ? -1 : 1;
+    if (valA > valB) return currentSortAsc ? 1 : -1;
+    return 0;
   });
+}
+
 
   // 描画
   rows.forEach(r=>{
