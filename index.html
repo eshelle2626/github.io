@@ -29,7 +29,6 @@ table {
 
 <body class="bg-gray-100 p-4 min-h-screen">
   <div class="max-w-4xl mx-auto bg-white p-4 rounded-2xl shadow-lg">
-    <h1 class="text-xl font-bold mb-4">猫のクッキー屋さん</h1>
 
     <!-- タブ切替 -->
     <div class="flex border-b mb-4">
@@ -124,6 +123,11 @@ table {
           </div>
         </div>
 
+<!-- 備考欄 -->
+  <div class="flex-1">
+    <input type="text" id="remarks" class="border rounded w-full p-2" placeholder="備考">
+  </div>
+
 <!-- 回転率・収支 + 登録ボタン -->
 <div class="mt-2 text-lg font-bold">
   <div class="flex justify-between">
@@ -157,6 +161,7 @@ table {
         <col style="width: 55px;">  <!-- 収支 -->
         <col style="width: 30px;">  <!-- 編集 -->
         <col style="width: 15px;">  <!-- 削除 -->
+        <col style="width: 80px;">  <!-- 備考 -->
       </colgroup>
       <thead class="bg-gray-200">
         <tr>
@@ -173,6 +178,7 @@ table {
           <th class="border p-1">収支</th>
           <th class="border p-1">編集</th>
           <th class="border p-1">削除</th>
+          <th class="border p-1">備考</th>
         </tr>
       </thead>
       <tbody id="recordList"></tbody>
@@ -265,6 +271,11 @@ table {
         </div>
       </div>
 
+      <!-- 備考 -->
+      <div class="flex gap-2">
+          <input type="text" name="remarks" class="border p-1 w-full" placeholder="備考">
+      </div>
+
       <!-- ボタン -->
       <div class="flex justify-end gap-2 mt-4">
         <button type="button" id="closeModal" class="px-3 py-1 bg-gray-300 rounded">キャンセル</button>
@@ -345,7 +356,7 @@ table {
 
   <div class="overflow-x-auto">
   <div class="overflow-x-auto max-h-[70vh] overflow-y-auto">
-    <table class="border text-sm min-w-[900px] table-fixed mt-2">
+    <table class="border text-sm min-w-[800px] table-fixed mt-2">
       <colgroup>
         <col style="width: 45px;"> <!-- 店名 -->
         <col style="width: 30px;">  <!-- 台番 -->
@@ -602,7 +613,8 @@ form.addEventListener("submit", (e) => {
     firstHitBall: form.firstHitBall.value === "" ? null : Number(form.firstHitBall.value),
     isSingleBonus: isSingleBonus, // ←追加
     endBall: Number(form.endBall.value) || 0,
-    created: new Date().toISOString()
+    created: new Date().toISOString(),
+    remarks: form.remarks.value || "",
   };
 
 // ===== 他口座振替による残高マイナス処理 =====
@@ -834,6 +846,7 @@ const sorted = records.slice().sort((a, b) => {
       <td class="border p-1 text-center bg-yellow-200">
         <button data-index="${originalIndex}" class="delete-btn text-red-500">削除</button>
       </td>
+      <td class="border p-1 text-xs">${r.remarks || ""}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -906,6 +919,7 @@ const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-gre
       editForm.firstHitBall.value = r.firstHitBall || "";
       editForm.isSingleBonus.checked = r.isSingleBonus || false;
       editForm.endBall.value = r.endBall || 0;
+      editForm.remarks.value = r.remarks;
 
       editForm.dataset.editIndex = idx;
       applyTypeColor(); // 色適用
@@ -942,6 +956,7 @@ const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-gre
       firstHitBall: editForm.firstHitBall.value === "" ? null : Number(editForm.firstHitBall.value),
       isSingleBonus: isSingleBonus,
       endBall: Number(editForm.endBall.value) || 0,
+      remarks: editForm.remarks.value,
       created: records[idx].created
     };
 
@@ -991,6 +1006,14 @@ let chart;
 function updateSummary(period="all"){
   const data = JSON.parse(localStorage.getItem(key)||"[]");
   const now = new Date();
+
+  // 🔸レートを関数内で定義（修正）
+  const rate = {
+    pachi1: 0.892,
+    pachi4: 3.568,
+    slot46: 19.23,
+    slot5: 4.42
+  };
 
   // フィルター
   const filtered = data.filter(r=>{
@@ -1067,8 +1090,6 @@ document.getElementById("bal1").textContent = balances.pachi1.toLocaleString() +
 }
 document.getElementById("totalAssetYen").textContent = totalAssetYen.toLocaleString() + "円";
 
-
-  document.getElementById("totalYen").textContent = sum.toLocaleString() + "円";
 }
 
 document.querySelectorAll(".period-btn").forEach(btn=>{
@@ -1371,6 +1392,8 @@ document.getElementById("clearAllBtn").addEventListener("click", () => {
   updateSummary();
   alert("すべて削除しました。");
 });
+
+
 
 
 // ===== 台データ =====
