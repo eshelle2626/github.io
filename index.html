@@ -25,6 +25,11 @@ table {
   width: 100%;
 }
 
+  .highlight-row {
+    background-color: #fff7cc; /* 好きな色に変更OK */
+    transition: background-color 0.2s ease;
+  }
+
 </style>
 
 <body class="bg-gray-100 p-4 min-h-screen">
@@ -850,6 +855,23 @@ const sorted = records.slice().sort((a, b) => {
     `;
     tbody.appendChild(tr);
   });
+
+
+
+  // ====== 行クリックでハイライト ======
+tbody.addEventListener("click", (e) => {
+  const tr = e.target.closest("tr"); // クリックされた行を取得
+  if (!tr) return;
+
+  // すでに選択されているハイライトを全部解除
+  tbody.querySelectorAll(".highlight-row").forEach(row => {
+    row.classList.remove("highlight-row");
+  });
+
+  // クリックした行にハイライト付与
+  tr.classList.add("highlight-row");
+});
+
 
  // ページング表示
   const pagination = document.getElementById("recordPagination");
