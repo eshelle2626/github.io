@@ -853,7 +853,7 @@ function loadRecords(page = 1) {
     const rotationText = (typeof r.rotation === "number" ? r.rotation.toFixed(1) : "0.0") + "<br>" + (rotationUnit[r.gameType] || "");
     const incomeText = r.incomeText ? r.incomeText.replace('（', '<br>（') : "0<br>（0円）";
     const firstHitDisplay = r.isYame ? "ヤメ" : r.firstHitGame;
-    const selfG = r.isYame ? r.endBall - r.startGame : (r.firstHitGame || r.endBall || 0) - (r.startGame || 0);
+    const selfG = r.firstHitGame - r.startGame;
 
     tr.innerHTML = `
       <td class="border p-1">${r.date?.slice(5) || ""}</td>
@@ -1048,7 +1048,7 @@ document.addEventListener("DOMContentLoaded", () => loadRecords(1));
 
 // ===== 集計 =====
 let chart;
-function updateSummary(period = "all") {
+function updateSummary(period = "1") {
   const data = JSON.parse(localStorage.getItem(key) || "[]");
   const now = new Date();
 
@@ -1087,7 +1087,7 @@ function updateSummary(period = "all") {
   }
 
 document.getElementById("shopFilter").addEventListener("change", () => {
-  updateSummary(); // 店舗を変えたら即集計更新
+  updateSummary(period); // 店舗を変えたら即集計更新
 });
 
 
@@ -1160,14 +1160,21 @@ document.getElementById("totalAssetYen").textContent = totalAssetYen.toLocaleStr
 
 }
 
-document.querySelectorAll(".period-btn").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    document.querySelectorAll(".period-btn").forEach(b=>b.classList.replace("bg-blue-500","bg-gray-300"));
-    btn.classList.replace("bg-gray-300","bg-blue-500");
+// ===== 期間ボタンイベント =====
+document.querySelectorAll(".period-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".period-btn").forEach(b => 
+      b.classList.replace("bg-blue-500", "bg-gray-300")
+    );
+    btn.classList.replace("bg-gray-300", "bg-blue-500");
     updateSummary(btn.dataset.period);
   });
 });
 
+// ===== 初回ロード =====
+document.addEventListener("DOMContentLoaded", () => {
+  updateSummary("1"); // ← 初期表示を「1ヶ月」に設定
+});
 
 
 // ===== カレンダー（置換用） =====
