@@ -1537,10 +1537,42 @@ Object.keys(grouped).sort().forEach(key => {
     ? `${((nonSingleCount / firstHitCount) * 100).toFixed(1)}%`
     : "-";
 
-  // 🔸平均初当りG
-  const avgFirstHitG = firstHitCount > 0
-    ? (firstHitRecords.reduce((a, r) => a + r.firstHitGame, 0) / firstHitCount).toFixed(0)
-    : "-";
+// 🔸平均初当りG（上段：従来の初当り有データのみの平均 / 下段：全データの総G数 ÷ 初当り回数 を 1/XXX.X 表記）
+let avgFirstHitG = "-";
+
+// 上段（従来どおり。初当りがあるデータのみでの平均）
+if (firstHitCount > 0) {
+  const totalFirstHitG = firstHitRecords.reduce((a, r) => a + (Number(r.firstHitGame) || 0), 0);
+  const avgHitOnly = totalFirstHitG / firstHitCount;
+  const upperText = avgHitOnly ? avgHitOnly.toFixed(0) : "-";
+
+  // 下段：すべての validRecs（初当り有無問わず）の「総ゲーム数」を算出
+  // 各レコードのゲーム数は、初当りがある場合は firstHitGame - startGame、
+  // ない場合は endGame - startGame（endGame が無ければ 0 を使う）
+  const totalGamesAll = validRecs.reduce((acc, r) => {
+    const start = Number(r.startGame) || 0;
+    const firstG = Number(r.firstHitGame) || 0;
+    const endG = Number(r.endGame) || 0;
+    let g = 0;
+    if (firstG > 0) g = Math.max(firstG - start, 0);
+    else if (endG > 0) g = Math.max(endG - start, 0);
+    // else g stays 0 (データ不足)
+    return acc + g;
+  }, 0);
+
+  // 下段を 1/XXX.X 表記で作る（算出不能なら "-"）
+  let lowerText = "-";
+  if (firstHitCount > 0 && totalGamesAll > 0) {
+    const ratio = totalGamesAll / firstHitCount;
+    lowerText = `1/${ratio.toFixed(1)}`;
+  }
+
+  // 表示は「上段（従来表記）」「改行」「下段（1/XXX.X）」
+  avgFirstHitG = `${upperText}<br>${lowerText}`;
+} else {
+  avgFirstHitG = "-";
+}
+
 
   // 🔸平均必要投資玉
   const avgInvest = firstHitCount > 0
@@ -1642,13 +1674,10 @@ if (!machineNo && rows.length > 0) {
     let totalFirstHitCount = 0;
     let totalRotation = 0;
     let totalFirstHitG = 0;
-
-    let totalInvestYen = 0;
-    let totalOutYen = 0;
-
-    // 玉ベース合計も定義
     let totalInvestBall = 0;
     let totalOutBall = 0;
+    let totalInvestYen = 0;
+    let totalOutYen = 0;
 
     indiv.forEach(r => {
       const rRate = rateKeyFromLabel(r.gameType);
@@ -1656,21 +1685,14 @@ if (!machineNo && rows.length > 0) {
 
       totalPlayCount += r.playCount || 0;
       totalFirstHitCount += r.firstHitCount || 0;
-
       totalRotation += parseFloat(r.avgRotation) || 0;
       totalFirstHitG += parseFloat(r.avgFirstHitG) || 0;
 
-      // 投資玉数は初当りのあるデータのみ
       const investBall = r.firstHitCount > 0 ? parseFloat(r.avgInvest) * r.firstHitCount : 0;
       totalInvestBall += investBall;
 
-      // 投資円換算
       totalInvestYen += investBall * yenPerBall;
-
-      // 出玉円換算
       totalOutYen += (r.totalIncomeBall + investBall) * yenPerBall;
-
-      // 玉ベースの出玉合計
       totalOutBall += r.totalIncomeBall;
     });
 
@@ -1679,17 +1701,42 @@ if (!machineNo && rows.length > 0) {
     const diff = recoveryRateValue - 100;
     const recoveryText = (diff >= 0 ? "+" : "") + diff.toFixed(1) + "%";
 
-    // ===== 単位決定（多数派の gameType から選択） =====
+// 平均初当りG（上段：従来 / 下段：1/XXX.X）
+let upperAvg = totalFirstHitG / totalFirstHitCount || "-"; // 上段は従来通り
+upperAvg = upperAvg !== "-" ? upperAvg.toFixed(0) : "-";
+
+// 下段：selfGの総和 ÷ 初当り回数
+let totalSelfG = 0;
+indiv.forEach(r => {
+  if (r.isAll) return;
+  // validRecsごとにselfGを加算
+  const validRecs = JSON.parse(localStorage.getItem(key) || "[]").filter(d =>
+    d.shop === r.shop &&
+    d.machineNo === r.machineNo &&
+    d.machineName === r.machineName
+  );
+  validRecs.forEach(r => {
+    const selfG = r.firstHitGame - r.startGame;
+    totalSelfG += selfG;
+  });
+});
+
+let lowerText = "-";
+if (totalFirstHitCount > 0 && totalSelfG > 0) {
+  const ratio = totalSelfG / totalFirstHitCount;
+  lowerText = `1/${ratio.toFixed(1)}`;
+}
+
+const avgFirstHitGText = `${upperAvg}<br>${lowerText}`;
+
+
+    // 単位決定（多数派の gameType から選択）
     const modeCount = {};
     indiv.forEach(r => { modeCount[r.gameType] = (modeCount[r.gameType] || 0) + 1; });
     const dominantType = Object.keys(modeCount).sort((a, b) => modeCount[b] - modeCount[a])[0];
     const unitLabel = { "5円S": "/50枚", "46枚S": "/46枚", "1円P": "/200玉", "4円P": "/250玉" }[dominantType] || "";
 
-    // 平均値（回転率・初当りG）
     const avgRotation = indiv.length > 0 ? totalRotation / indiv.length : 0;
-    const avgFirstHitG = indiv.length > 0 ? totalFirstHitG / indiv.length : 0;
-
-    // 平均必要投資玉（初当りのあるデータのみ）
     const avgInvest = totalInvestBall / Math.max(totalFirstHitCount, 1);
 
     // 突入率
@@ -1705,11 +1752,11 @@ if (!machineNo && rows.length > 0) {
       playCount: totalPlayCount,
       firstHitCount: totalFirstHitCount,
       penetrationRate,
-      avgFirstHitG: avgFirstHitG ? avgFirstHitG.toFixed(0) : "-",
+      avgFirstHitG: avgFirstHitGText,
       avgInvest: avgInvest ? avgInvest.toFixed(0) : "-",
       avgRotation: avgRotation ? avgRotation.toFixed(1) + "<br>" + unitLabel : "-",
-      totalIncomeBall: Math.round(totalOutBall),         // 玉ベース
-      totalIncomeYen: Math.round(totalOutYen - totalInvestYen), // 円換算
+      totalIncomeBall: Math.round(totalOutBall),
+      totalIncomeYen: Math.round(totalOutYen - totalInvestYen),
       maxOutBall: Math.max(...indiv.map(r => r.maxOutBall || 0)),
       recoveryRate: recoveryText,
       recoveryClass: diff < 0 ? "text-red-500" : "",
@@ -1717,6 +1764,7 @@ if (!machineNo && rows.length > 0) {
     });
   }
 }
+
 
 
 // ===== レートラベル→rateキー変換関数 =====
