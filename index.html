@@ -221,7 +221,7 @@ table {
       <!-- 台番・機種名 -->
       <div class="flex gap-2">
         <div class="flex-none w-1/4">
-          <input type="text" name="machineNo" class="border p-1 w-full" placeholder="台番">
+          <input type="number" name="machineNo" class="border p-1 w-full" placeholder="台番" inputmode="numeric" pattern="[0-9]">
         </div>
         <div class="flex-none w-3/4">
           <input type="text" name="machineName" class="border p-1 w-full" placeholder="機種名">
@@ -232,11 +232,11 @@ table {
       <div class="flex gap-2">
         <div class="flex-none w-1/2">
           <label class="block">開始G数</label>
-          <input type="text" name="startGame" class="border p-1 w-full">
+          <input type="number" name="startGame" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
         </div>
         <div class="flex-none w-1/2">
           <label class="block">開始時玉数</label>
-          <input type="text" name="startBall" class="border p-1 w-full">
+          <input type="number" name="startBall" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
         </div>
       </div>
 
@@ -246,7 +246,7 @@ table {
         </div>
         <div class="flex-none w-1/2">
           <label class="block">追加玉（編集非推奨）</label>
-          <input type="text" name="addBall" class="border p-1 w-full">
+          <input type="number" name="addBall" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
         </div>
       </div>
 
@@ -254,11 +254,11 @@ table {
       <div class="flex gap-2">
         <div class="flex-none w-1/2">
           <label class="block">初当り/ヤメG数</label>
-          <input type="text" name="firstHitGame" class="border p-1 w-full">
+          <input type="number" name="firstHitGame" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
         </div>
         <div class="flex-none w-1/2">
           <label class="block">初当り時玉数</label>
-          <input type="text" name="firstHitBall" class="border p-1 w-full">
+          <input type="number" name="firstHitBall" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
         </div>
       </div>
 
@@ -274,7 +274,7 @@ table {
         </div>
         <div class="flex-none w-1/2">
           <label class="block">終了時玉数</label>
-          <input type="text" name="endBall" class="border p-1 w-full">
+          <input type="number" name="endBall" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
         </div>
       </div>
 
@@ -779,42 +779,36 @@ function renderPagination(totalPages, currentPage = 1) {
   if (!pagination) return;
   pagination.innerHTML = "";
 
-  if (totalPages <= 1) return; // 1ページなら不要
+  if (totalPages <= 1) return;
 
-  // ◀ 前ボタン
-  const prevBtn = document.createElement("button");
-  prevBtn.textContent = "◀";
-  prevBtn.disabled = currentPage === 1;
-  prevBtn.className = `px-2 py-0.5 m-1 rounded ${prevBtn.disabled ? "opacity-50 cursor-not-allowed" : "bg-gray-200"}`;
-  prevBtn.addEventListener("click", () => loadRecords(currentPage - 1));
-  pagination.appendChild(prevBtn);
+  const createBtn = (text, page, disabled = false) => {
+    const btn = document.createElement("button");
+    btn.textContent = text;
+    btn.disabled = disabled;
+    btn.className = `px-2 py-0.5 m-1 rounded ${disabled ? "opacity-50 cursor-not-allowed" : "bg-gray-200"}`;
+    if (!disabled) btn.addEventListener("click", () => loadRecords(page));
+    return btn;
+  };
 
-  // ページ番号
-  const maxDisplay = 5; // 最大表示ページ数
+  pagination.appendChild(createBtn("◀", currentPage - 1, currentPage === 1));
+
   let startPage = Math.max(1, currentPage - 2);
-  let endPage = Math.min(totalPages, startPage + maxDisplay - 1);
-  if (endPage - startPage < maxDisplay - 1) startPage = Math.max(1, endPage - maxDisplay + 1);
+  let endPage = Math.min(totalPages, startPage + 4);
+  if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
   if (startPage > 1) {
-    const firstBtn = document.createElement("button");
-    firstBtn.textContent = "1";
-    firstBtn.className = `px-2 py-0.5 m-1 rounded ${currentPage === 1 ? "bg-gray-400 text-white" : "bg-gray-200"}`;
-    firstBtn.addEventListener("click", () => loadRecords(1));
-    pagination.appendChild(firstBtn);
-
+    pagination.appendChild(createBtn(1, 1));
     if (startPage > 2) {
       const span = document.createElement("span");
       span.textContent = "...";
-      span.className = "px-2 text-sm";
+      span.className = "px-2";
       pagination.appendChild(span);
     }
   }
 
   for (let i = startPage; i <= endPage; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.className = `px-2 py-0.5 m-1 rounded ${i === currentPage ? "bg-gray-400 text-white" : "bg-gray-200"}`;
-    btn.addEventListener("click", () => loadRecords(i));
+    const btn = createBtn(i, i);
+    if (i === currentPage) btn.className = "px-2 py-0.5 m-1 rounded bg-gray-400 text-white";
     pagination.appendChild(btn);
   }
 
@@ -822,24 +816,13 @@ function renderPagination(totalPages, currentPage = 1) {
     if (endPage < totalPages - 1) {
       const span = document.createElement("span");
       span.textContent = "...";
-      span.className = "px-2 text-sm";
+      span.className = "px-2";
       pagination.appendChild(span);
     }
-
-    const lastBtn = document.createElement("button");
-    lastBtn.textContent = totalPages;
-    lastBtn.className = `px-2 py-0.5 m-1 rounded ${currentPage === totalPages ? "bg-gray-400 text-white" : "bg-gray-200"}`;
-    lastBtn.addEventListener("click", () => loadRecords(totalPages));
-    pagination.appendChild(lastBtn);
+    pagination.appendChild(createBtn(totalPages, totalPages));
   }
 
-  // ▶ 次ボタン
-  const nextBtn = document.createElement("button");
-  nextBtn.textContent = "▶";
-  nextBtn.disabled = currentPage === totalPages;
-  nextBtn.className = `px-2 py-0.5 m-1 rounded ${nextBtn.disabled ? "opacity-50 cursor-not-allowed" : "bg-gray-200"}`;
-  nextBtn.addEventListener("click", () => loadRecords(currentPage + 1));
-  pagination.appendChild(nextBtn);
+  pagination.appendChild(createBtn("▶", currentPage + 1, currentPage === totalPages));
 }
 
 // ===== レコード描画 =====
@@ -849,8 +832,6 @@ function loadRecords(page = 1) {
   tbody.innerHTML = "";
 
   const records = JSON.parse(localStorage.getItem(key) || "[]");
-
-  // 日付降順、同じ日付なら created 降順
   const sorted = records.slice().sort((a, b) => {
     const dateDiff = new Date(b.date) - new Date(a.date);
     if (dateDiff !== 0) return dateDiff;
@@ -858,37 +839,28 @@ function loadRecords(page = 1) {
   });
 
   const totalPages = Math.ceil(sorted.length / pageSize);
-  const startIdx = (currentPage - 1) * pageSize;
-  const pageData = sorted.slice(startIdx, startIdx + pageSize);
+  const pageData = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-green-200", pachi4: "bg-yellow-200" };
+  const rotationUnit = { slot46: "/46枚", slot5: "/50枚", pachi1: "/200玉", pachi4: "/250玉" };
+  const typeLabelMap = { pachi4: "4円P", pachi1: "1円P", slot46: "46枚S", slot5: "5円S" };
 
   pageData.forEach(r => {
-    const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-green-200", pachi4: "bg-yellow-200" };
-    const typeLabel = { pachi4: "4円P", pachi1: "1円P", slot46: "46枚S", slot5: "5円S" }[r.gameType] || "";
-    const rotationUnit = { slot46: "/46枚", slot5: "/50枚", pachi1: "/200玉", pachi4: "/250玉" };
+    const tr = document.createElement("tr");
+    const originalIndex = records.findIndex(rec => rec.created === r.created);
+    const bonusText = r.isSingleBonus ? "単発" : (r.firstHitBall === null ? "-" : "");
+    const bonusCellClass = r.isSingleBonus || r.firstHitBall === null ? "bg-gray-300" : "";
     const rotationText = (typeof r.rotation === "number" ? r.rotation.toFixed(1) : "0.0") + "<br>" + (rotationUnit[r.gameType] || "");
     const incomeText = r.incomeText ? r.incomeText.replace('（', '<br>（') : "0<br>（0円）";
     const firstHitDisplay = r.isYame ? "ヤメ" : r.firstHitGame;
     const selfG = r.isYame ? r.endBall - r.startGame : (r.firstHitGame || r.endBall || 0) - (r.startGame || 0);
-
-    let bonusText = "";
-    let bonusCellClass = "";
-    if (r.isSingleBonus) {
-      bonusText = "単発";
-      bonusCellClass = "bg-gray-300";
-    } else if (r.firstHitBall === null) {
-      bonusText = "-";
-      bonusCellClass = "bg-gray-300";
-    }
-
-    const tr = document.createElement("tr");
-    const originalIndex = records.findIndex(rec => rec.created === r.created);
 
     tr.innerHTML = `
       <td class="border p-1">${r.date?.slice(5) || ""}</td>
       <td class="border p-1">${r.shop || ""}</td>
       <td class="border p-1">${(r.machineNo || "").replace(/\D/g, "")}</td>
       <td class="border p-1">${r.machineName || ""}</td>
-      <td class="border p-1 ${typeColors[r.gameType] || ""}">${typeLabel}</td>
+      <td class="border p-1 ${typeColors[r.gameType] || ""}">${typeLabelMap[r.gameType] || ""}</td>
       <td class="border p-1 ${r.isYame ? 'bg-gray-300' : ''}">${firstHitDisplay}<br>（${selfG}）</td>
       <td class="border p-1 ${bonusCellClass}">${bonusText}</td>
       <td class="border p-1">${rotationText}</td>
@@ -906,10 +878,9 @@ function loadRecords(page = 1) {
     tbody.appendChild(tr);
   });
 
-  // ページング描画呼び出し
   renderPagination(totalPages, currentPage);
 
-  // 行クリックでハイライト
+  // 行ハイライト
   tbody.querySelectorAll("tr").forEach(tr => {
     tr.addEventListener("click", () => {
       tbody.querySelectorAll(".highlight-row").forEach(row => row.classList.remove("highlight-row"));
@@ -917,24 +888,56 @@ function loadRecords(page = 1) {
     });
   });
 
-  // 編集・削除ボタンのイベントはここで再設定
   setupEditDeleteEvents();
 }
 
-// ===== 編集・削除ボタンの共通処理 =====
+// ===== 編集・削除ボタン =====
 function setupEditDeleteEvents() {
+  const editModal = document.getElementById("editModal");
+  const editForm = document.getElementById("editForm");
+  const closeModal = document.getElementById("closeModal");
+  const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-green-200", pachi4: "bg-yellow-200" };
+
+  function applyTypeColor() {
+    editForm.gameType.classList.remove(...Object.values(typeColors));
+    const selectedType = editForm.gameType.value;
+    if (typeColors[selectedType]) editForm.gameType.classList.add(typeColors[selectedType]);
+  }
+
   document.querySelectorAll(".edit-btn").forEach(btn => {
-    btn.onclick = () => {
+    btn.removeEventListener("click", btn._editHandler);
+    const handler = () => {
       const idx = Number(btn.dataset.index);
       const records = JSON.parse(localStorage.getItem(key) || "[]");
       const r = records[idx];
       if (!r) return;
-      // モーダル表示処理（省略: 元のコードをそのまま使用）
+
+      editForm.date.value = r.date;
+      editForm.shop.value = r.shop;
+      editForm.gameType.value = r.gameType || "slot5";
+      editForm.machineNo.value = r.machineNo;
+      editForm.machineName.value = r.machineName;
+      editForm.startGame.value = r.startGame || 0;
+      editForm.startBall.value = r.startBall || 0;
+      editForm.addBall.value = r.addBall || 0;
+      editForm.firstHitGame.value = r.firstHitGame || 0;
+      editForm.firstHitBall.value = r.firstHitBall || "";
+      editForm.isSingleBonus.checked = r.isSingleBonus || false;
+      editForm.endBall.value = r.endBall || 0;
+      editForm.remarks.value = r.remarks;
+      editForm.dataset.editIndex = idx;
+      applyTypeColor();
+
+      editModal.classList.remove("hidden");
+      editModal.classList.add("flex");
     };
+    btn.addEventListener("click", handler);
+    btn._editHandler = handler;
   });
 
   document.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.onclick = () => {
+    btn.removeEventListener("click", btn._deleteHandler);
+    const handler = () => {
       if (!confirm("本当に削除しますか？")) return;
       const idx = Number(btn.dataset.index);
       const data = JSON.parse(localStorage.getItem(key) || "[]");
@@ -944,11 +947,102 @@ function setupEditDeleteEvents() {
         loadRecords(currentPage);
       }
     };
+    btn.addEventListener("click", handler);
+    btn._deleteHandler = handler;
   });
+
+  closeModal.addEventListener("click", () => {
+    editModal.classList.add("hidden");
+    editModal.classList.remove("flex");
+  });
+
+editForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const records = JSON.parse(localStorage.getItem(key) || "[]");
+  const idx = Number(editForm.dataset.editIndex);
+  if (idx < 0 || idx >= records.length) return;
+
+  const updated = {
+    date: editForm.date.value,
+    shop: editForm.shop.value,
+    machineNo: editForm.machineNo.value,
+    machineName: editForm.machineName.value,
+    gameType: editForm.gameType?.value || records[idx].gameType,
+    startGame: Number(editForm.startGame.value) || 0,
+    startBall: Number(editForm.startBall.value) || 0,
+    addBall: Number(editForm.addBall.value) || 0,
+    firstHitGame: Number(editForm.firstHitGame.value) || 0,
+    firstHitBall: editForm.firstHitBall.value === "" ? null : Number(editForm.firstHitBall.value),
+    isSingleBonus: editForm.isSingleBonus.checked,
+    endBall: Number(editForm.endBall.value) || 0,
+    remarks: editForm.remarks.value,
+    created: records[idx].created
+  };
+
+  const isYame = updated.firstHitBall === null;
+  updated.isYame = isYame;
+  updated.outBall = isYame ? 0 : Math.max(0, updated.endBall - updated.firstHitBall);
+  const usedBalls = isYame ? (updated.startBall + updated.addBall - updated.endBall) : (updated.startBall + updated.addBall - updated.firstHitBall);
+  const totalG = (updated.firstHitGame && updated.firstHitGame > 0 ? updated.firstHitGame : updated.endBall) - updated.startGame;
+  const investUnit = {slot46:46, slot5:50, pachi1:200, pachi4:250};
+  const base = investUnit[updated.gameType] || 0;
+  updated.rotation = (usedBalls > 0 && totalG > 0) ? Number(((totalG * base)/usedBalls).toFixed(1)) : 0;
+
+  const rate = {slot46:19.23, slot5:4.42, pachi1:0.892, pachi4:3.568};
+  const diff = updated.endBall - (updated.startBall + updated.addBall);
+  updated.incomeYen = rate[updated.gameType] ? Math.round(diff * rate[updated.gameType]) : 0;
+  updated.incomeText = `${diff}（${updated.incomeYen.toLocaleString()}円）`;
+
+  records[idx] = updated;
+  localStorage.setItem(key, JSON.stringify(records));
+
+  // === ここから「編集した行だけ再描画」 ===
+  const tbody = document.getElementById("recordList");
+  const tr = tbody.querySelector(`.edit-btn[data-index="${idx}"]`)?.closest("tr");
+  if (tr) {
+    const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-green-200", pachi4: "bg-yellow-200" };
+    const rotationUnit = { slot46: "/46枚", slot5: "/50枚", pachi1: "/200玉", pachi4: "/250玉" };
+    const typeLabelMap = { pachi4: "4円P", pachi1: "1円P", slot46: "46枚S", slot5: "5円S" };
+
+    const bonusText = updated.isSingleBonus ? "単発" : (updated.firstHitBall === null ? "-" : "");
+    const bonusCellClass = updated.isSingleBonus || updated.firstHitBall === null ? "bg-gray-300" : "";
+    const rotationText = (typeof updated.rotation === "number" ? updated.rotation.toFixed(1) : "0.0") + "<br>" + (rotationUnit[updated.gameType] || "");
+    const incomeText = updated.incomeText ? updated.incomeText.replace('（', '<br>（') : "0<br>（0円）";
+    const firstHitDisplay = updated.isYame ? "ヤメ" : updated.firstHitGame;
+    const selfG = updated.isYame ? updated.endBall - updated.startGame : (updated.firstHitGame || updated.endBall || 0) - (updated.startGame || 0);
+
+    tr.innerHTML = `
+      <td class="border p-1">${updated.date?.slice(5) || ""}</td>
+      <td class="border p-1">${updated.shop || ""}</td>
+      <td class="border p-1">${(updated.machineNo || "").replace(/\D/g, "")}</td>
+      <td class="border p-1">${updated.machineName || ""}</td>
+      <td class="border p-1 ${typeColors[updated.gameType] || ""}">${typeLabelMap[updated.gameType] || ""}</td>
+      <td class="border p-1 ${updated.isYame ? 'bg-gray-300' : ''}">${firstHitDisplay}<br>（${selfG}）</td>
+      <td class="border p-1 ${bonusCellClass}">${bonusText}</td>
+      <td class="border p-1">${rotationText}</td>
+      <td class="border p-1 text-right">${updated.firstHitBall != null ? (updated.startBall + updated.addBall - updated.firstHitBall) : (updated.startBall + updated.addBall - updated.endBall)}</td>
+      <td class="border p-1 text-right">${updated.outBall || 0}</td>
+      <td class="border p-1 text-right ${updated.incomeYen < 0 ? "text-red-500" : ""}">${incomeText}</td>
+      <td class="border p-1 text-center">
+        <button class="bg-yellow-300 px-2 py-0.5 rounded text-xs edit-btn" data-index="${idx}">編集</button>
+      </td>
+      <td class="border p-1 text-center bg-yellow-200">
+        <button class="delete-btn text-red-500" data-index="${idx}">削除</button>
+      </td>
+      <td class="border p-1 text-xs">${updated.remarks || ""}</td>
+    `;
+  }
+
+  setupEditDeleteEvents();
+  editModal.classList.add("hidden");
+  editModal.classList.remove("flex");
+});
 }
 
-// 初回ロード
+// ===== 初回ロード =====
 document.addEventListener("DOMContentLoaded", () => loadRecords(1));
+
+
 
 
 
