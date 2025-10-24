@@ -1447,84 +1447,7 @@ function loadMachineData(){
 
   const rows=[];
 
-// 全台合算
-if(!machineNo && filtered.length>0){
-  // 「調整」「出金」「振替」は集計対象外
-const allRecords = filtered.filter(r => r.machineName !== "調整" && r.machineName !== "出金" && r.machineName !== "振替");
 
-  const playCount = allRecords.length;
-
-  // 初当り玉数があるもののみで平均計算
-  const firstHitRecords = allRecords.filter(r => r.firstHitBall !== null && !r.isYame);
-  const firstHitCount = firstHitRecords.length;
-
-    // === 突入率 ===
-  const nonSingleCount = firstHitRecords.filter(r => !r.isSingleBonus).length;
-  const penetrationRate = firstHitCount > 0
-    ? `${((nonSingleCount / firstHitCount) * 100).toFixed(0)}%`
-    : "-";
-
-  let avgRotation = "-";
-  let avgFirstHitG = "-";
-  let avgInvest = "-";
-
-  if(firstHitCount > 0){
-    const sumRotation = firstHitRecords.reduce((a,r)=>a+(r.rotation||0),0);
-    const unitMap = { slot46:"/46枚", slot5:"/50枚", pachi1:"/200玉", pachi4:"/250玉" };
-    const unit = unitMap[firstHitRecords[0].gameType] || "";
-    avgRotation = (sumRotation / firstHitCount).toFixed(1) + "<br>" + unit;
-
-    avgFirstHitG = (firstHitRecords.reduce((a,r)=>a+r.firstHitGame,0)/firstHitCount).toFixed(1);
-    avgInvest = (firstHitRecords.reduce((a,r)=>a+(r.startBall+r.addBall-r.firstHitBall),0)/firstHitCount).toFixed(1);
-  }
-
-  // 合計：玉収支（玉）と円収支（円）を別で計算
-const totalIncomeBall = allRecords.reduce((a,r) => {
-  const diffBall = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
-  return a + diffBall;
-}, 0);
-
-const totalIncomeYen = allRecords.reduce((a,r) => {
-  const diffBall = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
-  const rrate = rate[r.gameType] || 0; // rate はファイル上部で定義済み
-  return a + Math.round(diffBall * rrate);
-}, 0);
-
-  const maxOutBall = allRecords.reduce((a,r)=>Math.max(a,r.outBall||0),0);
-  const totalInvest = allRecords.reduce((a,r)=>a + ((r.startBall + r.addBall - (r.firstHitBall||0)) || 0), 0);
-  const totalOutBall = allRecords.reduce((a,r)=>a + (r.outBall||0), 0);
-  let recoveryRateValue = totalInvest > 0 ? (totalOutBall / totalInvest) * 100 : null;
-
-// ±表示用
-let recoveryText = "-";
-let recoveryClass = "";
-if(recoveryRateValue !== null){
-  const diff = recoveryRateValue - 100;
-  recoveryText = (diff >= 0 ? "+" : "") + diff.toFixed(1) + "%";
-  if(diff < 0) recoveryClass = "text-red-500"; // マイナスなら赤字
-}
-
-// rows.push内で使用
-rows.push({
-  shop: "全台合算",
-  machineNo: "-",
-  machineName: "-",
-  gameType: "-",
-  playCount,
-  firstHitCount,
-  penetrationRate,
-  avgFirstHitG,
-  avgInvest,
-  avgRotation,
-  totalIncomeBall,    // 玉収支（玉）
-  totalIncomeYen,     // 円収支（円）
-  maxOutBall,
-  recoveryRate: recoveryText,
-  recoveryClass: recoveryClass,
-  isAll: true
-});
-
-}
 
  // ===== 個別台 =====
   Object.keys(grouped).sort().forEach(no=>{
@@ -1646,6 +1569,103 @@ if (currentSortKey) {
     return 0;
   });
 }
+
+// ===== 全台合算（平均・実質回収率・単位対応） =====
+if (!machineNo && rows.length > 0) {
+  const indiv = rows.filter(r => !r.isAll);
+
+  if (indiv.length > 0) {
+    let totalPlayCount = 0;
+    let totalFirstHitCount = 0;
+    let totalRotation = 0;
+    let totalFirstHitG = 0;
+    let totalInvestBall = 0;
+    let totalOutBall = 0;
+    let totalInvestYen = 0;
+    let totalOutYen = 0;
+
+    indiv.forEach(r => {
+      const rRate = rateKeyFromLabel(r.gameType); // ←下に定義してます
+      const yenPerBall = rate[rRate] || 1;
+
+      totalPlayCount += r.playCount || 0;
+      totalFirstHitCount += r.firstHitCount || 0;
+
+      totalRotation += parseFloat(r.avgRotation) || 0;
+      totalFirstHitG += parseFloat(r.avgFirstHitG) || 0;
+
+      // 投資・出玉（玉単位）を個別収支から推定
+      const incomeYen = r.totalIncomeYen || 0;
+      const incomeBall = incomeYen / yenPerBall;
+      if (incomeBall >= 0) totalOutBall += incomeBall;
+      else totalInvestBall += -incomeBall;
+
+      if (incomeYen >= 0) totalOutYen += incomeYen;
+      else totalInvestYen += -incomeYen;
+    });
+
+    // ===== 単位決定（多数派の gameType から選択） =====
+    const modeCount = {};
+    indiv.forEach(r => { modeCount[r.gameType] = (modeCount[r.gameType] || 0) + 1; });
+    const dominantType = Object.keys(modeCount).sort((a, b) => modeCount[b] - modeCount[a])[0];
+    const unitLabel = { "5円S": "/50枚", "46枚S": "/46枚", "1円P": "/200玉", "4円P": "/250玉" }[dominantType] || "";
+
+    // 実質回収率（玉ベースに統一）
+    const totalRecoveryRate = totalInvestBall > 0
+      ? (totalOutBall / totalInvestBall) * 100
+      : 0;
+
+    // 平均値
+    const avgRotation = indiv.length > 0
+      ? totalRotation / indiv.length
+      : 0;
+    const avgFirstHitG = indiv.length > 0
+      ? totalFirstHitG / indiv.length
+      : 0;
+
+    // 平均必要投資玉数（単純平均）
+    const avgInvest = indiv.length > 0
+      ? (totalInvestBall / indiv.length)
+      : 0;
+
+    // 突入率
+    const penetrationRate = totalPlayCount > 0
+      ? ((totalFirstHitCount / totalPlayCount) * 100).toFixed(1) + "%"
+      : "-";
+
+    rows.unshift({
+      shop: "全台合算",
+      machineNo: "-",
+      machineName: "-",
+      gameType: "-",
+      playCount: totalPlayCount,
+      firstHitCount: totalFirstHitCount,
+      penetrationRate,
+      avgFirstHitG: avgFirstHitG ? avgFirstHitG.toFixed(1) : "-",
+      avgInvest: avgInvest ? avgInvest.toFixed(1) : "-",
+      avgRotation: avgRotation ? avgRotation.toFixed(1) + "<br>" + unitLabel : "-",
+      totalIncomeBall: (totalOutBall - totalInvestBall).toFixed(0),
+      totalIncomeYen: (totalOutYen - totalInvestYen).toFixed(0),
+      maxOutBall: Math.max(...indiv.map(r => r.maxOutBall || 0)),
+      recoveryRate: totalRecoveryRate.toFixed(1) + "%",
+      recoveryClass: totalRecoveryRate < 100 ? "text-red-500" : "",
+      isAll: true
+    });
+  }
+}
+
+// ===== レートラベル→rateキー変換関数 =====
+function rateKeyFromLabel(label) {
+  switch (label) {
+    case "4円P": return "pachi4";
+    case "1円P": return "pachi1";
+    case "46枚S": return "slot46";
+    case "5円S": return "slot5";
+    default: return "pachi4";
+  }
+}
+
+
 
 
   // 描画
