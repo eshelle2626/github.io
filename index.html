@@ -1114,7 +1114,7 @@ function setupEditDeleteEvents() {
 
 
 
-// ===== 残高計算（整理版） =====
+// ===== 残高計算 =====
 function updateBalances(selectedShop = "all") {
   const data = JSON.parse(localStorage.getItem(key) || "[]");
 
@@ -1127,42 +1127,32 @@ function updateBalances(selectedShop = "all") {
 
     const type = r.gameType;
 
-    // ===== 他口座振替による残高調整 =====
+    // 出金処理
+    if (r.machineName === "出金") {
+      balances[type] -= Number(r.withdrawBall || 0);
+      return; // 通常収支には加えない
+    }
+
+    // 他口座振替：残高にのみ反映
     if (r.transfarBall && r.transfarBall > 0) {
       const amount = Number(r.transfarBall);
-      let sourceType = null;
-      let rate = 1;
-
+      let sourceType, transRate;
       switch(type) {
-        case "pachi1": sourceType="pachi4"; rate=1000/250; break;
-        case "pachi4": sourceType="pachi1"; rate=250/1000; break;
-        case "slot5":  sourceType="slot46"; rate=200/46; break;
-        case "slot46": sourceType="slot5";  rate=46/200; break;
+        case "pachi1": sourceType="pachi4"; transRate=1000/250; break;
+        case "pachi4": sourceType="pachi1"; transRate=250/1000; break;
+        case "slot5": sourceType="slot46"; transRate=200/46; break;
+        case "slot46": sourceType="slot5"; transRate=46/200; break;
       }
-
-      // 元口座を同店舗で減算
-      if (sourceType && balances[sourceType] !== undefined) {
-        balances[sourceType] -= Math.round(amount * rate);
-      }
-
-      // 振替先に加算
+      if (sourceType && balances[sourceType] !== undefined) balances[sourceType] -= Math.round(amount * transRate);
       balances[type] += amount;
     }
 
-    // ===== 出金処理 =====
-    if (r.machineName === "出金") {
-      const wBall = Number(r.withdrawBall || 0);
-      if (wBall) balances[type] -= wBall;
-      return; // 出金は収支差分を加えない
-    }
-
-    // ===== 通常収支処理 =====
-    // diff は startBall + addBall (振替込み) に対して endBall の差
-    const diff = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
+    // 通常収支（振替分を差し引いて加算）
+    const diff = (r.endBall || 0) - ((r.startBall || 0) + ((r.addBall || 0) - (r.transfarBall || 0)));
     balances[type] += diff;
   });
 
-  // ===== DOM反映 =====
+  // DOM更新
   document.getElementById("bal46").textContent = balances.slot46.toLocaleString() + "枚";
   document.getElementById("bal5").textContent  = balances.slot5.toLocaleString() + "枚";
   document.getElementById("bal4").textContent  = balances.pachi4.toLocaleString() + "玉";
@@ -1170,11 +1160,12 @@ function updateBalances(selectedShop = "all") {
 
   // 円換算残高
   let totalAssetYen = 0;
-  for (const t of ["slot46","slot5","pachi4","pachi1"]) {
+  for(const t of ["slot46","slot5","pachi4","pachi1"]) {
     totalAssetYen += Math.round((balances[t] || 0) * (rate[t] || 0));
   }
   document.getElementById("totalAssetYen").textContent = totalAssetYen.toLocaleString() + "円";
 }
+
 
 
 
@@ -1402,11 +1393,8 @@ function renderCalendar(year, month) {
 
   // header with prev/next and select
   const monthLabel = `${year}/${String(month).padStart(2,'0')}`;
-  // build select options from records
   const monthOptions = buildMonthOptions(records);
 
-//計算処理を先に
-// filter records for the (year,month)
   const filtered = records.filter(r => {
     if (!r.date) return false;
     const d = new Date(r.date);
@@ -1414,62 +1402,47 @@ function renderCalendar(year, month) {
     return d.getFullYear() === Number(year) && (d.getMonth()+1) === Number(month);
   });
 
-  // group by yyyy-mm-dd string
+  // group by date
   const byDate = {};
   filtered.forEach(r => {
-    const dateStr = r.date; // expected "YYYY-MM-DD"
+    const dateStr = r.date;
     if (!byDate[dateStr]) byDate[dateStr] = [];
     byDate[dateStr].push(r);
   });
 
-  // compute daily summaries
-  const daily = {}; // dateStr -> { income, cash }
+  // 日別集計
+  const daily = {};
   Object.keys(byDate).forEach(dateStr => {
     const recs = byDate[dateStr];
     let incomeSum = 0;
     let cashSum = 0;
 
     recs.forEach(r => {
-      // incomeYen if present; otherwise compute from balls & rate (fallback)
-      const incomeYen = (typeof r.incomeYen === "number") ? r.incomeYen
-        : (() => {
-            // fallback compute: diffBalls * rate (use main rate mapping if exists)
-            const rateMap = { pachi1:0.892, pachi4:3.568, slot5:4.42, slot46:19.23 };
-            const diffBall = (Number(r.endBall)||0) - ((Number(r.startBall)||0) + (Number(r.addBall)||0));
-            const rt = rateMap[r.gameType] || 0;
-            return Math.round(diffBall * rt);
-          })();
-
+      // 通常収支
+      const incomeYen = (r.machineName === "出金") ? 0 : r.incomeYen || 0;
       incomeSum += incomeYen;
 
-// 新しい処理（withdrawYen があればそれを加算）
-if (r.machineName === "出金") {
-  const wy = Number(r.withdrawYen || 0);
-  if (wy) cashSum += wy; // 出金は現金増なので cashSum にプラス
-}
+      // 出金は現金増
+      if (r.machineName === "出金") {
+        cashSum += Number(r.withdrawYen || 0);
+      }
 
-      // 現金追加玉(cashBall)の現金換算をマイナス（現金減）
-const cash = Number(r.cashBall || 0);
-if (cash && r.gameType && addBallToYen[r.gameType]) {
-  const cashYen = Math.round(cash * addBallToYen[r.gameType]);
-  cashSum -= cashYen; // 現金→玉（出金扱い）なので現金を減算
-}
-
+      // 現金追加玉(cashBall)は現金減
+      if (r.cashBall && r.gameType && addBallToYen[r.gameType]) {
+        cashSum -= Math.round(r.cashBall * addBallToYen[r.gameType]);
+      }
     });
 
     daily[dateStr] = { income: incomeSum, cash: cashSum };
   });
 
-
   // monthly totals
   const monthlyIncome = Object.values(daily).reduce((a,b)=>a + (b.income||0), 0);
   const monthlyCash = Object.values(daily).reduce((a,b)=>a + (b.cash||0), 0);
 
-
-
+  // header HTML
   let headerHtml = `
   <div class="flex items-start justify-between mb-2">
-    <!-- 左側：月移動 + プルダウン -->
     <div class="flex items-center gap-2">
       <button id="calPrev" class="px-2 py-1 rounded bg-gray-200">◀</button>
       <div class="text-lg font-bold" id="calTitle">${monthLabel}</div>
@@ -1482,65 +1455,52 @@ if (cash && r.gameType && addBallToYen[r.gameType]) {
         }).join("")}
       </select>
     </div>
-
-    <!-- 右側：当月集計（縦2行） -->
     <div class="text-right text-sm leading-tight">
-      <div>当月収支：<span class="font-bold text-blue-600">${Object.values(daily).reduce((a,b)=>a+(b.income||0),0).toLocaleString()}円</span></div>
-      <div>現金増減：<span class="font-bold text-green-600">${Object.values(daily).reduce((a,b)=>a+(b.cash||0),0)>=0?'+':''}${Object.values(daily).reduce((a,b)=>a+(b.cash||0),0).toLocaleString()}円</span></div>
+      <div>当月収支：<span class="font-bold text-blue-600">${monthlyIncome.toLocaleString()}円</span></div>
+      <div>現金増減：<span class="font-bold text-green-600">${monthlyCash>=0?'+':''}${monthlyCash.toLocaleString()}円</span></div>
     </div>
   </div>
-`;
-
-
-  
+  `;
 
   // calendar grid
   const first = new Date(year, month - 1, 1);
+  const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
   const lastDate = new Date(year, month, 0).getDate();
-  const firstWeekday = first.getDay(); // 0..6
+  const firstWeekday = first.getDay();
 
   let gridHtml = `<div class="grid grid-cols-7 gap-1 text-xs">`;
   ["日","月","火","水","木","金","土"].forEach(d => gridHtml += `<div class="text-center font-semibold p-1">${d}</div>`);
 
-  // empty leading cells
   for (let i = 0; i < firstWeekday; i++) gridHtml += `<div class="p-2"></div>`;
 
-  // カレンダーセル生成部分
-for (let d = 1; d <= lastDate; d++) {
-  const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  const stat = daily[dateStr];
+  for (let d = 1; d <= lastDate; d++) {
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const stat = daily[dateStr];
+    const todayClass = (dateStr === todayStr) ? "bg-yellow-100 border-yellow-400" : "";
 
-  // 今日なら背景色を付与
-  const todayClass = (dateStr === todayStr) ? "bg-yellow-100 border-yellow-400" : "";
-
-  if (stat) {
-    const incomeColor = stat.income < 0 ? "text-red-600" : "text-green-600";
-    const cashColor = stat.cash < 0 ? "text-orange-500" : "text-blue-600";
-    gridHtml += `
-      <div class="border p-1 rounded h-16 overflow-hidden ${todayClass}">
-        <div class="font-bold text-left">${d}</div>
-        <div class="${incomeColor} text-[11px] text-center">${stat.income.toLocaleString()}円</div>
-        <div class="${cashColor} text-[10px] text-center">現金${stat.cash>=0?'+':''}${stat.cash.toLocaleString()}円</div>
-      </div>
-    `;
-  } else {
-    gridHtml += `<div class="border p-1 rounded h-16 text-gray-400 ${todayClass}"><div class="font-bold">${d}</div></div>`;
+    if (stat) {
+      const incomeColor = stat.income < 0 ? "text-red-600" : "text-green-600";
+      const cashColor = stat.cash < 0 ? "text-orange-500" : "text-blue-600";
+      gridHtml += `
+        <div class="border p-1 rounded h-16 overflow-hidden ${todayClass}">
+          <div class="font-bold text-left">${d}</div>
+          <div class="${incomeColor} text-[11px] text-center">${stat.income.toLocaleString()}円</div>
+          <div class="${cashColor} text-[10px] text-center">現金${stat.cash>=0?'+':''}${stat.cash.toLocaleString()}円</div>
+        </div>
+      `;
+    } else {
+      gridHtml += `<div class="border p-1 rounded h-16 text-gray-400 ${todayClass}"><div class="font-bold">${d}</div></div>`;
+    }
   }
-}
 
   gridHtml += `</div>`;
-
-
-
-
   container.innerHTML = headerHtml + gridHtml;
 
-  // wire events
+  // prev/next events
   document.getElementById("calPrev").addEventListener("click", () => {
     let y = calYear, m = calMonth - 1;
-    if (m === 0) { y--; m = 12; } // prev month
+    if (m === 0) { y--; m = 12; }
     calYear = y; calMonth = m;
     renderCalendar(calYear, calMonth);
   });
@@ -1550,6 +1510,7 @@ for (let d = 1; d <= lastDate; d++) {
     calYear = y; calMonth = m;
     renderCalendar(calYear, calMonth);
   });
+
   const sel = document.getElementById("calMonthSelect");
   if (sel) {
     sel.addEventListener("change", (e) => {
@@ -1557,12 +1518,9 @@ for (let d = 1; d <= lastDate; d++) {
       calYear = Number(y); calMonth = Number(mo);
       renderCalendar(calYear, calMonth);
     });
-
-  
-
-
   }
 }
+
 
 // utility to call when summary tab is shown
 function updateSummaryTab() {
