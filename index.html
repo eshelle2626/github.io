@@ -240,13 +240,16 @@ table {
         </div>
       </div>
 
-      <!-- 追加玉（編集非推奨） -->
+
+      <!-- 他口座振替・現金追加玉 -->
       <div class="flex gap-2">
         <div class="flex-none w-1/2">
+          <label class="block">他口座振替</label>
+          <input id="transfarBall" type="number" name="transfarBall" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
         </div>
         <div class="flex-none w-1/2">
-          <label class="block">追加玉（編集非推奨）</label>
-          <input type="number" name="addBall" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
+          <label class="block">現金追加玉</label>
+          <input id="cashBall" type="number" name="cashBall" class="border p-1 w-full" inputmode="numeric" pattern="[0-9]">
         </div>
       </div>
 
@@ -271,6 +274,8 @@ table {
       <!-- 終了時玉数 -->
       <div class="flex gap-2">
         <div class="flex-none w-1/2">
+          <label class="block">addBall</label>
+          <input type="number" name="addBall" class="border p-1 w-full" disabled>
         </div>
         <div class="flex-none w-1/2">
           <label class="block">終了時玉数</label>
@@ -624,6 +629,65 @@ const isSingleBonus = document.getElementById("isSingleBonus").checked;
 });
 
 
+
+// ===== 入力途中データの自動保存 =====
+const formBackupKey = "recordFormBackup";
+
+// 🔹 入力イベントでバックアップ
+form.addEventListener("input", () => {
+  const backup = {
+    date: form.date.value,
+    shop: form.shop.value,
+    machineNo: form.machineNo.value,
+    machineName: form.machineName.value,
+    gameType: form.gameType.value,
+    startGame: form.startGame.value,
+    startBall: form.startBall.value,
+    transfarBall: transfarInput.value,
+    cashBall: cashInput.value,
+    firstHitGame: form.firstHitGame.value,
+    firstHitBall: form.firstHitBall.value,
+    endBall: form.endBall.value,
+    remarks: form.remarks.value,
+    isSingleBonus: document.getElementById("isSingleBonus").checked
+  };
+  localStorage.setItem(formBackupKey, JSON.stringify(backup));
+});
+
+// 🔹 ページ読み込み時にバックアップを復元
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem(formBackupKey);
+  if (saved) {
+    const b = JSON.parse(saved);
+    form.date.value = b.date || new Date().toISOString().slice(0, 10);
+    form.shop.value = b.shop || "";
+    form.machineNo.value = b.machineNo || "";
+    form.machineName.value = b.machineName || "";
+    form.gameType.value = b.gameType || "slot5";
+    form.startGame.value = b.startGame || "";
+    form.startBall.value = b.startBall || "";
+    transfarInput.value = b.transfarBall || 0;
+    cashInput.value = b.cashBall || 0;
+    form.firstHitGame.value = b.firstHitGame || "";
+    form.firstHitBall.value = b.firstHitBall || "";
+    form.endBall.value = b.endBall || "";
+    form.remarks.value = b.remarks || "";
+    document.getElementById("isSingleBonus").checked = !!b.isSingleBonus;
+    updateSelectColor();
+    updateIncome();
+  }
+});
+
+// 🔹 登録完了時・クリア時にバックアップ削除
+form.addEventListener("submit", () => {
+  localStorage.removeItem(formBackupKey);
+});
+clearBtn.addEventListener("click", () => {
+  localStorage.removeItem(formBackupKey);
+});
+
+
+
 // 登録ボタン押下時の処理
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -649,6 +713,8 @@ form.addEventListener("submit", (e) => {
     startGame: Number(form.startGame.value) || 0,
     startBall: Number(form.startBall.value) || 0,
     addBall: (Number(transfarInput.value) || 0) + (Number(cashInput.value) || 0),
+    transfarBall: Number(form.transfarBall?.value || 0),
+    cashBall: Number(form.cashBall?.value || 0),
     firstHitGame: Number(form.firstHitGame.value) || 0,
     firstHitBall: form.firstHitBall.value === "" ? null : Number(form.firstHitBall.value),
     isSingleBonus: isSingleBonus, // ←追加
@@ -657,20 +723,6 @@ form.addEventListener("submit", (e) => {
     remarks: form.remarks.value || "",
   };
 
-// ===== 他口座振替による残高マイナス処理 =====
-const transfarValue = Number(transfarInput.value) || 0;
-record.transfarValue = transfarValue; // ★これを追加！
-
-record.transfarDeduct = 0;
-
-if (transfarValue > 0) {
-  const type = record.gameType;
-  const rateInfo = transfarRate[type];
-  if (rateInfo) {
-    const deduct = Math.round(transfarValue * rateInfo.rate);
-    record.transfarDeduct = deduct;
-  }
-}
 
 
 
@@ -926,6 +978,11 @@ function setupEditDeleteEvents() {
   const closeModal = document.getElementById("closeModal");
   const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-green-200", pachi4: "bg-yellow-200" };
 
+  if (!editForm) {
+    console.error("❌ editForm が見つかりません。HTMLのidを確認してください。");
+    return;
+  }
+
   function applyTypeColor() {
     editForm.gameType.classList.remove(...Object.values(typeColors));
     const selectedType = editForm.gameType.value;
@@ -940,19 +997,26 @@ function setupEditDeleteEvents() {
       const r = records[idx];
       if (!r) return;
 
-      editForm.date.value = r.date;
-      editForm.shop.value = r.shop;
-      editForm.gameType.value = r.gameType || "slot5";
-      editForm.machineNo.value = r.machineNo;
-      editForm.machineName.value = r.machineName;
-      editForm.startGame.value = r.startGame || 0;
-      editForm.startBall.value = r.startBall || 0;
-      editForm.addBall.value = r.addBall || 0;
-      editForm.firstHitGame.value = r.firstHitGame || 0;
-      editForm.firstHitBall.value = r.firstHitBall || "";
-      editForm.isSingleBonus.checked = r.isSingleBonus || false;
-      editForm.endBall.value = r.endBall || 0;
-      editForm.remarks.value = r.remarks;
+      // ✅ 要素が存在するか逐次確認
+      if (editForm.elements["date"]) editForm.elements["date"].value = r.date || "";
+      if (editForm.elements["shop"]) editForm.elements["shop"].value = r.shop || "";
+      if (editForm.elements["gameType"]) editForm.elements["gameType"].value = r.gameType || "slot5";
+      if (editForm.elements["machineNo"]) editForm.elements["machineNo"].value = r.machineNo || "";
+      if (editForm.elements["machineName"]) editForm.elements["machineName"].value = r.machineName || "";
+      if (editForm.elements["startGame"]) editForm.elements["startGame"].value = r.startGame || 0;
+      if (editForm.elements["startBall"]) editForm.elements["startBall"].value = r.startBall || 0;
+      if (editForm.elements["addBall"]) editForm.elements["addBall"].value = r.addBall || 0;
+
+      // ✅ 存在しない場合は0で初期化
+      if (editForm.elements["transfarBall"]) editForm.elements["transfarBall"].value = Number(r.transfarBall ?? 0);
+      if (editForm.elements["cashBall"]) editForm.elements["cashBall"].value = Number(r.cashBall ?? 0);
+
+      if (editForm.elements["firstHitGame"]) editForm.elements["firstHitGame"].value = r.firstHitGame || 0;
+      if (editForm.elements["firstHitBall"]) editForm.elements["firstHitBall"].value = r.firstHitBall ?? "";
+      if (editForm.elements["isSingleBonus"]) editForm.elements["isSingleBonus"].checked = !!r.isSingleBonus;
+      if (editForm.elements["endBall"]) editForm.elements["endBall"].value = r.endBall || 0;
+      if (editForm.elements["remarks"]) editForm.elements["remarks"].value = r.remarks || "";
+
       editForm.dataset.editIndex = idx;
       applyTypeColor();
 
@@ -963,6 +1027,7 @@ function setupEditDeleteEvents() {
     btn._editHandler = handler;
   });
 
+  // 削除ボタン
   document.querySelectorAll(".delete-btn").forEach(btn => {
     btn.removeEventListener("click", btn._deleteHandler);
     const handler = () => {
@@ -979,94 +1044,62 @@ function setupEditDeleteEvents() {
     btn._deleteHandler = handler;
   });
 
+  // 閉じるボタン
   closeModal.addEventListener("click", () => {
     editModal.classList.add("hidden");
     editModal.classList.remove("flex");
   });
 
-editForm.addEventListener("submit", e => {
-  e.preventDefault();
-  const records = JSON.parse(localStorage.getItem(key) || "[]");
-  const idx = Number(editForm.dataset.editIndex);
-  if (idx < 0 || idx >= records.length) return;
+  // 編集フォーム送信
+  editForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const records = JSON.parse(localStorage.getItem(key) || "[]");
+    const idx = Number(editForm.dataset.editIndex);
+    if (idx < 0 || idx >= records.length) return;
 
-  const updated = {
-    date: editForm.date.value,
-    shop: editForm.shop.value,
-    machineNo: editForm.machineNo.value,
-    machineName: editForm.machineName.value,
-    gameType: editForm.gameType?.value || records[idx].gameType,
-    startGame: Number(editForm.startGame.value) || 0,
-    startBall: Number(editForm.startBall.value) || 0,
-    addBall: Number(editForm.addBall.value) || 0,
-    firstHitGame: Number(editForm.firstHitGame.value) || 0,
-    firstHitBall: editForm.firstHitBall.value === "" ? null : Number(editForm.firstHitBall.value),
-    isSingleBonus: editForm.isSingleBonus.checked,
-    endBall: Number(editForm.endBall.value) || 0,
-    remarks: editForm.remarks.value,
-    created: records[idx].created
-  };
+    const updated = {
+      date: editForm.date.value,
+      shop: editForm.shop.value,
+      machineNo: editForm.machineNo.value,
+      machineName: editForm.machineName.value,
+      gameType: editForm.gameType?.value || records[idx].gameType,
+      startGame: Number(editForm.startGame.value) || 0,
+      startBall: Number(editForm.startBall.value) || 0,
+      addBall: Number(editForm.addBall.value) || 0,
+      transfarBall: Number(editForm.transfarBall?.value || 0),
+      cashBall: Number(editForm.cashBall?.value || 0),
+      firstHitGame: Number(editForm.firstHitGame.value) || 0,
+      firstHitBall: editForm.firstHitBall.value === "" ? null : Number(editForm.firstHitBall.value),
+      isSingleBonus: editForm.isSingleBonus.checked,
+      endBall: Number(editForm.endBall.value) || 0,
+      remarks: editForm.remarks.value,
+      created: records[idx].created
+    };
 
-  const isYame = updated.firstHitBall === null;
-  updated.isYame = isYame;
-  updated.outBall = isYame ? 0 : Math.max(0, updated.endBall - updated.firstHitBall);
-  const usedBalls = isYame ? (updated.startBall + updated.addBall - updated.endBall) : (updated.startBall + updated.addBall - updated.firstHitBall);
-  const totalG = (updated.firstHitGame && updated.firstHitGame > 0 ? updated.firstHitGame : updated.endBall) - updated.startGame;
-  const investUnit = {slot46:46, slot5:50, pachi1:200, pachi4:250};
-  const base = investUnit[updated.gameType] || 0;
-  updated.rotation = (usedBalls > 0 && totalG > 0) ? Number(((totalG * base)/usedBalls).toFixed(1)) : 0;
+    const isYame = updated.firstHitBall === null;
+    updated.isYame = isYame;
+    updated.addBall = updated.transfarBall + updated.cashBall;
+    updated.outBall = isYame ? 0 : Math.max(0, updated.endBall - updated.firstHitBall);
+    const usedBalls = isYame ? (updated.startBall + updated.addBall - updated.endBall) : (updated.startBall + updated.addBall - updated.firstHitBall);
+    const totalG = (updated.firstHitGame && updated.firstHitGame > 0 ? updated.firstHitGame : updated.endBall) - updated.startGame;
+    const investUnit = {slot46:46, slot5:50, pachi1:200, pachi4:250};
+    const base = investUnit[updated.gameType] || 0;
+    updated.rotation = (usedBalls > 0 && totalG > 0) ? Number(((totalG * base)/usedBalls).toFixed(1)) : 0;
 
-  const rate = {slot46:19.23, slot5:4.42, pachi1:0.892, pachi4:3.568};
-  const diff = updated.endBall - (updated.startBall + updated.addBall);
-  updated.incomeYen = rate[updated.gameType] ? Math.round(diff * rate[updated.gameType]) : 0;
-  updated.incomeText = `${diff}（${updated.incomeYen.toLocaleString()}円）`;
+    const rate = {slot46:19.23, slot5:4.42, pachi1:0.892, pachi4:3.568};
+    const diff = updated.endBall - (updated.startBall + updated.addBall);
+    updated.incomeYen = rate[updated.gameType] ? Math.round(diff * rate[updated.gameType]) : 0;
+    updated.incomeText = `${diff}（${updated.incomeYen.toLocaleString()}円）`;
 
-  records[idx] = updated;
-  localStorage.setItem(key, JSON.stringify(records));
+    records[idx] = updated;
+    localStorage.setItem(key, JSON.stringify(records));
 
-  const tbody = document.getElementById("recordList");
-  const tr = tbody.querySelector(`.edit-btn[data-index="${idx}"]`)?.closest("tr");
-  if (tr) {
-    const typeColors = { slot5: "bg-blue-200", slot46: "bg-red-200", pachi1: "bg-green-200", pachi4: "bg-yellow-200" };
-    const rotationUnit = { slot46: "/46枚", slot5: "/50枚", pachi1: "/200玉", pachi4: "/250玉" };
-    const typeLabelMap = { pachi4: "4円P", pachi1: "1円P", slot46: "46枚S", slot5: "5円S" };
+    editModal.classList.add("hidden");
+    editModal.classList.remove("flex");
 
-    const bonusText = updated.isSingleBonus ? "単発" : (updated.firstHitBall === null ? "-" : "");
-    const bonusCellClass = updated.isSingleBonus || updated.firstHitBall === null ? "bg-gray-300" : "";
-    const rotationText = (typeof updated.rotation === "number" ? updated.rotation.toFixed(1) : "0.0") + "<br>" + (rotationUnit[updated.gameType] || "");
-    const incomeText = updated.incomeText ? updated.incomeText.replace('（', '<br>（') : "0<br>（0円）";
-    const firstHitDisplay = updated.isYame ? "ヤメ" : updated.firstHitGame;
-    const selfG = updated.isYame ? updated.endBall - updated.startGame : (updated.firstHitGame || updated.endBall || 0) - (updated.startGame || 0);
-
-    tr.innerHTML = `
-      <td class="border p-1">${updated.date?.slice(5) || ""}</td>
-      <td class="border p-1">${updated.shop || ""}</td>
-      <td class="border p-1">${(updated.machineNo || "").replace(/\D/g, "")}</td>
-      <td class="border p-1">${updated.machineName || ""}</td>
-      <td class="border p-1 ${typeColors[updated.gameType] || ""}">${typeLabelMap[updated.gameType] || ""}</td>
-      <td class="border p-1 ${updated.isYame ? 'bg-gray-300' : ''}">${firstHitDisplay}<br>（${selfG}）</td>
-      <td class="border p-1 ${bonusCellClass}">${bonusText}</td>
-      <td class="border p-1">${rotationText}</td>
-      <td class="border p-1 text-right">${updated.firstHitBall != null ? (updated.startBall + updated.addBall - updated.firstHitBall) : (updated.startBall + updated.addBall - updated.endBall)}</td>
-      <td class="border p-1 text-right">${updated.outBall || 0}</td>
-      <td class="border p-1 text-right ${updated.incomeYen < 0 ? "text-red-500" : ""}">${incomeText}</td>
-      <td class="border p-1 text-center">
-        <button class="bg-yellow-300 px-2 py-0.5 rounded text-xs edit-btn" data-index="${idx}">編集</button>
-      </td>
-      <td class="border p-1 text-center bg-yellow-200">
-        <button class="delete-btn text-red-500" data-index="${idx}">削除</button>
-      </td>
-      <td class="border p-1 text-xs">${updated.remarks || ""}</td>
-    `;
-  }
-
-  editModal.classList.add("hidden");
-  editModal.classList.remove("flex");
-
-
-  updateBalances(document.getElementById("shopFilter").value);
-  updateSummary();
-}); // ← ここで必ず閉じる
+    updateBalances(document.getElementById("shopFilter").value);
+    updateSummary();
+  });
 }
 
 
@@ -1080,7 +1113,8 @@ editForm.addEventListener("submit", e => {
 
 
 
-// ===== 残高計算 =====
+
+// ===== 残高計算（整理版） =====
 function updateBalances(selectedShop = "all") {
   const data = JSON.parse(localStorage.getItem(key) || "[]");
 
@@ -1088,46 +1122,47 @@ function updateBalances(selectedShop = "all") {
   const rate = { slot46:19.23, slot5:4.42, pachi4:3.568, pachi1:0.892 };
 
   data.forEach(r => {
-    // skip invalid records
     if (!r.gameType || balances[r.gameType] === undefined) return;
     if (selectedShop !== "all" && r.shop !== selectedShop) return;
 
-    // 通常の差分（ゲームプレイによる増減）
-    const diff = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
+    const type = r.gameType;
 
-    // ===== 他口座振替処理（既存） =====
-    if (r.transfarDeduct && transfarRate[r.gameType]) {
-      const rateInfo = transfarRate[r.gameType];
-      const source = rateInfo.target; // 振替元
-      const deduct = Number(r.transfarDeduct) || 0;
-      const added = Number(r.transfarValue) || 0; // 入力値（振替先に加算）
+    // ===== 他口座振替による残高調整 =====
+    if (r.transfarBall && r.transfarBall > 0) {
+      const amount = Number(r.transfarBall);
+      let sourceType = null;
+      let rate = 1;
 
-      // 振替元から減算
-      if (source && balances[source] !== undefined) {
-        balances[source] -= deduct;
+      switch(type) {
+        case "pachi1": sourceType="pachi4"; rate=1000/250; break;
+        case "pachi4": sourceType="pachi1"; rate=250/1000; break;
+        case "slot5":  sourceType="slot46"; rate=200/46; break;
+        case "slot46": sourceType="slot5";  rate=46/200; break;
       }
 
-      // 振替先（現在の gameType）に加算
-      balances[r.gameType] += added;
+      // 元口座を同店舗で減算
+      if (sourceType && balances[sourceType] !== undefined) {
+        balances[sourceType] -= Math.round(amount * rate);
+      }
+
+      // 振替先に加算
+      balances[type] += amount;
     }
 
-    // ===== 出金レコード処理 =====
-    // 出金は r.machineName === "出金" にしてある想定
+    // ===== 出金処理 =====
     if (r.machineName === "出金") {
-      // withdrawBall を残高から減算（存在すれば）
       const wBall = Number(r.withdrawBall || 0);
-      if (wBall) {
-        balances[r.gameType] -= wBall;
-      }
-      // 出金は収支に影響させないため incomeYen は考慮しない（カレンダー用に withdrawYen を別に保有）
-      return; // このレコードはここで処理終了（通常diffを加えない）
+      if (wBall) balances[type] -= wBall;
+      return; // 出金は収支差分を加えない
     }
 
     // ===== 通常収支処理 =====
-    balances[r.gameType] += diff;
+    // diff は startBall + addBall (振替込み) に対して endBall の差
+    const diff = (r.endBall || 0) - ((r.startBall || 0) + (r.addBall || 0));
+    balances[type] += diff;
   });
 
-  // DOM反映
+  // ===== DOM反映 =====
   document.getElementById("bal46").textContent = balances.slot46.toLocaleString() + "枚";
   document.getElementById("bal5").textContent  = balances.slot5.toLocaleString() + "枚";
   document.getElementById("bal4").textContent  = balances.pachi4.toLocaleString() + "玉";
@@ -1135,11 +1170,14 @@ function updateBalances(selectedShop = "all") {
 
   // 円換算残高
   let totalAssetYen = 0;
-  for(const type of ["slot46","slot5","pachi4","pachi1"]) {
-    totalAssetYen += Math.round((balances[type] || 0) * (rate[type] || 0));
+  for (const t of ["slot46","slot5","pachi4","pachi1"]) {
+    totalAssetYen += Math.round((balances[t] || 0) * (rate[t] || 0));
   }
   document.getElementById("totalAssetYen").textContent = totalAssetYen.toLocaleString() + "円";
 }
+
+
+
 
 
 // ===== 集計（グラフ＋期間別集計） =====
@@ -1268,6 +1306,9 @@ editForm.addEventListener("submit", e => {
     startGame: Number(editForm.startGame.value) || 0,
     startBall: Number(editForm.startBall.value) || 0,
     addBall: Number(editForm.addBall.value) || 0,
+    transfarBall: Number(editForm.transfarBall.value) || 0,
+    transfarSource: editForm.transfarSource?.value || "",
+    cashBall: Number(editForm.cashBall.value) || 0,
     firstHitGame: Number(editForm.firstHitGame.value) || 0,
     firstHitBall: editForm.firstHitBall.value === "" ? null : Number(editForm.firstHitBall.value),
     isSingleBonus: editForm.isSingleBonus.checked,
@@ -1279,6 +1320,7 @@ editForm.addEventListener("submit", e => {
   // 計算
   const isYame = updated.firstHitBall === null;
   updated.isYame = isYame;
+  updated.addBall = updated.transfarBall + updated.cashBall;
   const investUnit = { slot46:46, slot5:50, pachi1:200, pachi4:250 };
   const usedBalls = isYame
     ? (updated.startBall + updated.addBall - updated.endBall)
@@ -1406,12 +1448,13 @@ if (r.machineName === "出金") {
   if (wy) cashSum += wy; // 出金は現金増なので cashSum にプラス
 }
 
-      // 現金追加玉(addBall)の現金換算をマイナス（現金減）
-      const add = Number(r.addBall || 0);
-      if (add && r.gameType && addBallToYen[r.gameType]) {
-        const addYen = Math.round(add * addBallToYen[r.gameType]);
-        cashSum -= addYen;
-      }
+      // 現金追加玉(cashBall)の現金換算をマイナス（現金減）
+const cash = Number(r.cashBall || 0);
+if (cash && r.gameType && addBallToYen[r.gameType]) {
+  const cashYen = Math.round(cash * addBallToYen[r.gameType]);
+  cashSum -= cashYen; // 現金→玉（出金扱い）なので現金を減算
+}
+
     });
 
     daily[dateStr] = { income: incomeSum, cash: cashSum };
