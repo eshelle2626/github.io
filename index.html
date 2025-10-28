@@ -349,7 +349,7 @@ table {
         <option value="slot46">46枚スロット</option>
       </select>
     </label>
-    <label>玉数／枚数：<input type="number" name="ball" class="border p-1 rounded w-24"></label>
+    <label>玉数／枚数：<input type="number" name="ball" class="border p-1 rounded w-24" inputmode="numeric" pattern="[0-9]"></label>
     <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded">出金</button>
   </div>
 </form>
@@ -383,7 +383,7 @@ table {
       <div class="space-y-3">
         <form class="grid grid-cols-5 gap-2 items-end">
           <div><input type="text" id="searchShop" class="border rounded w-full p-2" placeholder="店名"></div>
-          <div><input type="text" id="searchMachineNo" class="border rounded w-full p-2" placeholder="台番号"></div>
+          <div><input type="text" id="searchMachineNo" class="border rounded w-full p-2" placeholder="台番号" inputmode="numeric" pattern="[0-9]"></div>
           <div><input type="text" id="searchMachineName" class="border rounded w-full p-2" placeholder="機種名"></div>
           <div>
             <select id="searchGameType" class="border rounded w-full p-2">
@@ -460,10 +460,10 @@ const fmt1 = v => (isNaN(v) || v === null || v === "") ? "-" : Number(v).toFixed
 const key = "pachi_records";
 // 1玉・1枚あたりの円換算レート
 const rate = {
-  pachi1: 0.892,    // 1円パチンコ
-  pachi4: 3.568,    // 4円パチンコ
-  slot46: 19.23,    // 46枚スロット
-  slot5: 4.42       // 5円スロット
+  pachi1: 0.8928,    // 1円パチンコ
+  pachi4: 3.7143,    // 4円パチンコ
+  slot46: 19.413,    // 46枚スロット
+  slot5: 4.4642       // 5円スロット
 };
 
 const transfarRate = {
@@ -761,10 +761,10 @@ record.rotation = (usedBalls > 0 && totalG > 0)
 
 // 収支（円換算）
 const rate = {
-  slot46: 19.23,
-  slot5: 4.42,
-  pachi1: 0.892,
-  pachi4: 3.568
+  pachi1: 0.8928,    // 1円パチンコ
+  pachi4: 3.7143,    // 4円パチンコ
+  slot46: 19.413,    // 46枚スロット
+  slot5: 4.4642       // 5円スロット
 };
 
 const diff = record.endBall - (record.startBall + record.addBall);
@@ -1118,53 +1118,81 @@ function setupEditDeleteEvents() {
 function updateBalances(selectedShop = "all") {
   const data = JSON.parse(localStorage.getItem(key) || "[]");
 
+  // 各口座の玉数残高（初期値）
   const balances = { slot46:0, slot5:0, pachi4:0, pachi1:0 };
+
+  // 円換算レート（表示用）
   const rate = { slot46:19.23, slot5:4.42, pachi4:3.568, pachi1:0.892 };
 
   data.forEach(r => {
-    if (!r.gameType || balances[r.gameType] === undefined) return;
+    // 無効レコードはスキップ
+    if (!r || !r.gameType || balances[r.gameType] === undefined) return;
     if (selectedShop !== "all" && r.shop !== selectedShop) return;
 
     const type = r.gameType;
 
-    // 出金処理
+    // ---- 出金処理（そのレコードは残高差分の計算対象外） ----
     if (r.machineName === "出金") {
-      balances[type] -= Number(r.withdrawBall || 0);
-      return; // 通常収支には加えない
+      const wBall = Number(r.withdrawBall || 0);
+      if (wBall) balances[type] -= wBall;
+      return; // このレコードはここで終わり（収支差分は加えない）
     }
 
-    // 他口座振替：残高にのみ反映
-    if (r.transfarBall && r.transfarBall > 0) {
-      const amount = Number(r.transfarBall);
-      let sourceType, transRate;
+    // ---- cashBall：まず残高に加算 ----
+    const cashBall = Number(r.cashBall || 0);
+    if (cashBall > 0) {
+      balances[type] += cashBall;
+    }
+
+    // ---- transfarBall：振替先に加算し、元口座を同店舗で換算して減算 ----
+    const transfarBall = Number(r.transfarBall || 0);
+    if (transfarBall > 0) {
+      // 振替先（このレコードの type）にはそのまま玉数を加算
+      balances[type] += transfarBall;
+
+      // 元口座の種類と換算レート（あなたの仕様）
+      let sourceType = null;
+      let transRate = 1; // source = Math.round(transfarBall * transRate)
       switch(type) {
-        case "pachi1": sourceType="pachi4"; transRate=1000/250; break;
-        case "pachi4": sourceType="pachi1"; transRate=250/1000; break;
-        case "slot5": sourceType="slot46"; transRate=200/46; break;
-        case "slot46": sourceType="slot5"; transRate=46/200; break;
+        case "pachi1":  // 1円P <- 4円Pから減算（1000玉 -> 250玉）
+          sourceType = "pachi4"; transRate = 250/1000; break;
+        case "pachi4":  // 4円P <- 1円Pから減算（250玉 -> 1000玉）
+          sourceType = "pachi1"; transRate = 1000/250; break;
+        case "slot5":   // 5円S <- 46枚Sから減算（200枚 -> 46枚）
+          sourceType = "slot46"; transRate = 46/200; break;
+        case "slot46":  // 46枚S <- 5円Sから減算（46枚 -> 200枚）
+          sourceType = "slot5"; transRate = 200/46; break;
       }
-      if (sourceType && balances[sourceType] !== undefined) balances[sourceType] -= Math.round(amount * transRate);
-      balances[type] += amount;
+
+      if (sourceType && balances[sourceType] !== undefined) {
+        const deduct = Math.round(transfarBall * transRate);
+        balances[sourceType] -= deduct;
+      }
     }
 
-    // 通常収支（振替分を差し引いて加算）
-    const diff = (r.endBall || 0) - ((r.startBall || 0) + ((r.addBall || 0) - (r.transfarBall || 0)));
-    balances[type] += diff;
+    // ---- 通常差分（cash と transfar を既に残高に反映済みのため、それらを含めて差分を計算） ----
+    // 使用された追加玉は transfarBall + cashBall（フォームや保存データが整合していれば addBall と同じはず）。
+    const startBall = Number(r.startBall || 0);
+    const endBall = Number(r.endBall || 0);
+    // diff = end - (start + transfar + cash)
+    const diff = endBall - (startBall + transfarBall + cashBall);
+    if (diff) balances[type] += diff;
   });
 
-  // DOM更新
+  // ---- DOM 更新 ----
   document.getElementById("bal46").textContent = balances.slot46.toLocaleString() + "枚";
   document.getElementById("bal5").textContent  = balances.slot5.toLocaleString() + "枚";
   document.getElementById("bal4").textContent  = balances.pachi4.toLocaleString() + "玉";
   document.getElementById("bal1").textContent  = balances.pachi1.toLocaleString() + "玉";
 
-  // 円換算残高
+  // 円換算残高（表示用）
   let totalAssetYen = 0;
-  for(const t of ["slot46","slot5","pachi4","pachi1"]) {
+  for (const t of ["slot46","slot5","pachi4","pachi1"]) {
     totalAssetYen += Math.round((balances[t] || 0) * (rate[t] || 0));
   }
   document.getElementById("totalAssetYen").textContent = totalAssetYen.toLocaleString() + "円";
 }
+
 
 
 
@@ -1322,7 +1350,12 @@ editForm.addEventListener("submit", e => {
     ? Number(((totalG * base) / usedBalls).toFixed(1))
     : 0;
 
-  const rateMap = { slot46:19.23, slot5:4.42, pachi1:0.892, pachi4:3.568 };
+  const rateMap = {   
+  pachi1: 0.8928,    // 1円パチンコ
+  pachi4: 3.7143,    // 4円パチンコ
+  slot46: 19.413,    // 46枚スロット
+  slot5: 4.4642       // 5円スロット
+   };
   const diff = updated.endBall - (updated.startBall + updated.addBall);
   updated.incomeYen = Math.round((rateMap[updated.gameType] || 0) * diff);
   updated.incomeText = `${diff}（${updated.incomeYen.toLocaleString()}円）`;
@@ -1571,7 +1604,12 @@ function handleWithdrawSubmit(e) {
   if (!ball || ball <= 0) { alert("出金する玉数（枚数）を入力してください。"); return; }
 
   // レート換算（現金増減に使う）
-  const rateMap = { slot46:19.23, slot5:4.42, pachi4:3.568, pachi1:0.892 };
+  const rateMap = { 
+      pachi1: 0.8928,    // 1円パチンコ
+  pachi4: 3.7143,    // 4円パチンコ
+  slot46: 19.413,    // 46枚スロット
+  slot5: 4.4642       // 5円スロット 
+  };
   const withdrawYen = Math.round((rateMap[gameType] || 0) * ball);
 
   // 出金レコード（収支には影響させない -> incomeYen: 0）
