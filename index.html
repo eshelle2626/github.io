@@ -19,6 +19,7 @@
 }
 table { table-layout: auto; width: 100%; }
 .highlight-row { background-color: #fff7cc; transition: background-color 0.2s ease; }
+/* 台データタブの機種名のみ青字・アンダーライン */
 .clickable-name { color: #2563eb; text-decoration: underline; cursor: pointer; font-weight: bold; }
 </style>
 
@@ -182,7 +183,28 @@ table { table-layout: auto; width: 100%; }
       </div>
     </div>
 
-    <div id="historyPopupModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center z-[100]"><div class="bg-white p-4 rounded-xl shadow-2xl w-11/12 max-w-4xl max-h-[85vh] flex flex-col"><div class="flex justify-between items-center mb-3 border-b pb-2"><h2 id="popupTitle" class="font-bold text-gray-800 text-sm md:text-base">最新履歴</h2><button id="closePopup" class="text-3xl text-gray-400 hover:text-gray-800 leading-none">&times;</button></div><div class="overflow-x-auto flex-1 overflow-y-auto"><table class="border text-[10px] md:text-[11px] w-full table-auto"><thead class="bg-gray-100 sticky top-0"><tr><th class="border p-1">日付</th><th class="border p-1">店名</th><th class="border p-1">台番</th><th class="border p-1">初当(自)</th><th class="border p-1">B</th><th class="border p-1">回率</th><th class="border p-1">投資</th><th class="border p-1">出玉</th><th class="border p-1">収支</th><th class="border p-1">備考</th></tr></thead><tbody id="popupHistoryList"></tbody></table></div><div class="mt-3 flex justify-between items-center"><div id="popupPagination" class="flex gap-1 overflow-x-auto"></div><button id="closePopupBottom" class="bg-gray-200 px-6 py-1 rounded text-sm font-semibold shrink-0">閉じる</button></div></div></div>
+    <div id="historyPopupModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center z-[100]">
+      <div class="bg-white p-4 rounded-xl shadow-2xl w-11/12 max-w-4xl max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center mb-2 border-b pb-2">
+          <h2 id="popupTitle" class="font-bold text-gray-800 text-sm md:text-base">最新履歴</h2>
+          <button id="closePopup" class="text-3xl text-gray-400 hover:text-gray-800 leading-none">&times;</button>
+        </div>
+        <div class="overflow-x-auto flex-1 overflow-y-auto">
+          <table class="border text-[10px] md:text-[11px] w-full table-auto min-w-[600px]">
+            <thead class="bg-gray-100 sticky top-0">
+              <tr>
+                <th class="border p-1">日付</th><th class="border p-1">店名</th><th class="border p-1">台番</th><th class="border p-1">初当(自)</th><th class="border p-1">B</th><th class="border p-1">回率</th><th class="border p-1">投資</th><th class="border p-1">出玉</th><th class="border p-1">収支</th><th class="border p-1">備考</th>
+              </tr>
+            </thead>
+            <tbody id="popupHistoryList"></tbody>
+          </table>
+        </div>
+        <div class="mt-3 flex justify-between items-center">
+          <div id="popupPagination" class="flex gap-1 overflow-x-auto max-w-[70%]"></div>
+          <button id="closePopupBottom" class="bg-gray-200 px-6 py-1 rounded text-sm font-semibold shrink-0">閉じる</button>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -204,7 +226,6 @@ let calMonth = new Date().getMonth() + 1;
 let currentPopupRecs = [];
 let currentPopupPage = 1;
 const popupPageSize = 100;
-const popupMaxItems = 500;
 
 // 履歴タブ用ページングステート
 let historyTabPage = 1;
@@ -270,7 +291,6 @@ function loadRecordsHistory(page = 1) {
         tbody.appendChild(tr);
     });
 
-    // 履歴タブページングボタン生成
     if (totalPages > 1) {
         for (let i = 1; i <= totalPages; i++) {
             const btn = document.createElement("button");
@@ -293,14 +313,16 @@ function updateSummaryMain() {
     
     const period = document.querySelector(".period-btn.bg-blue-500")?.dataset.period || "1";
     const filtered = data.filter(r => (shopSel.value === "all" || r.shop === shopSel.value) && (period === "all" || (new Date() - new Date(r.date)) / (1000*60*60*24) <= Number(period) * 30));
+    
     const daily = {}; filtered.forEach(r => daily[r.date] = (daily[r.date] || 0) + (r.incomeYen || 0));
     const dates = Object.keys(daily).sort();
     let cum = 0; const points = dates.map(d => { cum += daily[d]; return cum; });
-    const ctx = document.getElementById("chart").getContext("2d"); if (chart) chart.destroy();
+    const ctx = document.getElementById("chart").getContext("2d");
+    if (chart) chart.destroy();
     chart = new Chart(ctx, { type: 'line', data: { labels: dates.map(d => d.slice(5)), datasets: [{ label: '累計収支', data: points, borderColor: '#3b82f6', tension: 0.2, fill: true, backgroundColor: 'rgba(59,130,246,0.1)' }] }, options: { responsive: true, plugins: { legend: { display: false } } } });
-    
     document.getElementById("totalYen").textContent = data.reduce((a,r) => a+(r.incomeYen||0), 0).toLocaleString() + "円";
-    updateBalancesMain(shopSel.value); renderCalendarMain(calYear, calMonth);
+    updateBalancesMain(shopSel.value);
+    renderCalendarMain(calYear, calMonth);
 }
 
 function updateBalancesMain(selShop) {
@@ -340,17 +362,23 @@ function renderPopupPage() {
     const list = document.getElementById("popupHistoryList");
     const pagination = document.getElementById("popupPagination");
     list.innerHTML = ""; pagination.innerHTML = "";
+    
     const pageData = currentPopupRecs.slice((currentPopupPage - 1) * popupPageSize, currentPopupPage * popupPageSize);
     const totalPages = Math.ceil(currentPopupRecs.length / popupPageSize);
+
     pageData.forEach(r => {
         const tr = document.createElement("tr");
+        const selfG = (r.firstHitGame || 0) - (r.startGame || 0);
         const invest = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
-        tr.innerHTML = `<td class="border p-1">${r.date.slice(5)}</td><td class="border p-1">${r.shop}</td><td class="border p-1">${r.machineNo}</td><td class="border p-1">${r.firstHitGame}(${r.firstHitGame - r.startGame})</td><td class="border p-1 text-center">${r.isSingleBonus ? '単' : '-'}</td><td class="border p-1">${r.rotation || 0}</td><td class="border p-1 text-right">${invest}</td><td class="border p-1 text-right">${r.outBall || 0}</td><td class="border p-1 text-right ${r.incomeYen < 0 ? 'text-red-500' : 'text-green-600'}">${r.incomeText}</td><td class="border p-1 text-left text-[9px]">${r.remarks || ""}</td>`;
+        tr.innerHTML = `<td class="border p-1">${r.date.slice(5)}</td><td class="border p-1">${r.shop}</td><td class="border p-1">${r.machineNo}</td><td class="border p-1">${r.firstHitGame}(${selfG})</td><td class="border p-1 text-center">${r.isSingleBonus ? '単' : '-'}</td><td class="border p-1">${r.rotation || 0}</td><td class="border p-1 text-right">${invest}</td><td class="border p-1 text-right">${r.outBall || 0}</td><td class="border p-1 text-right ${r.incomeYen < 0 ? 'text-red-500' : 'text-green-600'}">${r.incomeText || '0'}</td><td class="border p-1 text-left text-[9px]">${r.remarks || ""}</td>`;
         list.appendChild(tr);
     });
+
     if (totalPages > 1) {
         for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement("button"); btn.textContent = i; btn.className = `px-2 py-1 border rounded text-xs shrink-0 ${i === currentPopupPage ? "bg-blue-500 text-white" : "bg-gray-100"}`;
+            const btn = document.createElement("button");
+            btn.textContent = i;
+            btn.className = `px-3 py-1 border rounded text-xs shrink-0 ${i === currentPopupPage ? "bg-blue-500 text-white" : "bg-gray-100"}`;
             btn.onclick = () => { currentPopupPage = i; renderPopupPage(); document.querySelector("#historyPopupModal .overflow-y-auto").scrollTop = 0; };
             pagination.appendChild(btn);
         }
@@ -363,7 +391,8 @@ function openHistoryPopup(recs, title, gameTypeLabel) {
     currentPopupPage = 1;
     document.getElementById("popupTitle").textContent = `${title} (${gameTypeLabel}) 最新${currentPopupRecs.length}件`;
     renderPopupPage();
-    modal.classList.remove("hidden"); modal.classList.add("flex");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
 }
 
 // --- 台データ検索 ---
@@ -378,12 +407,15 @@ function loadMachineData() {
         if (excludeNames.includes(r.machineName)) return false;
         return (sShop === "" || r.shop.toLowerCase().includes(sShop)) && (sNo === "" || r.machineNo === sNo) && (sName === "" || r.machineName.toLowerCase().includes(sName)) && (sType === "" || r.gameType === sType);
     });
-    const tbody = document.getElementById("machineDataList"); tbody.innerHTML = "";
+
+    const tbody = document.getElementById("machineDataList");
+    tbody.innerHTML = "";
     if (filtered.length === 0) return;
 
     const uniqueTypes = [...new Set(filtered.map(r => r.gameType))];
     const totalTypeLabel = uniqueTypes.length === 1 ? typeLabels[uniqueTypes[0]] : "-";
-    
+
+    // 合算行
     let sumInvYenBase = 0, sumOutYenBase = 0, sumHitsTotal = 0, sumGTotal = 0, sumRotTotal = 0;
     filtered.forEach(r => {
         const curR = rate[r.gameType] || 0;
@@ -434,7 +466,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("withdrawDate").value = today;
     updateSelectColor(); updateIncome();
 
-    // 入力制御
     ["startBall","endBall","transfarBall","cashBall","startGame","firstHitBall","firstHitGame","gameType"].forEach(id => {
         const el = document.getElementById(id); if(el) el.oninput = () => { if(id==="gameType") updateSelectColor(); updateIncome(); };
     });
@@ -444,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("incCash").onclick = () => { cashInput.value = Number(cashInput.value||0) + step[gameTypeSelect.value]; updateIncome(); };
     document.getElementById("decCash").onclick = () => { cashInput.value = Math.max(0, Number(cashInput.value||0) - step[gameTypeSelect.value]); updateIncome(); };
 
-    document.getElementById("clearBtn").onclick = () => { if(confirm("入力をリセット？")) { recordForm.reset(); document.getElementById("date").value = today; updateSelectColor(); updateIncome(); } };
+    document.getElementById("clearBtn").onclick = () => { if(confirm("リセット？")) { recordForm.reset(); document.getElementById("date").value = today; updateSelectColor(); updateIncome(); } };
 
     recordForm.onsubmit = (e) => {
         e.preventDefault(); if(!recordForm.endBall.value) return alert("終了玉数が必要です");
@@ -456,17 +487,17 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem(key, JSON.stringify(data)); 
         const sNo = recordForm.machineNo.value, sName = recordForm.machineName.value;
         recordForm.reset(); document.getElementById("date").value = today; recordForm.machineNo.value = sNo; recordForm.machineName.value = sName; recordForm.startBall.value = eB;
-        alert("登録しました"); updateSelectColor(); updateIncome();
+        alert("登録完了"); updateSelectColor(); updateIncome();
     };
 
     document.getElementById("searchMachineBtn").onclick = loadMachineData;
 
     document.getElementById("withdrawForm").onsubmit = (e) => {
         e.preventDefault(); const fd = new FormData(e.target); const s = fd.get("shop"), b = Number(fd.get("ball")), t = fd.get("gameType"), d = fd.get("date");
-        if(!s || !b) return alert("店名と枚数を入力してください");
-        const data = JSON.parse(localStorage.getItem(key) || "[]");
-        data.push({ date: d, shop: s, machineName: "出金", gameType: t, withdrawBall: b, withdrawYen: Math.round(b * rate[t]), incomeYen: 0, incomeText: `出金 ${b}枚`, created: new Date().toISOString() });
-        localStorage.setItem(key, JSON.stringify(data)); alert("出金を保存しました"); updateSummaryMain();
+        if(!s || !b) return alert("入力不足");
+        const y = Math.round(b * rate[t]); const data = JSON.parse(localStorage.getItem(key) || "[]");
+        data.push({ date: d, shop: s, machineName: "出金", gameType: t, withdrawBall: b, withdrawYen: y, incomeYen: 0, incomeText: `出金 ${b}枚`, created: new Date().toISOString() });
+        localStorage.setItem(key, JSON.stringify(data)); alert("出金保存"); updateSummaryMain(); e.target.reset(); document.getElementById("withdrawDate").value = today;
     };
 
     document.querySelectorAll(".tab-button").forEach(btn => {
@@ -481,14 +512,12 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     });
 
-    document.getElementById("shopFilter").onchange = updateSummaryMain;
-    document.querySelectorAll(".period-btn").forEach(b => b.onclick = () => { document.querySelectorAll(".period-btn").forEach(x => x.classList.replace("bg-blue-500","bg-gray-300")); b.classList.replace("bg-gray-300","bg-blue-500"); updateSummaryMain(); });
-    
     document.getElementById("closePopup").onclick = () => document.getElementById("historyPopupModal").classList.add("hidden");
     document.getElementById("closePopupBottom").onclick = () => document.getElementById("historyPopupModal").classList.add("hidden");
     document.getElementById("closeModal").onclick = () => document.getElementById("editModal").classList.add("hidden");
+    document.getElementById("shopFilter").onchange = updateSummaryMain;
+    document.querySelectorAll(".period-btn").forEach(b => b.onclick = () => { document.querySelectorAll(".period-btn").forEach(x => x.classList.replace("bg-blue-500","bg-gray-300")); b.classList.replace("bg-gray-300","bg-blue-500"); updateSummaryMain(); });
 
-    document.getElementById("exportBtn").onclick = () => { const b = new Blob([localStorage.getItem(key)], {type:"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `data.json`; a.click(); };
     document.getElementById("importBtn").onclick = () => document.getElementById("importFile").click();
     document.getElementById("importFile").onchange = (e) => {
         const f = e.target.files[0]; const r = new FileReader();
@@ -496,11 +525,12 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const imp = JSON.parse(ev.target.result); const old = JSON.parse(localStorage.getItem(key) || "[]");
                 let a = 0, s = 0; imp.forEach(x => { if(old.some(o => o.created === x.created)) s++; else { old.push(x); a++; } });
-                localStorage.setItem(key, JSON.stringify(old)); alert(`インポート完了！ 追加:${a} スキップ:${s}`); location.reload();
-            } catch(e) { alert("JSON読み込み失敗"); }
+                localStorage.setItem(key, JSON.stringify(old)); alert(`追加:${a} スキップ:${s}`); location.reload();
+            } catch(e) { alert("失敗"); }
         }; r.readAsText(f);
     };
-    document.getElementById("clearAllBtn").onclick = () => { if(confirm("全データを消去します。よろしいですか？")) { localStorage.removeItem(key); location.reload(); } };
+    document.getElementById("exportBtn").onclick = () => { const b = new Blob([localStorage.getItem(key)], {type:"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `data.json`; a.click(); };
+    document.getElementById("clearAllBtn").onclick = () => { if(confirm("消去？")) { localStorage.removeItem(key); location.reload(); } };
 
     loadRecordsHistory(1);
 });
@@ -513,15 +543,14 @@ window.openEditModal = (idx) => {
 };
 
 document.getElementById("editForm").onsubmit = (e) => {
-    e.preventDefault(); const ef = document.getElementById("editForm"), idx = ef.dataset.index, data = JSON.parse(localStorage.getItem(key) || "[]");
-    const type = ef.gameType.value, sB = Number(ef.startBall.value), add = Number(ef.transfarBall.value) + Number(ef.cashBall.value), eB = Number(ef.endBall.value), hG = Number(ef.firstHitGame.value), hB = ef.firstHitBall.value === "" ? null : Number(ef.firstHitBall.value);
+    e.preventDefault(); const idx = e.target.dataset.index, data = JSON.parse(localStorage.getItem(key) || "[]"), type = e.target.gameType.value, sB = Number(e.target.startBall.value), add = Number(e.target.transfarBall.value) + Number(e.target.cashBall.value), eB = Number(e.target.endBall.value), hG = Number(e.target.firstHitGame.value), hB = e.target.firstHitBall.value === "" ? null : Number(e.target.firstHitBall.value);
     const used = hB === null ? (sB + add - eB) : (sB + add - hB);
-    const rot = used > 0 ? Number((( (hG||eB) - Number(ef.startGame.value)) * investUnit[type] / used).toFixed(1)) : 0;
-    data[idx] = { ...data[idx], date: ef.date.value, shop: ef.shop.value, machineNo: ef.machineNo.value, machineName: ef.machineName.value, gameType: type, startGame: Number(ef.startGame.value), startBall: sB, transfarBall: Number(ef.transfarBall.value), cashBall: Number(ef.cashBall.value), addBall: add, firstHitGame: hG, firstHitBall: hB, isSingleBonus: ef.isSingleBonus.checked, endBall: eB, rotation: rot, incomeYen: Math.round((eB - (sB + add)) * rate[type]), incomeText: `${eB-(sB+add)}（${Math.round((eB-(sB+add)) * rate[type]).toLocaleString()}円）`, outBall: hB === null ? 0 : Math.max(0, eB - hB), remarks: ef.remarks.value };
+    const rot = used > 0 ? Number((( (hG||eB) - Number(e.target.startGame.value)) * investUnit[type] / used).toFixed(1)) : 0;
+    data[idx] = { ...data[idx], date: e.target.date.value, shop: e.target.shop.value, machineNo: e.target.machineNo.value, machineName: e.target.machineName.value, gameType: type, startGame: Number(e.target.startGame.value), startBall: sB, transfarBall: Number(e.target.transfarBall.value), cashBall: Number(e.target.cashBall.value), addBall: add, firstHitGame: hG, firstHitBall: hB, isSingleBonus: e.target.isSingleBonus.checked, endBall: eB, rotation: rot, incomeYen: Math.round((eB - (sB + add)) * rate[type]), incomeText: `${eB-(sB+add)}（${Math.round((eB-(sB+add)) * rate[type]).toLocaleString()}円）`, outBall: hB === null ? 0 : Math.max(0, eB - hB), remarks: e.target.remarks.value };
     localStorage.setItem(key, JSON.stringify(data)); alert("更新完了"); location.reload();
 };
 
-window.deleteRecord = (idx) => { if(confirm("削除しますか？")) { const data = JSON.parse(localStorage.getItem(key) || "[]"); data.splice(idx,1); localStorage.setItem(key, JSON.stringify(data)); loadRecordsHistory(historyTabPage); updateSummaryMain(); } };
+window.deleteRecord = (idx) => { if(confirm("削除？")) { const data = JSON.parse(localStorage.getItem(key) || "[]"); data.splice(idx,1); localStorage.setItem(key, JSON.stringify(data)); loadRecordsHistory(historyTabPage); updateSummaryMain(); } };
 </script>
 </body>
 </html>
