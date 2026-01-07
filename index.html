@@ -19,8 +19,11 @@
 }
 table { table-layout: auto; width: 100%; }
 .highlight-row { background-color: #fff7cc; transition: background-color 0.2s ease; }
-/* 台データタブの機種名のみ青字・アンダーライン */
 .clickable-name { color: #2563eb; text-decoration: underline; cursor: pointer; font-weight: bold; }
+
+/* カレンダー色分け用 */
+.cal-plus { background-color: #fee2e2; } /* 薄い赤 */
+.cal-minus { background-color: #e0f2fe; } /* 薄い青 */
 </style>
 
 <body class="bg-gray-100 p-4 min-h-screen">
@@ -42,7 +45,10 @@ table { table-layout: auto; width: 100%; }
         </div>
 
         <div class="grid grid-cols-5 gap-2">
-          <div class="col-span-3"><input type="text" id="machineName" class="border rounded w-full p-2" placeholder="機種名"></div>
+          <div class="col-span-3">
+            <input type="text" id="machineName" class="border rounded w-full p-2" placeholder="機種名" list="machineNameList">
+            <datalist id="machineNameList"></datalist>
+          </div>
           <div class="col-span-2">
             <select id="gameType" class="border rounded w-full p-2 font-bold">
               <option value="slot625" selected>6.25円スロット</option>
@@ -157,14 +163,15 @@ table { table-layout: auto; width: 100%; }
     </div>
 
     <div id="machineData" class="tab-content hidden">
-      <form id="searchForm" class="grid grid-cols-5 gap-2 items-end mb-2">
-        <input type="text" id="searchShop" class="border p-2 rounded" placeholder="店名">
-        <input type="text" id="searchMachineNo" class="border p-2 rounded" placeholder="台番">
-        <input type="text" id="searchMachineName" class="border p-2 rounded" placeholder="機種名">
-        <select id="searchGameType" class="border p-2 rounded">
+      <form id="searchForm" class="grid grid-cols-6 gap-2 items-end mb-2">
+        <input type="text" id="searchShop" class="border p-2 rounded col-span-1" placeholder="店名">
+        <input type="text" id="searchMachineNo" class="border p-2 rounded col-span-1" placeholder="台番">
+        <input type="text" id="searchMachineName" class="border p-2 rounded col-span-1" placeholder="機種名">
+        <select id="searchGameType" class="border p-2 rounded col-span-1">
           <option value="">全ての種別</option><option value="slot625">6.25円スロ</option><option value="slot46">46枚スロ</option><option value="slot5">5円スロ</option><option value="pachi1">1円パチ</option><option value="pachi4">4円パチ</option>
         </select>
-        <button id="searchMachineBtn" type="button" class="bg-blue-500 text-white rounded p-2">検索</button>
+        <button id="searchMachineBtn" type="button" class="bg-blue-500 text-white rounded p-2 text-sm">検索</button>
+        <button id="clearSearchBtn" type="button" class="bg-gray-400 text-white rounded p-2 text-sm">クリア</button>
       </form>
       <div class="overflow-x-auto max-h-[70vh] overflow-y-auto"><table class="border text-[11px] min-w-[850px] table-fixed"><thead class="bg-gray-200 sticky top-0 z-10"><tr><th class="border p-1">店名</th><th class="border p-1">台番</th><th class="border p-1">機種名</th><th class="border p-1">種別</th><th class="border p-1">プレイ</th><th class="border p-1">初当</th><th class="border p-1">突入</th><th class="border p-1">平均回率</th><th class="border p-1">平均当G</th><th class="border p-1">平均投資</th><th class="border p-1">合計収支</th><th class="border p-1">最大出玉</th><th class="border p-1">回収率</th></tr></thead><tbody id="machineDataList"></tbody></table></div>
     </div>
@@ -183,28 +190,7 @@ table { table-layout: auto; width: 100%; }
       </div>
     </div>
 
-    <div id="historyPopupModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center z-[100]">
-      <div class="bg-white p-4 rounded-xl shadow-2xl w-11/12 max-w-4xl max-h-[90vh] flex flex-col">
-        <div class="flex justify-between items-center mb-2 border-b pb-2">
-          <h2 id="popupTitle" class="font-bold text-gray-800 text-sm md:text-base">最新履歴</h2>
-          <button id="closePopup" class="text-3xl text-gray-400 hover:text-gray-800 leading-none">&times;</button>
-        </div>
-        <div class="overflow-x-auto flex-1 overflow-y-auto">
-          <table class="border text-[10px] md:text-[11px] w-full table-auto min-w-[600px]">
-            <thead class="bg-gray-100 sticky top-0">
-              <tr>
-                <th class="border p-1">日付</th><th class="border p-1">店名</th><th class="border p-1">台番</th><th class="border p-1">初当(自)</th><th class="border p-1">B</th><th class="border p-1">回率</th><th class="border p-1">投資</th><th class="border p-1">出玉</th><th class="border p-1">収支</th><th class="border p-1">備考</th>
-              </tr>
-            </thead>
-            <tbody id="popupHistoryList"></tbody>
-          </table>
-        </div>
-        <div class="mt-3 flex justify-between items-center">
-          <div id="popupPagination" class="flex gap-1 overflow-x-auto max-w-[70%]"></div>
-          <button id="closePopupBottom" class="bg-gray-200 px-6 py-1 rounded text-sm font-semibold shrink-0">閉じる</button>
-        </div>
-      </div>
-    </div>
+    <div id="historyPopupModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center z-[100]"><div class="bg-white p-4 rounded-xl shadow-2xl w-11/12 max-w-4xl max-h-[85vh] flex flex-col"><div class="flex justify-between items-center mb-3 border-b pb-2"><h2 id="popupTitle" class="font-bold text-gray-800 text-sm md:text-base">最新履歴</h2><button id="closePopup" class="text-3xl text-gray-400 hover:text-gray-800 leading-none">&times;</button></div><div class="overflow-x-auto flex-1 overflow-y-auto"><table class="border text-[10px] md:text-[11px] w-full table-auto min-w-[600px]"><thead class="bg-gray-100 sticky top-0"><tr><th class="border p-1">日付</th><th class="border p-1">店名</th><th class="border p-1">台番</th><th class="border p-1">初当(自)</th><th class="border p-1">B</th><th class="border p-1">回率</th><th class="border p-1">投資</th><th class="border p-1">出玉</th><th class="border p-1">収支</th><th class="border p-1">備考</th></tr></thead><tbody id="popupHistoryList"></tbody></table></div><div class="mt-3 flex justify-between items-center"><div id="popupPagination" class="flex gap-1 overflow-x-auto max-w-[70%]"></div><button id="closePopupBottom" class="bg-gray-200 px-6 py-1 rounded text-sm font-semibold shrink-0">閉じる</button></div></div></div>
 
   </div>
 
@@ -262,6 +248,14 @@ function updateIncome() {
     
     const diff = end - (start + add); const yen = Math.round(diff * (rate[type] || 0));
     document.getElementById("incomeDisplay").innerHTML = `現在収支：<br>${diff}（${yen.toLocaleString()}円）`;
+}
+
+// 機種名オートコンプリート用リスト更新
+function updateMachineDatalist() {
+    const data = JSON.parse(localStorage.getItem(key) || "[]");
+    const names = [...new Set(data.map(r => r.machineName).filter(n => n && !excludeNames.includes(n)))];
+    const datalist = document.getElementById("machineNameList");
+    datalist.innerHTML = names.map(n => `<option value="${n}">`).join("");
 }
 
 // --- 履歴表示（ページング対応） ---
@@ -351,7 +345,14 @@ function renderCalendarMain(year, month) {
     let html = `<div class="flex justify-between items-center mb-2"><button id="moveMonthPrev">◀</button><div class="font-bold">${year}年${month}月</div><button id="moveMonthNext">▶</button></div><div class="grid grid-cols-7 gap-1 text-[9px]"><div class="text-center bg-gray-100">日</div><div class="text-center bg-gray-100">月</div><div class="text-center bg-gray-100">火</div><div class="text-center bg-gray-100">水</div><div class="text-center bg-gray-100">木</div><div class="text-center bg-gray-100">金</div><div class="text-center bg-gray-100">土</div>`;
     const start = new Date(year, month-1, 1).getDay(), last = new Date(year, month, 0).getDate();
     for(let i=0; i<start; i++) html += `<div></div>`;
-    for(let d=1; d<=last; d++) { const ds = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`, s = daily[ds] || { inc:0, cash:0 }, color = s.inc < 0 ? "text-red-500" : "text-green-600"; html += `<div class="border p-1 h-12"><div>${d}</div><div class="${color} font-bold">${s.inc?s.inc.toLocaleString():""}</div><div class="text-blue-500">${s.cash?(s.cash>0?'+':'')+s.cash.toLocaleString():""}</div></div>`; }
+    for(let d=1; d<=last; d++) { 
+        const ds = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const s = daily[ds] || { inc:0, cash:0 };
+        const color = s.inc < 0 ? "text-red-500" : (s.inc > 0 ? "text-green-600" : "text-gray-400");
+        // 色分け背景クラス判定
+        const bgClass = s.inc > 0 ? "cal-plus" : (s.inc < 0 ? "cal-minus" : "");
+        html += `<div class="border p-1 h-12 ${bgClass}"><div>${d}</div><div class="${color} font-bold">${s.inc?s.inc.toLocaleString():""}</div><div class="text-blue-500">${s.cash?(s.cash>0?'+':'')+s.cash.toLocaleString():""}</div></div>`; 
+    }
     container.innerHTML = html + `</div>`;
     document.getElementById("moveMonthPrev").onclick = () => { calMonth--; if(calMonth<1){ calYear--; calMonth=12; } renderCalendarMain(calYear, calMonth); };
     document.getElementById("moveMonthNext").onclick = () => { calMonth++; if(calMonth>12){ calYear++; calMonth=1; } renderCalendarMain(calYear, calMonth); };
@@ -405,7 +406,11 @@ function loadMachineData() {
     
     const filtered = data.filter(r => {
         if (excludeNames.includes(r.machineName)) return false;
-        return (sShop === "" || r.shop.toLowerCase().includes(sShop)) && (sNo === "" || r.machineNo === sNo) && (sName === "" || r.machineName.toLowerCase().includes(sName)) && (sType === "" || r.gameType === sType);
+        const mShop = sShop === "" || r.shop.toLowerCase().includes(sShop);
+        const mNo = sNo === "" || r.machineNo === sNo;
+        const mName = sName === "" || r.machineName.toLowerCase().includes(sName);
+        const mType = sType === "" || r.gameType === sType;
+        return mShop && mNo && mName && mType;
     });
 
     const tbody = document.getElementById("machineDataList");
@@ -419,8 +424,8 @@ function loadMachineData() {
     let sumInvYenBase = 0, sumOutYenBase = 0, sumHitsTotal = 0, sumGTotal = 0, sumRotTotal = 0;
     filtered.forEach(r => {
         const curR = rate[r.gameType] || 0;
-        const inv = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
-        sumInvYenBase += inv * curR; sumOutYenBase += (r.outBall || 0) * curR;
+        const invest = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
+        sumInvYenBase += invest * curR; sumOutYenBase += (r.outBall || 0) * curR;
         if (r.firstHitBall !== null) sumHitsTotal++; sumGTotal += (r.firstHitGame || 0); sumRotTotal += (r.rotation || 0);
     });
     
@@ -444,8 +449,8 @@ function loadMachineData() {
         let invYenGroup = 0, outYenGroup = 0;
         recs.forEach(r => {
             const curR = rate[r.gameType] || 0;
-            const inv = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
-            invYenGroup += inv * curR;
+            const invest = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
+            invYenGroup += invest * curR;
             outYenGroup += (r.outBall || 0) * curR;
         });
         const tr = document.createElement("tr");
@@ -453,7 +458,7 @@ function loadMachineData() {
         const label = typeLabels[recs[0].gameType];
         const avgInvLocal = hits.length ? (invYenGroup / hits.length / rate[recs[0].gameType]).toFixed(0) : "-";
         
-        tr.innerHTML = `<td class="border p-1">${recs[0].shop}</td><td class="border p-1">${recs[0].machineNo}</td><td class="border p-1 clickable-name text-left">${recs[0].machineName}</td><td class="border p-1 ${typeColors[recs[0].gameType]}">${label}</td><td class="border p-1">${recs.length}</td><td class="border p-1">${hits.length}</td><td class="border p-1">${((hits.length/recs.length)*100).toFixed(1)}%</td><td class="border p-1">${(recs.reduce((a,r)=>a+(r.rotation||0),0)/recs.length).toFixed(1)}</td><td class="border p-1">${hits.length?(hits.reduce((a,r)=>a+(r.firstHitGame||0),0)/hits.length).toFixed(0):"-"}</td><td class="border p-1">${avgInvLocal}</td><td class="border p-1 ${inc<0?'text-red-500':''}">${inc.toLocaleString()}円</td><td class="border p-1">${Math.max(...recs.map(r=>r.outBall||0),0)}</td><td class="border p-1">${invYenGroup>0?((outYenGroup/invYenGroup)*100).toFixed(1):"0.0"}%</td>`;
+        tr.innerHTML = `<td class="border p-1">${recs[0].shop}</td><td class="border p-1">${recs[0].machineNo}</td><td class="border p-1 clickable-name text-left">${recs[0].machineName}</td><td class="border p-1 ${typeColors[recs[0].gameType]}">${label}</td><td class="border p-1">${recs.length}</td><td class="border p-1">${hits.length}</td><td class="border p-1">${((hits.length/recs.length)*100).toFixed(1)}%</td><td class="border p-1">${(recs.reduce((a,r)=>a+(r.rotation||0),0)/recs.length).toFixed(1)}</td><td class="border p-1">${hits.length?(hits.reduce((a,r)=>a+(r.firstHitGame||0),0)/hits.length).toFixed(0):"-"}</td><td class="border p-1">${avgInvLocal}</td><td class="border p-1 ${inc<0?'text-red-500':''}">${inc.toLocaleString()}円</td><td class="border p-1">${Math.max(...recs.map(r=>r.outBall||0),0)}</td><td class="border p-1">${invYenGroup>0?((outYenGroup / invYenGroup) * 100).toFixed(1) : "0.0"}%</td>`;
         tbody.appendChild(tr);
         tr.querySelector(".clickable-name").onclick = () => openHistoryPopup(recs, recs[0].machineName, label);
     });
@@ -464,7 +469,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById("date").value = today;
     document.getElementById("withdrawDate").value = today;
+    recordForm.shop.value = "エスパス高田馬場";
     updateSelectColor(); updateIncome();
+    updateMachineDatalist();
 
     ["startBall","endBall","transfarBall","cashBall","startGame","firstHitBall","firstHitGame","gameType"].forEach(id => {
         const el = document.getElementById(id); if(el) el.oninput = () => { if(id==="gameType") updateSelectColor(); updateIncome(); };
@@ -487,10 +494,19 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem(key, JSON.stringify(data)); 
         const sNo = recordForm.machineNo.value, sName = recordForm.machineName.value;
         recordForm.reset(); document.getElementById("date").value = today; recordForm.machineNo.value = sNo; recordForm.machineName.value = sName; recordForm.startBall.value = eB;
-        alert("登録完了"); updateSelectColor(); updateIncome();
+        alert("登録完了"); updateSelectColor(); updateIncome(); updateMachineDatalist();
     };
 
     document.getElementById("searchMachineBtn").onclick = loadMachineData;
+    
+    // 台データクリアボタン
+    document.getElementById("clearSearchBtn").onclick = () => {
+        document.getElementById("searchShop").value = "";
+        document.getElementById("searchMachineNo").value = "";
+        document.getElementById("searchMachineName").value = "";
+        document.getElementById("searchGameType").value = "";
+        loadMachineData();
+    };
 
     document.getElementById("withdrawForm").onsubmit = (e) => {
         e.preventDefault(); const fd = new FormData(e.target); const s = fd.get("shop"), b = Number(fd.get("ball")), t = fd.get("gameType"), d = fd.get("date");
@@ -535,7 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadRecordsHistory(1);
 });
 
-// --- 編集・削除 ---
+// 編集・削除 (グローバル)
 window.openEditModal = (idx) => {
     const data = JSON.parse(localStorage.getItem(key) || "[]"), r = data[idx], ef = document.getElementById("editForm"); ef.dataset.index = idx;
     for(let n in r) { if(ef[n]) { if(ef[n].type==="checkbox") ef[n].checked=r[n]; else ef[n].value=r[n]??""; } }
@@ -543,14 +559,16 @@ window.openEditModal = (idx) => {
 };
 
 document.getElementById("editForm").onsubmit = (e) => {
-    e.preventDefault(); const idx = e.target.dataset.index, data = JSON.parse(localStorage.getItem(key) || "[]"), type = e.target.gameType.value, sB = Number(e.target.startBall.value), add = Number(e.target.transfarBall.value) + Number(e.target.cashBall.value), eB = Number(e.target.endBall.value), hG = Number(e.target.firstHitGame.value), hB = e.target.firstHitBall.value === "" ? null : Number(e.target.firstHitBall.value);
+    e.preventDefault(); const ef = document.getElementById("editForm"), idx = ef.dataset.index, data = JSON.parse(localStorage.getItem(key) || "[]");
+    const type = ef.gameType.value, sB = Number(ef.startBall.value), add = Number(ef.transfarBall.value) + Number(ef.cashBall.value), eB = Number(ef.endBall.value), hG = Number(ef.firstHitGame.value), hB = ef.firstHitBall.value === "" ? null : Number(ef.firstHitBall.value);
     const used = hB === null ? (sB + add - eB) : (sB + add - hB);
-    const rot = used > 0 ? Number((( (hG||eB) - Number(e.target.startGame.value)) * investUnit[type] / used).toFixed(1)) : 0;
-    data[idx] = { ...data[idx], date: e.target.date.value, shop: e.target.shop.value, machineNo: e.target.machineNo.value, machineName: e.target.machineName.value, gameType: type, startGame: Number(e.target.startGame.value), startBall: sB, transfarBall: Number(e.target.transfarBall.value), cashBall: Number(e.target.cashBall.value), addBall: add, firstHitGame: hG, firstHitBall: hB, isSingleBonus: e.target.isSingleBonus.checked, endBall: eB, rotation: rot, incomeYen: Math.round((eB - (sB + add)) * rate[type]), incomeText: `${eB-(sB+add)}（${Math.round((eB-(sB+add)) * rate[type]).toLocaleString()}円）`, outBall: hB === null ? 0 : Math.max(0, eB - hB), remarks: e.target.remarks.value };
+    const rot = used > 0 ? Number((( (hG||eB) - Number(ef.startGame.value)) * investUnit[type] / used).toFixed(1)) : 0;
+    data[idx] = { ...data[idx], date: ef.date.value, shop: ef.shop.value, machineNo: ef.machineNo.value, machineName: ef.machineName.value, gameType: type, startGame: Number(ef.startGame.value), startBall: sB, transfarBall: Number(ef.transfarBall.value), cashBall: Number(ef.cashBall.value), addBall: add, firstHitGame: hG, firstHitBall: hB, isSingleBonus: ef.isSingleBonus.checked, endBall: eB, rotation: rot, incomeYen: Math.round((eB - (sB + add)) * rate[type]), incomeText: `${eB-(sB+add)}（${Math.round((eB-(sB+add)) * rate[type]).toLocaleString()}円）`, outBall: hB === null ? 0 : Math.max(0, eB - hB), remarks: ef.remarks.value };
     localStorage.setItem(key, JSON.stringify(data)); alert("更新完了"); location.reload();
 };
 
 window.deleteRecord = (idx) => { if(confirm("削除？")) { const data = JSON.parse(localStorage.getItem(key) || "[]"); data.splice(idx,1); localStorage.setItem(key, JSON.stringify(data)); loadRecordsHistory(historyTabPage); updateSummaryMain(); } };
+window.moveMonth = (v) => { calMonth += v; if(calMonth>12){ calYear++; calMonth=1; } if(calMonth<1){ calYear--; calMonth=12; } renderCalendarMain(calYear, calMonth); };
 </script>
 </body>
 </html>
