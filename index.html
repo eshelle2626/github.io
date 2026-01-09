@@ -22,8 +22,8 @@ table { table-layout: auto; width: 100%; }
 .clickable-name { color: #2563eb; text-decoration: underline; cursor: pointer; font-weight: bold; }
 
 /* カレンダー色分け用 */
-.cal-plus { background-color: #fee2e2; } /* 薄い赤 */
-.cal-minus { background-color: #e0f2fe; } /* 薄い青 */
+.cal-plus { background-color: #fee2e2; }
+.cal-minus { background-color: #e0f2fe; }
 </style>
 
 <body class="bg-gray-100 p-4 min-h-screen">
@@ -67,6 +67,13 @@ table { table-layout: auto; width: 100%; }
             <div>
               <label class="block text-sm font-semibold">他口座振替</label>
               <input type="number" id="transfarBall" class="border rounded w-full p-2" value="0" inputmode="numeric">
+              <select id="transferSource" class="border rounded w-full p-1 mt-1 text-xs bg-gray-50 font-bold">
+                <option value="slot625">振替元: 6.25S</option>
+                <option value="slot46" selected>振替元: 46枚S</option>
+                <option value="slot5">振替元: 5円S</option>
+                <option value="pachi4">振替元: 4円P</option>
+                <option value="pachi1">振替元: 1円P</option>
+              </select>
               <div class="flex justify-between mt-1">
                 <button type="button" id="decTransfar" class="bg-blue-500 text-white rounded px-3 py-1 w-1/2 mr-1">-</button>
                 <button type="button" id="incTransfar" class="bg-blue-500 text-white rounded px-3 py-1 w-1/2">+</button>
@@ -164,10 +171,10 @@ table { table-layout: auto; width: 100%; }
 
     <div id="machineData" class="tab-content hidden">
       <form id="searchForm" class="grid grid-cols-6 gap-2 items-end mb-2">
-        <input type="text" id="searchShop" class="border p-2 rounded col-span-1" placeholder="店名">
-        <input type="text" id="searchMachineNo" class="border p-2 rounded col-span-1" placeholder="台番">
-        <input type="text" id="searchMachineName" class="border p-2 rounded col-span-1" placeholder="機種名">
-        <select id="searchGameType" class="border p-2 rounded col-span-1">
+        <input type="text" id="searchShop" class="border p-2 rounded" placeholder="店名">
+        <input type="text" id="searchMachineNo" class="border p-2 rounded" placeholder="台番">
+        <input type="text" id="searchMachineName" class="border p-2 rounded" placeholder="機種名">
+        <select id="searchGameType" class="border p-2 rounded">
           <option value="">全ての種別</option><option value="slot625">6.25円スロ</option><option value="slot46">46枚スロ</option><option value="slot5">5円スロ</option><option value="pachi1">1円パチ</option><option value="pachi4">4円パチ</option>
         </select>
         <button id="searchMachineBtn" type="button" class="bg-blue-500 text-white rounded p-2 text-sm">検索</button>
@@ -182,7 +189,9 @@ table { table-layout: auto; width: 100%; }
         <form id="editForm" class="space-y-2">
           <div class="flex gap-2"><input type="date" name="date" class="border p-1 w-1/2"><select name="gameType" class="border p-1 w-1/2"><option value="slot625">6.25スロ</option><option value="slot46">46枚スロ</option><option value="slot5">5円スロ</option><option value="pachi1">1円パチ</option><option value="pachi4">4円パチ</option></select></div>
           <input type="text" name="shop" class="border w-full p-1" placeholder="店名"><div class="flex gap-2"><input type="number" name="machineNo" class="border w-1/4 p-1" placeholder="台番"><input type="text" name="machineName" class="border w-3/4 p-1" placeholder="機種名"></div>
-          <div class="grid grid-cols-2 gap-2"><label>開始G<input type="number" name="startGame" class="border w-full p-1"></label><label>開始玉<input type="number" name="startBall" class="border w-full p-1"></label><label>振替<input type="number" name="transfarBall" class="border w-full p-1"></label><label>現金<input type="number" name="cashBall" class="border w-full p-1"></label><label>当りG<input type="number" name="firstHitGame" class="border w-full p-1"></label><label>当り玉<input type="number" name="firstHitBall" class="border w-full p-1"></label></div>
+          <div class="grid grid-cols-2 gap-2"><label>開始G<input type="number" name="startGame" class="border w-full p-1"></label><label>開始玉<input type="number" name="startBall" class="border w-full p-1"></label><label>振替<input type="number" name="transfarBall" class="border w-full p-1"></label>
+          <label>振替元<select name="transferSource" class="border w-full p-1"><option value="slot625">6.25S</option><option value="slot46">46枚S</option><option value="slot5">5円S</option><option value="pachi4">4円P</option><option value="pachi1">1円P</option></select></label>
+          <label>現金<input type="number" name="cashBall" class="border w-full p-1"></label><label>当りG<input type="number" name="firstHitGame" class="border w-full p-1"></label><label>当り玉<input type="number" name="firstHitBall" class="border w-full p-1"></label></div>
           <div class="flex items-center justify-between"><label>単発<input type="checkbox" name="isSingleBonus" class="ml-1"></label><label class="w-2/3">終了玉<input type="number" name="endBall" class="border w-full p-1 bg-pink-50"></label></div>
           <input type="text" name="remarks" class="border w-full p-1" placeholder="備考">
           <div class="flex justify-end gap-2 mt-4"><button type="button" id="closeModal" class="bg-gray-300 px-4 py-1 rounded">キャンセル</button><button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded">保存</button></div>
@@ -207,13 +216,9 @@ const excludeNames = ["振替", "出金", "調整"];
 let chart;
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth() + 1;
-
-// ポップアップ用ステート
 let currentPopupRecs = [];
 let currentPopupPage = 1;
 const popupPageSize = 100;
-
-// 履歴タブ用ページングステート
 let historyTabPage = 1;
 const historyTabPageSize = 100;
 
@@ -239,18 +244,15 @@ function updateIncome() {
     const startG = Number(recordForm.startGame.value) || 0;
     const endG = Number(recordForm.firstHitGame.value) || 0;
     const type = gameTypeSelect.value;
-    
     let used = (firstB === null) ? (start + add - end) : (start + add - firstB);
     if (used < 0) used = 0;
     const totalG = endG - startG;
     let rot = 0; if (used > 0 && totalG > 0) rot = (totalG * investUnit[type]) / used;
     document.getElementById("rotationDisplay").innerHTML = `回転率：<br>${rot ? rot.toFixed(1) + "回" : "0.00"}`;
-    
     const diff = end - (start + add); const yen = Math.round(diff * (rate[type] || 0));
     document.getElementById("incomeDisplay").innerHTML = `現在収支：<br>${diff}（${yen.toLocaleString()}円）`;
 }
 
-// 機種名オートコンプリート用リスト更新
 function updateMachineDatalist() {
     const data = JSON.parse(localStorage.getItem(key) || "[]");
     const names = [...new Set(data.map(r => r.machineName).filter(n => n && !excludeNames.includes(n)))];
@@ -258,45 +260,34 @@ function updateMachineDatalist() {
     datalist.innerHTML = names.map(n => `<option value="${n}">`).join("");
 }
 
-// --- 履歴表示（ページング対応） ---
 function loadRecordsHistory(page = 1) {
     historyTabPage = page;
     const tbody = document.getElementById("recordList");
     const pagination = document.getElementById("historyTabPagination");
     if (!tbody) return;
-    
-    tbody.innerHTML = "";
-    pagination.innerHTML = "";
-    
+    tbody.innerHTML = ""; pagination.innerHTML = "";
     const data = JSON.parse(localStorage.getItem(key) || "[]");
     const sorted = data.slice().sort((a,b) => new Date(b.date) - new Date(a.date) || new Date(b.created) - new Date(a.created));
-    
     const startIdx = (historyTabPage - 1) * historyTabPageSize;
     const pageData = sorted.slice(startIdx, startIdx + historyTabPageSize);
     const totalPages = Math.ceil(sorted.length / historyTabPageSize);
-
     pageData.forEach(r => {
         const tr = document.createElement("tr");
         const originalIdx = data.findIndex(rec => rec.created === r.created);
         const selfG = (r.firstHitGame || 0) - (r.startGame || 0);
-        const invest = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
-        
+        const invest = (r.firstHitBall !== null) ? (Number(r.startBall) + Number(r.addBall) - Number(r.firstHitBall)) : (Number(r.startBall) + Number(r.addBall) - Number(r.endBall));
         tr.innerHTML = `<td class="border p-1">${r.date.slice(5)}</td><td class="border p-1">${r.shop}</td><td class="border p-1">${r.machineNo}</td><td class="border p-1 text-left">${r.machineName}</td><td class="border p-1 ${typeColors[r.gameType]}">${typeLabels[r.gameType]}</td><td class="border p-1">${r.firstHitGame}<br>(${selfG})</td><td class="border p-1">${r.isSingleBonus ? '単' : ''}</td><td class="border p-1">${r.rotation || 0}</td><td class="border p-1">${invest}</td><td class="border p-1">${r.outBall || 0}</td><td class="border p-1 text-right ${r.incomeYen < 0 ? 'text-red-500' : 'text-green-600'}">${r.incomeText.replace('（','<br>（')}</td><td class="border p-1"><button class="bg-yellow-300 px-1 rounded text-[10px]" onclick="openEditModal(${originalIdx})">編</button></td><td class="border p-1"><button class="text-red-500 font-bold" onclick="deleteRecord(${originalIdx})">×</button></td><td class="border p-1 text-left text-[10px]">${r.remarks || ""}</td>`;
         tbody.appendChild(tr);
     });
-
     if (totalPages > 1) {
         for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement("button");
-            btn.textContent = i;
-            btn.className = `px-3 py-1 border rounded text-xs shrink-0 ${i === historyTabPage ? "bg-blue-500 text-white" : "bg-gray-100"}`;
-            btn.onclick = () => { loadRecordsHistory(i); window.scrollTo(0,0); };
-            pagination.appendChild(btn);
+            const btn = document.createElement("button"); btn.textContent = i; btn.className = `px-3 py-1 border rounded text-xs shrink-0 ${i === historyTabPage ? "bg-blue-500 text-white" : "bg-gray-100"}`;
+            btn.onclick = () => { loadRecordsHistory(i); }; pagination.appendChild(btn);
         }
     }
 }
 
-// --- 集計・残高・カレンダー ---
+// --- 残高再計算ロジック（修正：6.25S自動ペアリング除外） ---
 function updateSummaryMain() {
     const data = JSON.parse(localStorage.getItem(key) || "[]");
     const shopSel = document.getElementById("shopFilter");
@@ -304,35 +295,51 @@ function updateSummaryMain() {
     const curS = shopSel.value;
     shopSel.innerHTML = '<option value="all">全店舗</option>' + shops.map(s => `<option value="${s}" ${s===curS?'selected':''}>${s}</option>`).join("");
     document.getElementById("withdrawShop").innerHTML = '<option value="">店名を選択</option>' + shops.map(s => `<option value="${s}">${s}</option>`).join("");
-    
     const period = document.querySelector(".period-btn.bg-blue-500")?.dataset.period || "1";
     const filtered = data.filter(r => (shopSel.value === "all" || r.shop === shopSel.value) && (period === "all" || (new Date() - new Date(r.date)) / (1000*60*60*24) <= Number(period) * 30));
-    
     const daily = {}; filtered.forEach(r => daily[r.date] = (daily[r.date] || 0) + (r.incomeYen || 0));
     const dates = Object.keys(daily).sort();
     let cum = 0; const points = dates.map(d => { cum += daily[d]; return cum; });
-    const ctx = document.getElementById("chart").getContext("2d");
-    if (chart) chart.destroy();
+    const ctx = document.getElementById("chart").getContext("2d"); if (chart) chart.destroy();
     chart = new Chart(ctx, { type: 'line', data: { labels: dates.map(d => d.slice(5)), datasets: [{ label: '累計収支', data: points, borderColor: '#3b82f6', tension: 0.2, fill: true, backgroundColor: 'rgba(59,130,246,0.1)' }] }, options: { responsive: true, plugins: { legend: { display: false } } } });
     document.getElementById("totalYen").textContent = data.reduce((a,r) => a+(r.incomeYen||0), 0).toLocaleString() + "円";
-    updateBalancesMain(shopSel.value);
-    renderCalendarMain(calYear, calMonth);
+    updateBalancesMain(shopSel.value); renderCalendarMain(calYear, calMonth);
 }
 
 function updateBalancesMain(selShop) {
     const data = JSON.parse(localStorage.getItem(key) || "[]");
     const bals = { slot46:0, slot625:0, slot5:0, pachi4:0, pachi1:0 };
+    
     data.forEach(r => {
-        if (selShop !== "all" && r.shop !== selShop) return;
-        if (r.machineName === "出金") { bals[r.gameType] -= (r.withdrawBall || 0); return; }
-        const type = r.gameType; if (r.cashBall > 0) bals[type] += r.cashBall;
-        if (r.transfarBall > 0) {
-            bals[type] += r.transfarBall; let src = ""; let tr = 1;
-            if(type === "pachi1") { src = "pachi4"; tr = 250/1000; } else if(type === "pachi4") { src = "pachi1"; tr = 1000/250; } else if(type === "slot5") { src = "slot46"; tr = 46/200; } else if(type === "slot625") { src = "slot46"; tr = 46/160; } else if(type === "slot46") { src = "slot625"; tr = 160/46; }
-            if (src) bals[src] -= Math.round(r.transfarBall * tr);
+        const type = r.gameType;
+        const tBall = Number(r.transfarBall) || 0;
+        
+        // 振替元の判定（6.25Sは自動ペアリングから除外）
+        let srcType = r.transferSource; 
+        if (tBall > 0 && !srcType) {
+            if (type === "pachi1") srcType = "pachi4";
+            else if (type === "pachi4") srcType = "pachi1";
+            else if (type === "slot5") srcType = "slot46";
+            else if (type === "slot46") srcType = "slot5"; // 46枚の振替元は5円を優先
+            // typeがslot625の場合は、srcTypeは空のまま（独立入金扱い）
         }
-        bals[type] += (r.endBall - (r.startBall + (r.transfarBall||0) + (r.cashBall||0)));
+
+        // 振替元を減らす
+        if (tBall > 0 && srcType && bals.hasOwnProperty(srcType)) {
+            const tr = rate[type] / rate[srcType];
+            bals[srcType] -= Math.round(tBall * tr);
+        }
+
+        // 該当店舗の遊技変動
+        if (selShop === "all" || r.shop === selShop) {
+            if (r.machineName === "出金") {
+                bals[type] -= (Number(r.withdrawBall) || 0);
+            } else {
+                bals[type] += (Number(r.endBall) || 0) - (Number(r.startBall) || 0);
+            }
+        }
     });
+
     for(let k in bals) { const el = document.getElementById("bal" + k.replace("slot","").replace("pachi","")); if(el) el.textContent = bals[k].toLocaleString() + (k.includes("slot") ? "枚" : "玉"); }
     let totalAsset = 0; for(let k in bals) totalAsset += Math.round(bals[k] * rate[k]);
     document.getElementById("totalAssetYen").textContent = totalAsset.toLocaleString() + "円";
@@ -345,55 +352,10 @@ function renderCalendarMain(year, month) {
     let html = `<div class="flex justify-between items-center mb-2"><button id="moveMonthPrev">◀</button><div class="font-bold">${year}年${month}月</div><button id="moveMonthNext">▶</button></div><div class="grid grid-cols-7 gap-1 text-[9px]"><div class="text-center bg-gray-100">日</div><div class="text-center bg-gray-100">月</div><div class="text-center bg-gray-100">火</div><div class="text-center bg-gray-100">水</div><div class="text-center bg-gray-100">木</div><div class="text-center bg-gray-100">金</div><div class="text-center bg-gray-100">土</div>`;
     const start = new Date(year, month-1, 1).getDay(), last = new Date(year, month, 0).getDate();
     for(let i=0; i<start; i++) html += `<div></div>`;
-    for(let d=1; d<=last; d++) { 
-        const ds = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const s = daily[ds] || { inc:0, cash:0 };
-        const color = s.inc < 0 ? "text-red-500" : (s.inc > 0 ? "text-green-600" : "text-gray-400");
-        // 色分け背景クラス判定
-        const bgClass = s.inc > 0 ? "cal-plus" : (s.inc < 0 ? "cal-minus" : "");
-        html += `<div class="border p-1 h-12 ${bgClass}"><div>${d}</div><div class="${color} font-bold">${s.inc?s.inc.toLocaleString():""}</div><div class="text-blue-500">${s.cash?(s.cash>0?'+':'')+s.cash.toLocaleString():""}</div></div>`; 
-    }
+    for(let d=1; d<=last; d++) { const ds = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`, s = daily[ds] || { inc:0, cash:0 }, color = s.inc < 0 ? "text-red-500" : (s.inc > 0 ? "text-green-600" : "text-gray-400"), bg = s.inc > 0 ? "cal-plus" : (s.inc < 0 ? "cal-minus" : ""); html += `<div class="border p-1 h-12 ${bg}"><div>${d}</div><div class="${color} font-bold">${s.inc?s.inc.toLocaleString():""}</div><div class="text-blue-500">${s.cash?(s.cash>0?'+':'')+s.cash.toLocaleString():""}</div></div>`; }
     container.innerHTML = html + `</div>`;
     document.getElementById("moveMonthPrev").onclick = () => { calMonth--; if(calMonth<1){ calYear--; calMonth=12; } renderCalendarMain(calYear, calMonth); };
     document.getElementById("moveMonthNext").onclick = () => { calMonth++; if(calMonth>12){ calYear++; calMonth=1; } renderCalendarMain(calYear, calMonth); };
-}
-
-// --- ポップアップ履歴管理 ---
-function renderPopupPage() {
-    const list = document.getElementById("popupHistoryList");
-    const pagination = document.getElementById("popupPagination");
-    list.innerHTML = ""; pagination.innerHTML = "";
-    
-    const pageData = currentPopupRecs.slice((currentPopupPage - 1) * popupPageSize, currentPopupPage * popupPageSize);
-    const totalPages = Math.ceil(currentPopupRecs.length / popupPageSize);
-
-    pageData.forEach(r => {
-        const tr = document.createElement("tr");
-        const selfG = (r.firstHitGame || 0) - (r.startGame || 0);
-        const invest = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
-        tr.innerHTML = `<td class="border p-1">${r.date.slice(5)}</td><td class="border p-1">${r.shop}</td><td class="border p-1">${r.machineNo}</td><td class="border p-1">${r.firstHitGame}(${selfG})</td><td class="border p-1 text-center">${r.isSingleBonus ? '単' : '-'}</td><td class="border p-1">${r.rotation || 0}</td><td class="border p-1 text-right">${invest}</td><td class="border p-1 text-right">${r.outBall || 0}</td><td class="border p-1 text-right ${r.incomeYen < 0 ? 'text-red-500' : 'text-green-600'}">${r.incomeText || '0'}</td><td class="border p-1 text-left text-[9px]">${r.remarks || ""}</td>`;
-        list.appendChild(tr);
-    });
-
-    if (totalPages > 1) {
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement("button");
-            btn.textContent = i;
-            btn.className = `px-3 py-1 border rounded text-xs shrink-0 ${i === currentPopupPage ? "bg-blue-500 text-white" : "bg-gray-100"}`;
-            btn.onclick = () => { currentPopupPage = i; renderPopupPage(); document.querySelector("#historyPopupModal .overflow-y-auto").scrollTop = 0; };
-            pagination.appendChild(btn);
-        }
-    }
-}
-
-function openHistoryPopup(recs, title, gameTypeLabel) {
-    const modal = document.getElementById("historyPopupModal");
-    currentPopupRecs = [...recs].sort((a,b) => new Date(b.date) - new Date(a.date) || new Date(b.created) - new Date(a.created)).slice(0, 500);
-    currentPopupPage = 1;
-    document.getElementById("popupTitle").textContent = `${title} (${gameTypeLabel}) 最新${currentPopupRecs.length}件`;
-    renderPopupPage();
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
 }
 
 // --- 台データ検索 ---
@@ -403,64 +365,23 @@ function loadMachineData() {
     const sName = (document.getElementById("searchMachineName")?.value || "").trim().toLowerCase();
     const sType = document.getElementById("searchGameType")?.value || "";
     const data = JSON.parse(localStorage.getItem(key) || "[]");
-    
-    const filtered = data.filter(r => {
-        if (excludeNames.includes(r.machineName)) return false;
-        const mShop = sShop === "" || r.shop.toLowerCase().includes(sShop);
-        const mNo = sNo === "" || r.machineNo === sNo;
-        const mName = sName === "" || r.machineName.toLowerCase().includes(sName);
-        const mType = sType === "" || r.gameType === sType;
-        return mShop && mNo && mName && mType;
-    });
-
-    const tbody = document.getElementById("machineDataList");
-    tbody.innerHTML = "";
+    const filtered = data.filter(r => !excludeNames.includes(r.machineName) && (sShop === "" || r.shop.toLowerCase().includes(sShop)) && (sNo === "" || r.machineNo === sNo) && (sName === "" || r.machineName.toLowerCase().includes(sName)) && (sType === "" || r.gameType === sType));
+    const tbody = document.getElementById("machineDataList"); tbody.innerHTML = "";
     if (filtered.length === 0) return;
-
     const uniqueTypes = [...new Set(filtered.map(r => r.gameType))];
     const totalTypeLabel = uniqueTypes.length === 1 ? typeLabels[uniqueTypes[0]] : "-";
-
-    // 合算行
-    let sumInvYenBase = 0, sumOutYenBase = 0, sumHitsTotal = 0, sumGTotal = 0, sumRotTotal = 0;
-    filtered.forEach(r => {
-        const curR = rate[r.gameType] || 0;
-        const invest = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
-        sumInvYenBase += invest * curR; sumOutYenBase += (r.outBall || 0) * curR;
-        if (r.firstHitBall !== null) sumHitsTotal++; sumGTotal += (r.firstHitGame || 0); sumRotTotal += (r.rotation || 0);
-    });
-    
-    const trTotal = document.createElement("tr"); trTotal.classList.add("bg-blue-100", "font-bold");
-    trTotal.innerHTML = `<td class="border p-1">合算</td><td class="border p-1">-</td><td class="border p-1 clickable-name">検索結果全台</td><td class="border p-1">-</td><td class="border p-1">${filtered.length}</td><td class="border p-1">${sumHitsTotal}</td><td class="border p-1">${((sumHitsTotal/filtered.length)*100).toFixed(1)}%</td><td class="border p-1">${(sumRotTotal/filtered.length).toFixed(1)}</td><td class="border p-1">${sumHitsTotal?(sumGTotal/sumHitsTotal).toFixed(0):"-"}</td><td class="border p-1">-</td><td class="border p-1 ${(sumOutYenBase-sumInvYenBase)<0?'text-red-500':''}">${Math.round(sumOutYenBase-sumInvYenBase).toLocaleString()}円</td><td class="border p-1">${Math.max(...filtered.map(r=>r.outBall||0),0)}</td><td class="border p-1">${sumInvYenBase>0?((sumOutYenBase/sumInvYenBase)*100).toFixed(1):"0.0"}%</td>`;
-    tbody.appendChild(trTotal);
-    trTotal.querySelector(".clickable-name").onclick = () => openHistoryPopup(filtered, "検索結果全台", totalTypeLabel);
-
-    const groups = {}; filtered.forEach(r => { 
-        const k = `${r.shop}_${r.machineNo}_${r.machineName}_${r.gameType}`; 
-        if(!groups[k]) groups[k] = []; groups[k].push(r); 
-    });
-    
-    const sortedGroups = Object.keys(groups).map(k => {
-        const recs = groups[k]; const lastDate = recs.reduce((max, r) => new Date(r.date) > new Date(max) ? r.date : max, recs[0].date);
-        return { recs, lastDate };
-    }).sort((a,b) => new Date(b.lastDate) - new Date(a.lastDate));
-
-    sortedGroups.forEach(g => {
+    let sInvY = 0, sOutY = 0, sHits = 0, sG = 0, sR = 0;
+    filtered.forEach(r => { const cR = rate[r.gameType]; const inv = (r.firstHitBall !== null) ? (Number(r.startBall) + Number(r.addBall) - Number(r.firstHitBall)) : (Number(r.startBall) + Number(r.addBall) - Number(r.endBall)); sInvY += inv * cR; sOutY += (r.outBall || 0) * cR; if (r.firstHitBall !== null) sHits++; sG += (r.firstHitGame || 0); sR += (r.rotation || 0); });
+    const trT = document.createElement("tr"); trT.classList.add("bg-blue-100", "font-bold");
+    trT.innerHTML = `<td class="border p-1">合算</td><td class="border p-1">-</td><td class="border p-1 clickable-name">検索結果全台</td><td class="border p-1">-</td><td class="border p-1">${filtered.length}</td><td class="border p-1">${sHits}</td><td class="border p-1">${((sHits/filtered.length)*100).toFixed(1)}%</td><td class="border p-1">${(sR/filtered.length).toFixed(1)}</td><td class="border p-1">${sHits?(sG/sHits).toFixed(0):"-"}</td><td class="border p-1">-</td><td class="border p-1 ${(sOutY-sInvY)<0?'text-red-500':''}">${Math.round(sOutY-sInvY).toLocaleString()}円</td><td class="border p-1">${Math.max(...filtered.map(r=>r.outBall||0),0)}</td><td class="border p-1">${sInvY>0?((sOutY/sInvY)*100).toFixed(1):"0.0"}%</td>`;
+    tbody.appendChild(trT); trT.querySelector(".clickable-name").onclick = () => openHistoryPopup(filtered, "全台", totalTypeLabel);
+    const groups = {}; filtered.forEach(r => { const k = `${r.shop}_${r.machineNo}_${r.machineName}_${r.gameType}`; if(!groups[k]) groups[k] = []; groups[k].push(r); });
+    Object.keys(groups).map(k => { const recs = groups[k]; return { recs, lastDate: recs.reduce((max, r) => new Date(r.date) > new Date(max) ? r.date : max, recs[0].date) }; }).sort((a,b) => new Date(b.lastDate) - new Date(a.lastDate)).forEach(g => {
         const recs = g.recs, hits = recs.filter(r => r.firstHitBall !== null);
-        let invYenGroup = 0, outYenGroup = 0;
-        recs.forEach(r => {
-            const curR = rate[r.gameType] || 0;
-            const invest = (r.firstHitBall !== null) ? (r.startBall + r.addBall - r.firstHitBall) : (r.startBall + r.addBall - r.endBall);
-            invYenGroup += invest * curR;
-            outYenGroup += (r.outBall || 0) * curR;
-        });
-        const tr = document.createElement("tr");
-        const inc = Math.round(outYenGroup - invYenGroup);
-        const label = typeLabels[recs[0].gameType];
-        const avgInvLocal = hits.length ? (invYenGroup / hits.length / rate[recs[0].gameType]).toFixed(0) : "-";
-        
-        tr.innerHTML = `<td class="border p-1">${recs[0].shop}</td><td class="border p-1">${recs[0].machineNo}</td><td class="border p-1 clickable-name text-left">${recs[0].machineName}</td><td class="border p-1 ${typeColors[recs[0].gameType]}">${label}</td><td class="border p-1">${recs.length}</td><td class="border p-1">${hits.length}</td><td class="border p-1">${((hits.length/recs.length)*100).toFixed(1)}%</td><td class="border p-1">${(recs.reduce((a,r)=>a+(r.rotation||0),0)/recs.length).toFixed(1)}</td><td class="border p-1">${hits.length?(hits.reduce((a,r)=>a+(r.firstHitGame||0),0)/hits.length).toFixed(0):"-"}</td><td class="border p-1">${avgInvLocal}</td><td class="border p-1 ${inc<0?'text-red-500':''}">${inc.toLocaleString()}円</td><td class="border p-1">${Math.max(...recs.map(r=>r.outBall||0),0)}</td><td class="border p-1">${invYenGroup>0?((outYenGroup / invYenGroup) * 100).toFixed(1) : "0.0"}%</td>`;
-        tbody.appendChild(tr);
-        tr.querySelector(".clickable-name").onclick = () => openHistoryPopup(recs, recs[0].machineName, label);
+        let iY = 0, oY = 0; recs.forEach(r => { const cR = rate[r.gameType]; const inv = (r.firstHitBall !== null) ? (Number(r.startBall) + Number(r.addBall) - Number(r.firstHitBall)) : (Number(r.startBall) + Number(r.addBall) - Number(r.endBall)); iY += inv * cR; oY += (r.outBall || 0) * cR; });
+        const tr = document.createElement("tr"); const inc = Math.round(oY - iY); const label = typeLabels[recs[0].gameType];
+        tr.innerHTML = `<td class="border p-1">${recs[0].shop}</td><td class="border p-1">${recs[0].machineNo}</td><td class="border p-1 clickable-name text-left">${recs[0].machineName}</td><td class="border p-1 ${typeColors[recs[0].gameType]}">${label}</td><td class="border p-1">${recs.length}</td><td class="border p-1">${hits.length}</td><td class="border p-1">${((hits.length/recs.length)*100).toFixed(1)}%</td><td class="border p-1">${(recs.reduce((a,r)=>a+(r.rotation||0),0)/recs.length).toFixed(1)}</td><td class="border p-1">${hits.length?(hits.reduce((a,r)=>a+(r.firstHitGame||0),0)/hits.length).toFixed(0):"-"}</td><td class="border p-1">${hits.length?(iY/hits.length/rate[recs[0].gameType]).toFixed(0):"-"}</td><td class="border p-1 ${inc<0?'text-red-500':''}">${inc.toLocaleString()}円</td><td class="border p-1">${Math.max(...recs.map(r=>r.outBall||0),0)}</td><td class="border p-1">${iY>0?((oY/iY)*100).toFixed(1):"0.0"}%</td>`;
+        tbody.appendChild(tr); tr.querySelector(".clickable-name").onclick = () => openHistoryPopup(recs, recs[0].machineName, label);
     });
 }
 
@@ -469,9 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById("date").value = today;
     document.getElementById("withdrawDate").value = today;
-    recordForm.shop.value = "エスパス高田馬場";
-    updateSelectColor(); updateIncome();
-    updateMachineDatalist();
+    updateSelectColor(); updateIncome(); updateMachineDatalist();
 
     ["startBall","endBall","transfarBall","cashBall","startGame","firstHitBall","firstHitGame","gameType"].forEach(id => {
         const el = document.getElementById(id); if(el) el.oninput = () => { if(id==="gameType") updateSelectColor(); updateIncome(); };
@@ -485,34 +404,25 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("clearBtn").onclick = () => { if(confirm("リセット？")) { recordForm.reset(); document.getElementById("date").value = today; updateSelectColor(); updateIncome(); } };
 
     recordForm.onsubmit = (e) => {
-        e.preventDefault(); if(!recordForm.endBall.value) return alert("終了玉数が必要です");
+        e.preventDefault(); if(!recordForm.endBall.value) return alert("終了玉数必須");
         const tB = Number(transfarInput.value)||0, cB = Number(cashInput.value)||0, sB = Number(recordForm.startBall.value)||0, eB = Number(recordForm.endBall.value)||0;
         const hB = recordForm.firstHitBall.value === "" ? null : Number(recordForm.firstHitBall.value);
         const curType = gameTypeSelect.value;
         const diff = eB - (sB + tB + cB); const data = JSON.parse(localStorage.getItem(key) || "[]");
-        data.push({ date: recordForm.date.value, shop: recordForm.shop.value, machineNo: recordForm.machineNo.value, machineName: recordForm.machineName.value, gameType: gameTypeSelect.value, startGame: Number(recordForm.startGame.value), startBall: sB, transfarBall: tB, cashBall: cB, addBall: tB+cB, firstHitGame: Number(recordForm.firstHitGame.value), firstHitBall: hB, isSingleBonus: document.getElementById("isSingleBonus").checked, endBall: eB, incomeYen: Math.round(diff * rate[gameTypeSelect.value]), incomeText: `${diff}（${Math.round(diff * rate[gameTypeSelect.value]).toLocaleString()}円）`, outBall: hB === null ? 0 : Math.max(0, eB - hB), created: new Date().toISOString(), remarks: recordForm.remarks.value });
+        data.push({ date: recordForm.date.value, shop: recordForm.shop.value, machineNo: recordForm.machineNo.value, machineName: recordForm.machineName.value, gameType: gameTypeSelect.value, startGame: Number(recordForm.startGame.value), startBall: sB, transfarBall: tB, transferSource: document.getElementById("transferSource").value, cashBall: cB, addBall: tB+cB, firstHitGame: Number(recordForm.firstHitGame.value), firstHitBall: hB, isSingleBonus: document.getElementById("isSingleBonus").checked, endBall: eB, incomeYen: Math.round(diff * rate[gameTypeSelect.value]), incomeText: `${diff}（${Math.round(diff * rate[gameTypeSelect.value]).toLocaleString()}円）`, outBall: hB === null ? 0 : Math.max(0, eB - hB), created: new Date().toISOString(), remarks: recordForm.remarks.value });
         localStorage.setItem(key, JSON.stringify(data)); 
         const sNo = recordForm.machineNo.value, sName = recordForm.machineName.value;
-        recordForm.reset(); document.getElementById("date").value = today; recordForm.machineNo.value = sNo; recordForm.machineName.value = sName; recordForm.startBall.value = eB;
+        recordForm.reset(); document.getElementById("date").value = today; recordForm.machineNo.value = sNo; recordForm.machineName.value = sName; recordForm.startBall.value = eB; recordForm.gameType.value = curType;
         alert("登録完了"); updateSelectColor(); updateIncome(); updateMachineDatalist();
     };
 
     document.getElementById("searchMachineBtn").onclick = loadMachineData;
-    
-    // 台データクリアボタン
-    document.getElementById("clearSearchBtn").onclick = () => {
-        document.getElementById("searchShop").value = "";
-        document.getElementById("searchMachineNo").value = "";
-        document.getElementById("searchMachineName").value = "";
-        document.getElementById("searchGameType").value = "";
-        loadMachineData();
-    };
-
+    document.getElementById("clearSearchBtn").onclick = () => { document.getElementById("searchShop").value = ""; document.getElementById("searchMachineNo").value = ""; document.getElementById("searchMachineName").value = ""; document.getElementById("searchGameType").value = ""; loadMachineData(); };
     document.getElementById("withdrawForm").onsubmit = (e) => {
         e.preventDefault(); const fd = new FormData(e.target); const s = fd.get("shop"), b = Number(fd.get("ball")), t = fd.get("gameType"), d = fd.get("date");
         if(!s || !b) return alert("入力不足");
-        const y = Math.round(b * rate[t]); const data = JSON.parse(localStorage.getItem(key) || "[]");
-        data.push({ date: d, shop: s, machineName: "出金", gameType: t, withdrawBall: b, withdrawYen: y, incomeYen: 0, incomeText: `出金 ${b}枚`, created: new Date().toISOString() });
+        const data = JSON.parse(localStorage.getItem(key) || "[]");
+        data.push({ date: d, shop: s, machineName: "出金", gameType: t, withdrawBall: b, withdrawYen: Math.round(b * rate[t]), incomeYen: 0, incomeText: `出金 ${b}枚`, created: new Date().toISOString() });
         localStorage.setItem(key, JSON.stringify(data)); alert("出金保存"); updateSummaryMain(); e.target.reset(); document.getElementById("withdrawDate").value = today;
     };
 
@@ -541,7 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const imp = JSON.parse(ev.target.result); const old = JSON.parse(localStorage.getItem(key) || "[]");
                 let a = 0, s = 0; imp.forEach(x => { if(old.some(o => o.created === x.created)) s++; else { old.push(x); a++; } });
-                localStorage.setItem(key, JSON.stringify(old)); alert(`追加:${a} スキップ:${s}`); location.reload();
+                localStorage.setItem(key, JSON.stringify(old)); alert(`完了！追加:${a} スキップ:${s}`); location.reload();
             } catch(e) { alert("失敗"); }
         }; r.readAsText(f);
     };
@@ -551,7 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadRecordsHistory(1);
 });
 
-// 編集・削除 (グローバル)
+// --- 編集モーダル ---
 window.openEditModal = (idx) => {
     const data = JSON.parse(localStorage.getItem(key) || "[]"), r = data[idx], ef = document.getElementById("editForm"); ef.dataset.index = idx;
     for(let n in r) { if(ef[n]) { if(ef[n].type==="checkbox") ef[n].checked=r[n]; else ef[n].value=r[n]??""; } }
@@ -559,16 +469,14 @@ window.openEditModal = (idx) => {
 };
 
 document.getElementById("editForm").onsubmit = (e) => {
-    e.preventDefault(); const ef = document.getElementById("editForm"), idx = ef.dataset.index, data = JSON.parse(localStorage.getItem(key) || "[]");
-    const type = ef.gameType.value, sB = Number(ef.startBall.value), add = Number(ef.transfarBall.value) + Number(ef.cashBall.value), eB = Number(ef.endBall.value), hG = Number(ef.firstHitGame.value), hB = ef.firstHitBall.value === "" ? null : Number(ef.firstHitBall.value);
+    e.preventDefault(); const idx = e.target.dataset.index, data = JSON.parse(localStorage.getItem(key) || "[]"), type = e.target.gameType.value, sB = Number(e.target.startBall.value), add = Number(e.target.transfarBall.value) + Number(e.target.cashBall.value), eB = Number(e.target.endBall.value), hG = Number(e.target.firstHitGame.value), hB = e.target.firstHitBall.value === "" ? null : Number(e.target.firstHitBall.value);
     const used = hB === null ? (sB + add - eB) : (sB + add - hB);
-    const rot = used > 0 ? Number((( (hG||eB) - Number(ef.startGame.value)) * investUnit[type] / used).toFixed(1)) : 0;
-    data[idx] = { ...data[idx], date: ef.date.value, shop: ef.shop.value, machineNo: ef.machineNo.value, machineName: ef.machineName.value, gameType: type, startGame: Number(ef.startGame.value), startBall: sB, transfarBall: Number(ef.transfarBall.value), cashBall: Number(ef.cashBall.value), addBall: add, firstHitGame: hG, firstHitBall: hB, isSingleBonus: ef.isSingleBonus.checked, endBall: eB, rotation: rot, incomeYen: Math.round((eB - (sB + add)) * rate[type]), incomeText: `${eB-(sB+add)}（${Math.round((eB-(sB+add)) * rate[type]).toLocaleString()}円）`, outBall: hB === null ? 0 : Math.max(0, eB - hB), remarks: ef.remarks.value };
-    localStorage.setItem(key, JSON.stringify(data)); alert("更新完了"); location.reload();
+    const rot = used > 0 ? Number((( (hG||eB) - Number(e.target.startGame.value)) * investUnit[type] / used).toFixed(1)) : 0;
+    data[idx] = { ...data[idx], date: e.target.date.value, shop: e.target.shop.value, machineNo: e.target.machineNo.value, machineName: e.target.machineName.value, gameType: type, startGame: Number(e.target.startGame.value), startBall: sB, transfarBall: Number(e.target.transfarBall.value), transferSource: e.target.transferSource.value, cashBall: Number(e.target.cashBall.value), addBall: add, firstHitGame: hG, firstHitBall: hB, isSingleBonus: e.target.isSingleBonus.checked, endBall: eB, rotation: rot, incomeYen: Math.round((eB - (sB + add)) * rate[type]), incomeText: `${eB-(sB+add)}（${Math.round((eB-(sB+add)) * rate[type]).toLocaleString()}円）`, outBall: hB === null ? 0 : Math.max(0, eB - hB), remarks: e.target.remarks.value };
+    localStorage.setItem(key, JSON.stringify(data)); alert("更新完了"); document.getElementById("editModal").classList.add("hidden"); loadRecordsHistory(historyTabPage); updateSummaryMain();
 };
 
-window.deleteRecord = (idx) => { if(confirm("削除？")) { const data = JSON.parse(localStorage.getItem(key) || "[]"); data.splice(idx,1); localStorage.setItem(key, JSON.stringify(data)); loadRecordsHistory(historyTabPage); updateSummaryMain(); } };
-window.moveMonth = (v) => { calMonth += v; if(calMonth>12){ calYear++; calMonth=1; } if(calMonth<1){ calYear--; calMonth=12; } renderCalendarMain(calYear, calMonth); };
+window.deleteRecord = (idx) => { if(confirm("削除しますか？")) { const data = JSON.parse(localStorage.getItem(key) || "[]"); data.splice(idx,1); localStorage.setItem(key, JSON.stringify(data)); loadRecordsHistory(historyTabPage); updateSummaryMain(); } };
 </script>
 </body>
 </html>
