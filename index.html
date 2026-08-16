@@ -804,16 +804,70 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("closeModal").onclick = () => document.getElementById("editModal").classList.add("hidden");
     document.getElementById("shopFilter").onchange = updateSummaryMain;
     document.querySelectorAll(".period-btn").forEach(b => b.onclick = () => { document.querySelectorAll(".period-btn").forEach(x => x.classList.replace("bg-blue-500","bg-gray-300")); b.classList.replace("bg-gray-300","bg-blue-500"); updateSummaryMain(); });
+
+    // 一括エクスポート (遊技記録 + ボーダー設定)
+    document.getElementById("exportBtn").onclick = () => { 
+        const exportObj = {
+            records: JSON.parse(localStorage.getItem(key) || "[]"),
+            borders: JSON.parse(localStorage.getItem(borderKey) || "{}")
+        };
+        const a = document.createElement("a"); 
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(exportObj)], {type:"application/json"})); 
+        a.download = `data.json`; 
+        a.click(); 
+    };
+
+    // 一括インポート (遊技記録 + ボーダー設定の両方に対応)
     document.getElementById("importBtn").onclick = () => document.getElementById("importFile").click();
     document.getElementById("importFile").onchange = (e) => {
         const f = e.target.files[0]; const r = new FileReader(); r.onload = (ev) => {
-            const imp = JSON.parse(ev.target.result); const old = JSON.parse(localStorage.getItem(key) || "[]");
-            imp.forEach(x => { if(!old.some(o => o.created === x.created)) old.push(x); });
-            localStorage.setItem(key, JSON.stringify(old)); alert("完了"); location.reload();
+            try {
+                const parsed = JSON.parse(ev.target.result);
+                let impRecords = [];
+                let impBorders = null;
+
+                // 新形式 (配列とオブジェクトのまとめ) か 旧形式 (配列のみ) かを判定
+                if (Array.isArray(parsed)) {
+                    impRecords = parsed;
+                } else if (parsed && typeof parsed === "object") {
+                    impRecords = parsed.records || [];
+                    impBorders = parsed.borders || null;
+                }
+
+                // 1. 遊技記録のマージ
+                const oldRecords = JSON.parse(localStorage.getItem(key) || "[]");
+                let addCount = 0, skipCount = 0; 
+                impRecords.forEach(x => { 
+                    if(oldRecords.some(o => o.created === x.created)) skipCount++; 
+                    else { oldRecords.push(x); addCount++; } 
+                });
+                localStorage.setItem(key, JSON.stringify(oldRecords));
+
+                // 2. ボーダー設定のマージ
+                let borderMsg = "";
+                if (impBorders) {
+                    const oldBorders = getBorderSettings();
+                    Object.assign(oldBorders, impBorders);
+                    localStorage.setItem(borderKey, JSON.stringify(oldBorders));
+                    borderMsg = "（ボーダー設定も反映しました）";
+                }
+
+                alert(`完了！ 追加:${addCount} スキップ:${skipCount} ${borderMsg}`); 
+                location.reload();
+            } catch(err) {
+                alert("ファイルの読み込みに失敗しました");
+            }
         }; r.readAsText(f);
     };
-    document.getElementById("exportBtn").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([localStorage.getItem(key)], {type:"application/json"})); a.download = `data.json`; a.click(); };
-    document.getElementById("clearAllBtn").onclick = () => { if(confirm("消去？")) { localStorage.removeItem(key); clearDraftInput(); location.reload(); } };
+
+    document.getElementById("clearAllBtn").onclick = () => { 
+        if(confirm("全データ（遊技記録およびボーダー設定）を消去しますか？")) { 
+            localStorage.removeItem(key); 
+            localStorage.removeItem(borderKey);
+            clearDraftInput(); 
+            location.reload(); 
+        } 
+    };
     loadRecordsHistory(1);
 });
 
