@@ -28,6 +28,10 @@ table { table-layout: auto; width: 100%; }
 .cal-plus { background-color: #fee2e2; }
 .cal-minus { background-color: #e0f2fe; }
 .rot-slot { color: #9ca3af; font-size: 0.85em; }
+
+/* ボーダー差分カラー */
+.border-plus { color: #ef4444; font-size: 0.85em; font-weight: bold; }
+.border-minus { color: #3b82f6; font-size: 0.85em; font-weight: bold; }
 </style>
 
 <body class="bg-gray-100 p-4 min-h-screen">
@@ -105,7 +109,14 @@ table { table-layout: auto; width: 100%; }
         <input type="text" id="remarks" class="border rounded w-full p-2" placeholder="備考">
 
         <div class="mt-2 text-lg font-bold">
-          <div class="flex justify-between"><div id="rotationDisplay">回転率：<br>0.00</div><div id="incomeDisplay">現在収支：<br>0（0円）</div></div>
+          <div class="flex justify-between items-end">
+            <div class="flex gap-4 items-end">
+              <div id="rotationDisplay">回転率：<br>0.00</div>
+              <div id="selfGameDisplay" class="text-sm text-blue-600 mb-0.5">自G：<br>0G</div>
+              <button type="button" id="openBorderModalBtn" class="hidden text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-1 rounded mb-0.5">ボーダー設定</button>
+            </div>
+            <div id="incomeDisplay" class="text-right">現在収支：<br>0（0円）</div>
+          </div>
           <div class="flex justify-between items-center mt-2">
             <button type="button" id="clearBtn" class="bg-gray-400 text-white rounded w-16 py-1 text-sm">クリア</button>
             <div class="flex gap-2">
@@ -123,7 +134,7 @@ table { table-layout: auto; width: 100%; }
       <div class="overflow-x-auto max-h-[75vh] overflow-y-auto">
         <table class="border text-sm min-w-[800px] table-fixed">
           <colgroup>
-            <col style="width: 35px;"><col style="width: 50px;"><col style="width: 30px;"><col style="width: 80px;"><col style="width: 35px;"><col style="width: 45px;"><col style="width: 15px;"><col style="width: 40px;"><col style="width: 35px;"><col style="width: 35px;"><col style="width: 60px;"><col style="width: 30px;"><col style="width: 15px;"><col style="width: 80px;">
+            <col style="width: 35px;"><col style="width: 50px;"><col style="width: 30px;"><col style="width: 80px;"><col style="width: 35px;"><col style="width: 45px;"><col style="width: 15px;"><col style="width: 45px;"><col style="width: 35px;"><col style="width: 35px;"><col style="width: 60px;"><col style="width: 30px;"><col style="width: 15px;"><col style="width: 80px;">
           </colgroup>
           <thead class="bg-gray-200 sticky top-0 z-10">
             <tr>
@@ -221,11 +232,38 @@ table { table-layout: auto; width: 100%; }
     <!-- 履歴ポップアップモーダル -->
     <div id="historyPopupModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center z-[100]"><div class="bg-white p-4 rounded-xl shadow-2xl w-11/12 max-w-4xl max-h-[85vh] flex flex-col"><div class="flex justify-between items-center mb-3 border-b pb-2"><h2 id="popupTitle" class="font-bold text-gray-800 text-sm">最新履歴</h2><button id="closePopup" class="text-3xl text-gray-400 hover:text-gray-800">&times;</button></div><div class="overflow-x-auto flex-1 overflow-y-auto"><table class="border text-[10px] md:text-[11px] w-full table-auto min-w-[600px]"><thead class="bg-gray-100 sticky top-0"><tr><th class="border p-1">日付</th><th class="border p-1">店名</th><th class="border p-1">台番</th><th class="border p-1">初当(自)</th><th class="border p-1">B</th><th class="border p-1">回率</th><th class="border p-1">投資</th><th class="border p-1">出玉</th><th class="border p-1">収支</th><th class="border p-1">備考</th></tr></thead><tbody id="popupHistoryList"></tbody></table></div><div class="mt-3 flex justify-between items-center"><div id="popupPagination" class="flex gap-1 overflow-x-auto max-w-[70%]"></div><button id="closePopupBottom" class="bg-gray-200 px-6 py-1 rounded text-sm shrink-0">閉じる</button></div></div></div>
 
+    <!-- ボーダー設定モーダル -->
+    <div id="borderModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50">
+      <div class="bg-white p-4 rounded shadow-lg w-80 max-h-[90vh] overflow-y-auto text-sm">
+        <h2 class="font-bold mb-1 border-b text-center">パチンコボーダー設定</h2>
+        <p class="text-[10px] text-gray-500 text-center mb-2">※4円等価（250玉あたり）の回転数を入力してください</p>
+        <form id="borderForm" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">機種名</label>
+            <input type="text" id="borderMachineName" class="border rounded w-full p-1.5 text-sm" placeholder="機種名を入力" list="machineNameList" required>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">4円等価ボーダー (250玉あたり)</label>
+            <input type="number" id="borderValue" step="0.1" class="border rounded w-full p-1.5 text-sm" placeholder="例: 17.5" required>
+          </div>
+          <div class="flex justify-end gap-2 mt-4">
+            <button type="button" id="closeBorderModalBtn" class="bg-gray-300 px-3 py-1 rounded text-xs">キャンセル</button>
+            <button type="submit" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs">保存</button>
+          </div>
+        </form>
+        <div class="mt-4 border-t pt-2">
+          <h3 class="font-bold text-xs mb-2">登録済みボーダー一覧 (4円等価)</h3>
+          <div id="borderListContainer" class="max-h-40 overflow-y-auto text-xs space-y-1"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 <script>
 const key = "pachi_records";
-const draftKey = "pachi_input_draft"; // 一時保存用キー
+const draftKey = "pachi_input_draft";
+const borderKey = "pachi_border_settings";
 
 const rate = { pachi1: 0.8928, pachi4: 3.7143, slot46: 19.413, slot5: 4.4642, slot625: 5.625 };
 const addBallToYen = { pachi1: 1, pachi4: 4, slot5: 5, slot46: 1000/46, slot625: 6.25 };
@@ -249,11 +287,32 @@ const transfarInput = document.getElementById("transfarBall");
 const cashInput = document.getElementById("cashBall");
 const gameTypeSelect = document.getElementById("gameType");
 
+// ボーダーマスタ読み込み
+function getBorderSettings() {
+    return JSON.parse(localStorage.getItem(borderKey) || "{}");
+}
+
+function get4kEquivalentBorder(machineName) {
+    if (!machineName) return null;
+    const settings = getBorderSettings();
+    const val = settings[machineName.trim()];
+    return val !== undefined ? Number(val) : null;
+}
+
 // UI初期化
 function updateSelectColor() {
     gameTypeSelect.classList.remove("bg-blue-200", "bg-purple-200", "bg-red-200", "bg-green-200", "bg-yellow-200");
     const color = typeColors[gameTypeSelect.value];
     if(color) gameTypeSelect.classList.add(color);
+
+    // パチンコ時のみボーダーボタンを表示
+    const type = gameTypeSelect.value;
+    const btn = document.getElementById("openBorderModalBtn");
+    if (type === "pachi1" || type === "pachi4") {
+        btn.classList.remove("hidden");
+    } else {
+        btn.classList.add("hidden");
+    }
 }
 
 function updateIncome() {
@@ -266,12 +325,33 @@ function updateIncome() {
     const startG = Number(recordForm.startGame.value) || 0;
     const endG = Number(recordForm.firstHitGame.value) || 0;
     const type = gameTypeSelect.value;
+    const machineName = document.getElementById("machineName").value;
+
+    // 自G数の計算 (初当り/ヤメG - 開始G)
+    const selfG = Math.max(0, endG - startG);
+    document.getElementById("selfGameDisplay").innerHTML = `自G：<br>${selfG}G`;
+
     let used = (firstB === null) ? (start + add - end) : (start + add - firstB);
     if (used < 0) used = 0;
     const totalG = endG - startG;
     let rot = 0; if (used > 0 && totalG > 0) rot = (totalG * rotationUnit[type]) / used;
+    
+    // ボーダー判定 (パチンコのみ)
+    let borderInfo = "";
+    if (type === "pachi1" || type === "pachi4") {
+        const border4k = get4kEquivalentBorder(machineName);
+        if (border4k !== null && rot > 0) {
+            // 1円Pの場合は4円等価ボーダーに0.8を掛けた実質ボーダーと比較
+            const effectiveBorder = (type === "pachi1") ? (border4k * 0.8) : border4k;
+            const diff = rot - effectiveBorder;
+            const sign = diff >= 0 ? "+" : "";
+            const colorClass = diff >= 0 ? "border-plus" : "border-minus";
+            borderInfo = `<br><span class="${colorClass}">(${sign}${diff.toFixed(1)})</span>`;
+        }
+    }
+
     const rotLabel = type.includes("slot") ? `<span class="rot-slot">${rot.toFixed(1)}</span>` : rot.toFixed(1);
-    document.getElementById("rotationDisplay").innerHTML = `回転率：<br>${rotLabel}回`;
+    document.getElementById("rotationDisplay").innerHTML = `回転率：<br>${rotLabel}回${borderInfo}`;
     const diff = end - (start + add); const yen = Math.round(diff * (rate[type] || 0));
     document.getElementById("incomeDisplay").innerHTML = `現在収支：<br>${diff}（${yen.toLocaleString()}円）`;
 }
@@ -283,7 +363,24 @@ function updateMachineDatalist() {
     datalist.innerHTML = names.map(n => `<option value="${n}">`).join("");
 }
 
-// --- 入力中データの一時保存・復元ロジック ---
+// ボーダー表示文字列ヘルパー (1P: ×0.8の実質ボーダーと比較)
+function getRotWithBorderText(gameType, machineName, rot) {
+    if (!rot || rot <= 0) return gameType.includes("slot") ? `<span class="rot-slot">0.0</span>` : "0.0";
+    if (gameType.includes("slot")) {
+        return `<span class="rot-slot">${rot.toFixed(1)}</span>`;
+    }
+    const border4k = get4kEquivalentBorder(machineName);
+    if (border4k !== null) {
+        const effectiveBorder = (gameType === "pachi1") ? (border4k * 0.8) : border4k;
+        const diff = rot - effectiveBorder;
+        const sign = diff >= 0 ? "+" : "";
+        const colorClass = diff >= 0 ? "border-plus" : "border-minus";
+        return `${rot.toFixed(1)}<span class="${colorClass}">(${sign}${diff.toFixed(1)})</span>`;
+    }
+    return rot.toFixed(1);
+}
+
+// 一時保存・復元ロジック
 function saveDraftInput() {
     const draft = {
         date: document.getElementById("date").value,
@@ -355,7 +452,8 @@ function loadRecordsHistory(page = 1) {
         const bonusDisplay = isYame ? 'ヤメ' : (r.isSingleBonus ? '単' : '');
         const outDisplay = isYame ? 'ヤメ' : (r.outBall || 0);
         let rot = 0; if (invest > 0 && selfG > 0) rot = (selfG * rotationUnit[r.gameType]) / invest;
-        const rotDisplay = r.gameType.includes("slot") ? `<span class="rot-slot">${rot.toFixed(1)}</span>` : rot.toFixed(1);
+        const rotDisplay = getRotWithBorderText(r.gameType, r.machineName, rot);
+        
         tr.innerHTML = `<td class="border p-1">${r.date.slice(5)}</td><td class="border p-1">${r.shop}</td><td class="border p-1">${r.machineNo}</td><td class="border p-1 text-left">${r.machineName}</td><td class="border p-1 ${typeColors[r.gameType]}">${typeLabels[r.gameType]}</td><td class="border p-1">${hitDisplay}</td><td class="border p-1">${bonusDisplay}</td><td class="border p-1">${rotDisplay}</td><td class="border p-1">${invest}</td><td class="border p-1">${outDisplay}</td><td class="border p-1 text-right ${r.incomeYen < 0 ? 'text-red-500' : 'text-green-600'}">${r.incomeText.replace('（','<br>（')}</td><td class="border p-1"><button class="bg-yellow-300 px-1 rounded text-[10px]" onclick="openEditModal(${originalIdx})">編</button></td><td class="border p-1"><button class="text-red-500 font-bold" onclick="deleteRecord(${originalIdx})">×</button></td><td class="border p-1 text-left text-[10px]">${r.remarks || ""}</td>`;
         tbody.appendChild(tr);
     });
@@ -416,7 +514,6 @@ function renderCalendarMain(year, month) {
     const container = document.getElementById("calendarContainer"), data = JSON.parse(localStorage.getItem(key) || "[]"), selShop = document.getElementById("shopFilter").value;
     const filtered = data.filter(r => (selShop === "all" || r.shop === selShop) && new Date(r.date).getFullYear() === year && (new Date(r.date).getMonth()+1) === month);
     
-    // カレンダー表示月全体の「収支」と「現金増減」を計算
     let monthIncomeSum = 0;
     let monthCashSum = 0;
 
@@ -498,8 +595,8 @@ function loadMachineData() {
         sumRot += rot;
     });
 
-    const avgRot = (sumRot / filtered.length).toFixed(1);
-    const rotDisplay = totalTypeLabel.includes("S") ? `<span class="rot-slot">${avgRot}</span>` : avgRot;
+    const avgRotNum = sumRot / filtered.length;
+    const rotDisplay = getRotWithBorderText(uniqueTypes.length === 1 ? uniqueTypes[0] : "", filtered[0].machineName, avgRotNum);
     const entryRateTotal = sumHits > 0 ? ((sumNonSingle / sumHits) * 100).toFixed(1) : "0.0";
     const avgGDisplay = sumHits > 0 ? `${(sumG/sumHits).toFixed(0)}(${(sumSelfG/sumHits).toFixed(0)})` : "-";
 
@@ -524,8 +621,8 @@ function loadMachineData() {
             let rot = 0; if (inv > 0 && selfG > 0) rot = (selfG * rotationUnit[r.gameType]) / inv;
             groupRot += rot;
         });
-        const avgGroupRot = (groupRot / recs.length).toFixed(1);
-        const rotDisplayLocal = recs[0].gameType.includes("slot") ? `<span class="rot-slot">${avgGroupRot}</span>` : avgGroupRot;
+        const avgGroupRotNum = groupRot / recs.length;
+        const rotDisplayLocal = getRotWithBorderText(recs[0].gameType, recs[0].machineName, avgGroupRotNum);
         const entryRateLocal = hits.length > 0 ? ((groupNonSingle / hits.length) * 100).toFixed(1) : "0.0";
         const avgGDisplayLocal = hits.length > 0 ? `${(groupSumG/hits.length).toFixed(0)}(${(groupSumSelfG/hits.length).toFixed(0)})` : "-";
 
@@ -556,7 +653,7 @@ function renderPopupPage() {
         const bonusDisplay = isYame ? 'ヤメ' : (r.isSingleBonus ? '単' : '-');
         const outDisplay = isYame ? 'ヤメ' : (r.outBall || 0);
         let rot = 0; if (invest > 0 && selfG > 0) rot = (selfG * rotationUnit[r.gameType]) / invest;
-        const rotDisplay = r.gameType.includes("slot") ? `<span class="rot-slot">${rot.toFixed(1)}</span>` : rot.toFixed(1);
+        const rotDisplay = getRotWithBorderText(r.gameType, r.machineName, rot);
         tr.innerHTML = `<td class="border p-1">${r.date.slice(5)}</td><td class="border p-1">${r.shop}</td><td class="border p-1">${r.machineNo}</td><td class="border p-1">${hitDisplay}</td><td class="border p-1 text-center">${bonusDisplay}</td><td class="border p-1">${rotDisplay}</td><td class="border p-1 text-right">${invest}</td><td class="border p-1 text-right">${outDisplay}</td><td class="border p-1 text-right ${r.incomeYen < 0 ? 'text-red-500' : 'text-green-600'}">${r.incomeText}</td><td class="border p-1 text-[9px]">${r.remarks || ""}</td>`;
         list.appendChild(tr);
     });
@@ -568,16 +665,45 @@ function renderPopupPage() {
     }
 }
 
+// ボーダーモーダル管理
+function renderBorderList() {
+    const container = document.getElementById("borderListContainer");
+    const settings = getBorderSettings();
+    const keys = Object.keys(settings);
+    if (keys.length === 0) {
+        container.innerHTML = `<div class="text-gray-400 italic text-[11px]">登録されたボーダーはありません</div>`;
+        return;
+    }
+    let html = "";
+    keys.forEach(name => {
+        html += `
+        <div class="flex justify-between items-center bg-gray-100 p-1.5 rounded">
+          <span class="font-bold truncate max-w-[150px]">${name}</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-indigo-600 font-bold">${settings[name]}/250玉</span>
+            <button type="button" onclick="deleteBorder('${name}')" class="text-red-500 hover:text-red-700 font-bold">×</button>
+          </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+window.deleteBorder = (name) => {
+    const settings = getBorderSettings();
+    delete settings[name];
+    localStorage.setItem(borderKey, JSON.stringify(settings));
+    renderBorderList();
+    updateIncome();
+};
+
 // 初期化
 document.addEventListener("DOMContentLoaded", () => {
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById("date").value = today; document.getElementById("withdrawDate").value = today;
     
-    // ドラフト復元
     loadDraftInput();
     updateSelectColor(); updateIncome(); updateMachineDatalist();
 
-    // 一時保存イベント連動
     const formFields = ["date","shop","machineNo","machineName","gameType","startGame","startBall","transfarBall","transferSource","cashBall","firstHitGame","firstHitBall","isSingleBonus","endBall","remarks"];
     formFields.forEach(id => {
         const el = document.getElementById(id);
@@ -589,6 +715,33 @@ document.addEventListener("DOMContentLoaded", () => {
             };
         }
     });
+
+    // ボーダーモーダルイベント
+    const borderModal = document.getElementById("borderModal");
+    document.getElementById("openBorderModalBtn").onclick = () => {
+        const curName = document.getElementById("machineName").value;
+        if (curName) document.getElementById("borderMachineName").value = curName;
+        renderBorderList();
+        borderModal.classList.remove("hidden");
+        borderModal.classList.add("flex");
+    };
+    document.getElementById("closeBorderModalBtn").onclick = () => borderModal.classList.add("hidden");
+    
+    document.getElementById("borderForm").onsubmit = (e) => {
+        e.preventDefault();
+        const mName = document.getElementById("borderMachineName").value.trim();
+        const bVal = Number(document.getElementById("borderValue").value);
+        if (!mName || isNaN(bVal)) return alert("正しく入力してください");
+        
+        const settings = getBorderSettings();
+        settings[mName] = bVal;
+        localStorage.setItem(borderKey, JSON.stringify(settings));
+        
+        document.getElementById("borderValue").value = "";
+        renderBorderList();
+        updateIncome();
+        alert(`${mName} の4円等価ボーダーを保存しました`);
+    };
 
     document.getElementById("saveDraftBtn").onclick = () => {
         saveDraftInput();
@@ -624,7 +777,7 @@ document.addEventListener("DOMContentLoaded", () => {
         recordForm.machineName.value = savedName; 
         recordForm.startBall.value = eB; 
         recordForm.gameType.value = curType;
-        clearDraftInput(); // 登録成功時は一時保存クリア
+        clearDraftInput();
         alert("登録完了"); updateSelectColor(); updateIncome(); updateMachineDatalist();
     };
 
