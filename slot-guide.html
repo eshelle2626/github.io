@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>高田馬場 スロ期待値 早見表</title>
+<meta name="description" content="高田馬場のパチスロ拾い条件をスマホで素早く確認できる早見表">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111b2d'/%3E%3Cpath d='M12 46V18h40v28z' fill='none' stroke='%238ab4ff' stroke-width='4'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='%237ddc8d' font-size='23' font-family='sans-serif'%3EG%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a21;
+    --panel2:#1d212a;
+    --text:#f4f5f7;
+    --muted:#a8afbd;
+    --line:#2a303b;
+    --good:#7ddc8d;
+    --ok:#ffd36e;
+    --bad:#ff8a8a;
+    --accent:#8ab4ff;
+  }
+  *{box-sizing:border-box}
+  .state-input{position:fixed;opacity:0;pointer-events:none}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;
+    line-height:1.55;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:14px 12px 80px}
+  header{
+    position:sticky;top:0;z-index:10;
+    background:rgba(15,17,21,.96);
+    backdrop-filter:blur(8px);
+    padding:10px 0 12px;
+    border-bottom:1px solid var(--line);
+  }
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .controls{display:grid;grid-template-columns:1fr auto;gap:8px}
+  .rate-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 2px}
+  .rate-tab{font-size:15px;padding:10px;text-align:center;cursor:pointer;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-weight:700}
+  input{
+    width:100%;border:1px solid var(--line);border-radius:10px;
+    padding:11px 12px;background:var(--panel);color:var(--text);font-size:16px
+  }
+  button{
+    border:1px solid var(--line);border-radius:10px;
+    background:var(--panel2);color:var(--text);padding:10px 12px;font-weight:700
+  }
+  .filters{display:flex;gap:7px;overflow-x:auto;padding-top:8px}
+  .filter{white-space:nowrap;font-size:13px;padding:7px 10px}
+  .filter{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);font-weight:700}
+  .legend{font-size:12px;color:var(--muted);margin:10px 1px 6px}
+  .grid{display:grid;gap:10px}
+  details{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  summary{
+    list-style:none;
+    padding:13px 14px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    align-items:center;
+    cursor:pointer;
+  }
+  summary::-webkit-details-marker{display:none}
+  .title{font-size:17px;font-weight:800}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+  .chip{
+    font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;
+    background:#262c36;color:var(--muted)
+  }
+  .chip.good{background:rgba(125,220,141,.14);color:var(--good)}
+  .chip.ok{background:rgba(255,211,110,.14);color:var(--ok)}
+  .chip.bad{background:rgba(255,138,138,.14);color:var(--bad)}
+  .score{font-size:20px;font-weight:900}
+  .score.good{color:var(--good)}
+  .score.ok{color:var(--ok)}
+  .score.bad{color:var(--bad)}
+  .body{padding:0 14px 14px;border-top:1px solid var(--line)}
+  .row{padding:11px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .label{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:3px}
+  .value{font-size:15px}
+  .strong{font-weight:850}
+  .notice{
+    margin-top:14px;background:#151922;border:1px solid var(--line);
+    border-radius:12px;padding:12px;color:var(--muted);font-size:12px
+  }
+  .top3{
+    margin:10px 0 12px;padding:10px 12px;border-radius:12px;
+    background:#151922;border:1px solid var(--line);font-size:13px
+  }
+  .rate-panel.hidden{display:none!important}
+  .play-note{color:var(--ok)}
+  .hidden{display:none!important}
+  .foot{margin-top:16px;color:var(--muted);font-size:11px}
+  #rate20:checked ~ .wrap [data-panel="625"],
+  #rate625:checked ~ .wrap [data-panel="20"]{display:none!important}
+  #rate20:checked ~ .wrap label[for="rate20"],
+  #rate625:checked ~ .wrap label[for="rate625"]{background:var(--accent);color:#101722;border-color:var(--accent)}
+  #rate20:checked ~ .wrap .subtitle625,
+  #rate625:checked ~ .wrap .subtitle20{display:none}
+  #filter-all:checked ~ .wrap label[for="filter-all"],
+  #filter-zero:checked ~ .wrap label[for="filter-zero"],
+  #filter-pickup:checked ~ .wrap label[for="filter-pickup"],
+  #filter-strong:checked ~ .wrap label[for="filter-strong"]{outline:2px solid var(--accent)}
+  #filter-zero:checked ~ .wrap details:not([data-tags~="zero"]),
+  #filter-pickup:checked ~ .wrap details:not([data-tags~="pickup"]),
+  #filter-strong:checked ~ .wrap details:not([data-tags~="strong"]){display:none!important}
+  .scan{margin:12px 0 16px;padding:12px;border:1px solid var(--accent);border-radius:14px;background:#151d2a}
+  .scan h2{font-size:17px;margin:0 0 4px}
+  .scan-intro{font-size:12px;color:var(--muted);margin:0 0 10px}
+  .scan-stages{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+  .scan-stages button{font-size:13px;padding:9px 4px}
+  .scan-stages button.active{background:var(--accent);border-color:var(--accent);color:#101722}
+  .scan-inputs{display:grid;grid-template-columns:1fr 96px;gap:7px}
+  .scan-inputs input{min-width:0;padding:9px;font-size:15px}
+  .scan-hint{font-size:11px;color:var(--muted);margin:7px 0 9px}
+  .scan-results{display:grid;gap:5px;max-height:48vh;overflow:auto}
+  .scan-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;width:100%;text-align:left;padding:8px 10px;border-radius:9px;font-size:14px}
+  .scan-row small{display:block;font-size:11px;font-weight:500;color:var(--muted)}
+  .scan-row .scan-verdict{font-size:12px;max-width:47vw;text-align:right;overflow-wrap:anywhere}
+  .scan-row.ready .scan-verdict{color:var(--good)}
+  .scan-row.check .scan-verdict{color:var(--ok)}
+  .scan-row.wait .scan-verdict{color:var(--muted)}
+  .scan-empty{font-size:13px;color:var(--muted);padding:10px}
+</style>
+</head>
+<body>
+<input class="state-input" type="radio" name="rate" id="rate20" checked>
+<input class="state-input" type="radio" name="rate" id="rate625">
+<input class="state-input" type="radio" name="filter" id="filter-all" checked>
+<input class="state-input" type="radio" name="filter" id="filter-zero">
+<input class="state-input" type="radio" name="filter" id="filter-pickup">
+<input class="state-input" type="radio" name="filter" id="filter-strong">
+<div class="wrap">
+<header>
+  <h1>🎰 高田馬場 スロ期待値 早見表</h1>
+  <div class="sub"><span class="subtitle20">全台リセット想定 / 20スロ貯メダル460枚まで使用</span><span class="subtitle625">6.25スロ / 大損を避けながら遊ぶための緩め基準</span></div>
+  <div class="rate-tabs">
+    <label class="rate-tab" for="rate20">20スロ</label>
+    <label class="rate-tab" for="rate625">6.25スロ</label>
+  </div>
+  <div class="controls">
+    <input id="q" type="search" placeholder="機種名で検索（例：モンキー）">
+    <button id="toggleAll">全開閉</button>
+  </div>
+  <div class="filters">
+    <label class="filter" for="filter-all">すべて</label>
+    <label class="filter" for="filter-zero">0Gから</label>
+    <label class="filter" for="filter-pickup">拾い待ち</label>
+    <label class="filter" for="filter-strong">特殊条件強</label>
+  </div>
+</header>
+
+<section class="scan" aria-label="拾いスキャン">
+  <h2>拾いスキャン</h2>
+  <p class="scan-intro">空き台の機種とG数を見て、ここで候補を絞る。行をタップすると詳しいヤメ時へ。</p>
+  <div class="scan-stages" role="group" aria-label="当日の履歴">
+    <button type="button" data-stage="reset" class="active" aria-pressed="true">初当たり前（リセット）</button>
+    <button type="button" data-stage="normal" aria-pressed="false">恩恵消化後・通常</button>
+  </div>
+  <div class="scan-inputs">
+    <input id="scan-name" type="search" placeholder="機種名（省略可）" aria-label="スキャンする機種名">
+    <input id="scan-games" type="number" min="0" inputmode="numeric" placeholder="G数" aria-label="現在のゲーム数">
+  </div>
+  <p class="scan-hint" id="scan-hint">数値を入れなければ、機種別の拾い始め目安を一覧表示します。</p>
+  <div id="scan-results" class="scan-results" aria-live="polite"></div>
+</section>
+
+<section class="rate-panel" data-panel="20">
+<div class="top3">
+  <span class="strong">朝一0G候補：</span>
+  リコリコ / 海門決戦 / モンキーV / 東京喰種 / アズレン
+</div>
+
+<div class="legend">◎ 0Gから可　○ 条件付きで可　× 0Gは待ち</div>
+
+<div id="list20" class="grid">
+
+<details data-tags="zero strong" data-name="リコリスリコイル リコリコ">
+  <summary>
+    <div><div class="title">リコリス・リコイル</div><div class="chips"><span class="chip good">0Gから</span><span class="chip good">駆け抜け強</span></div></div>
+    <div class="score good">◎</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value"><b>0G～可。</b> 基本はATまで。CZ失敗だけではヤメない。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value">通常AT後は<b>最低100G</b>を目安。状態・前兆確認。</div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value"><b>AT駆け抜け：</b>AT600G / CZ250G短縮で続行寄り。<br><b>上位CZ失敗：</b>AT250Gまで。<br><b>上位AT後：</b>100G+αは必須。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ0G / AT駆け抜け後 / 上位CZ失敗後は最優先級。</div></div>
+  </div>
+</details>
+
+<details data-tags="zero strong" data-name="カバネリ 海門決戦">
+  <summary>
+    <div><div class="title">カバネリ 海門決戦</div><div class="chips"><span class="chip good">0Gから</span><span class="chip good">駆け抜け強</span></div></div>
+    <div class="score good">◎</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value"><b>0G～可。</b> 基本STまで。効率重視なら60G～。</div></div>
+    <div class="row"><div class="label">ST終了後</div><div class="value"><b>最低20G</b>。CZアイコン・背景・ポイント確認。良ければ1周期まで。</div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value"><b>ST駆け抜け / 景之ST後：</b>短縮恩恵あり。次回STまで続行候補。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ60G～特に強い。駆け抜け後・景之後も優先。</div></div>
+  </div>
+</details>
+
+<details data-tags="zero strong" data-name="モンキーターン5 モンキーV">
+  <summary>
+    <div><div class="title">モンキーターンV</div><div class="chips"><span class="chip good">0Gから</span><span class="chip good">示唆重要</span></div></div>
+    <div class="score good">◎</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value"><b>0G～可。</b> 基本ATまで。効率重視なら50G～。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>ヘルメット＋即優出確認。</b> デフォならヤメ可。1周期フォローは選択肢。</div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value"><b>B以上 / Vロゴ / ライバルモード：</b>ATまで。<br><b>青島VS波多野敗北後：</b>短縮ありで続行。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ50G～、通常400G～、短縮時3周期目以降。</div></div>
+  </div>
+</details>
+
+<details data-tags="zero" data-name="東京喰種">
+  <summary>
+    <div><div class="title">東京喰種</div><div class="chips"><span class="chip good">0Gから</span><span class="chip ok">初回CZまで</span></div></div>
+    <div class="score good">◎</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value"><b>0G～可。</b> 基本は<b>初回CZまで</b>。CZ失敗後は再判定。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>14G前後＋アイキャッチ確認</b>で基本ヤメ。</div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value">有馬失敗 / 赫眼アイキャッチ / 喰ポイント強示唆は続行。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ0G～。通常はCZ間300G～ / AT間550G～が目安。</div></div>
+  </div>
+</details>
+
+<details data-tags="zero" data-name="アズールレーン アズレン">
+  <summary>
+    <div><div class="title">アズールレーン</div><div class="chips"><span class="chip ok">0G条件付き</span><span class="chip ok">ATまで</span></div></div>
+    <div class="score ok">○</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value">リセ確定なら<b>0G～可寄り</b>。打つならATまで打ち切る戦略。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>次のボーナス1回まで</b>が基本。</div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value">セイレーン示唆 / 裏モード / スルー天井接近は続行。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">0・2・4スルー170G～、その他240G～、6スルーはATまで。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup" data-name="炎炎ノ消防隊2 炎炎2">
+  <summary>
+    <div><div class="title">炎炎ノ消防隊2</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">200G～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value">リセ<b>200G～</b>ボーナスまで。より安全なら250～300G～。</div></div>
+    <div class="row"><div class="label">当たり後</div><div class="value">炎炎激闘後→<b>28G潜伏確認</b>。REG後→伝導者の罠→88G+α。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ200G～。現金なら300G～を優先。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup" data-name="化物語">
+  <summary>
+    <div><div class="title">化物語</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">150G～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value">リセ<b>150G～ATまで</b>。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value">引き戻し「夢の時間ヲ終わラセルな」消化後ヤメ。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ150G～、通常400G～が目安。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="からくりサーカス2 からくり2">
+  <summary>
+    <div><div class="title">からくりサーカス2</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">100G～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value">リセ<b>100G～CZまで</b>。CZ失敗後はスルー数・AT間で再判定。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>100Gゾーン確認。</b></div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value"><b>運命の一劇失敗→128G必須。</b></div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ100G～。CZ3スルー＋中ハマり、AT間1500G～も候補。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="ゴッドイーター GE">
+  <summary>
+    <div><div class="title">ゴッドイーター</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">180G～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value">リセ<b>180G～ATまで</b>。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value">通常は即ヤメ寄り。バカンス違和感等を確認。</div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value">970～1050枚終了→100G。逆鱗ハンニバル失敗・特殊示唆は追う。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ180G～ / 駆け抜け後170G～ / 通常590G～。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="北斗転生2 北斗の拳転生の章2">
+  <summary>
+    <div><div class="title">北斗 転生2</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">300G～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value">リセ<b>300G前後～ATまで</b>。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value">基本状態確認後ヤメ。余裕あれば128/256あべし。</div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value"><b>天撃失敗→次回ATまで。</b></div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ300G～ / 通常350G前後～ / 伝承モード等は別追い。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="戦国乙女5 乙女5">
+  <summary>
+    <div><div class="title">戦国乙女5</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">300G～</span><span class="chip good">AT後1周期</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value">リセ<b>300G～ATまで</b>。損益分岐自体は200G付近。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>1周期は必ず消化。</b> 引き戻しモード、AT期待度約40%。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ300G～ / 通常550G前後～ / 5周期以降・700G～も強い。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="マギアレコード マギレコ">
+  <summary>
+    <div><div class="title">マギアレコード</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">350pt～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value"><b>350pt≒233G～</b>。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>60G前後の引き戻し確認。</b> AT情報引継ぎなら即ヤメしない。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ350pt～ / 4スルー→150pt～ / 5スルー→0pt～。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="モンハンライズ モンスターハンターライズ">
+  <summary>
+    <div><div class="title">モンハンライズ</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">400G～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value"><b>400G前後～ATまで</b>。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>1G目必ず確認。</b> レア役でAT濃厚。終了画面次第で1クエスト。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">朝一400G～ / 通常600G～ / 4スルー以上 / 上位AT後0G～。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup" data-name="無職転生">
+  <summary>
+    <div><div class="title">無職転生</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">ステチェン重視</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value">G数より<b>ステチェン回数優先</b>。実戦は500G前後～を優先。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>2～3回目のステチェンまで</b>確認。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ6回≒330G～プラス域。深めを優先。駆け抜け時はボ間天井短縮。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="新鬼武者3 鬼武者3">
+  <summary>
+    <div><div class="title">新鬼武者3</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">350G～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value"><b>350G前後～ATまで</b>。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>1周期目フォロー</b>＋示唆確認。</div></div>
+    <div class="row"><div class="label">特殊続行</div><div class="value">上位AT後 / 秀吉敗北後は0G～。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセ350G～ / 通常AT後520G～。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="タクトオーパス takt op">
+  <summary>
+    <div><div class="title">タクトオーパス</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">CZ200G～</span></div></div>
+    <div class="score bad">×</div>
+  </summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一</div><div class="value"><b>CZ間200G～CZまで</b> / <b>AT間310G～ATまで</b>。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>100G+α</b>。浅いモード期待あり。</div></div>
+    <div class="row"><div class="label">拾い条件</div><div class="value">リセCZ300G天井。80～100Gゾーン、ポイント残100pt以内も候補。</div></div>
+  </div>
+</details>
+
+</div>
+</section>
+
+<section class="rate-panel" data-panel="625">
+<div class="top3">
+  <span class="strong">朝から遊ぶなら：</span>
+  モンキーV。アズレンは100G～・2スルー～なら優先。ほかは少し育った台を選ぶ。
+</div>
+
+<div class="notice" style="margin:0 0 12px">
+  <b>見方：</b>「朝一リセ育ち」は初当たり前に捨てられた台。「恩恵消化後」は初当たり・CZ・ボーナスなどを経て通常状態へ戻った台です。昼以降はこの2つを混同しないこと。
+</div>
+
+<div class="legend">◎ 0G遊びOK　○ 少し育てばOK　△ 深め・条件待ち</div>
+
+<div id="list625" class="grid">
+
+<details data-tags="zero strong" data-name="モンキーターン5 モンキーV">
+  <summary><div><div class="title">モンキーターンV</div><div class="chips"><span class="chip good">0G遊びOK</span><span class="chip good">朝一第一候補</span></div></div><div class="score good">◎</div></summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>0G～可。</b> 6.25スロで朝から触る本命。</div></div>
+    <div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常400G～</b>を目安。B以上・ライバルモードなら浅くてもATまで。</div></div>
+    <div class="row"><div class="label">打ち切り</div><div class="value">基本ATまで。AT後は<b>ヘルメット＋即優出</b>を確認。</div></div>
+    <div class="row"><div class="label">優先条件</div><div class="value">50G～ / B以上 / Vロゴ / ライバルモード / 青島VS波多野敗北後。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup strong" data-name="アズールレーン アズレン">
+  <summary><div><div class="title">アズールレーン</div><div class="chips"><span class="chip ok">100G～目安</span><span class="chip good">スルー優先</span></div></div><div class="score ok">○</div></summary>
+  <div class="body">
+    <div class="row"><div class="label">朝一リセ育ち</div><div class="value">0Gは数値が割れるため本命にしない。<b>100G～または2スルー～</b>なら遊びやすい。</div></div>
+    <div class="row"><div class="label">恩恵消化後</div><div class="value">G数単独よりスルー数優先。<b>0・2・4スルー170G～／その他240G～／6スルーはATまで</b>。AT間1200G～も候補。</div></div>
+    <div class="row"><div class="label">打ち切り</div><div class="value">リセット恩恵を取るなら<b>ATまで</b>。AT後は次のボーナス1回まで。</div></div>
+    <div class="row"><div class="label">優先条件</div><div class="value">0・2・4スルー170G～ / その他240G～ / 6スルーはATまで。</div></div>
+  </div>
+</details>
+
+<details data-tags="pickup" data-name="からくりサーカス2 からくり2">
+  <summary><div><div class="title">からくりサーカス2</div><div class="chips"><span class="chip ok">100G～</span><span class="chip ok">CZまで</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>100G～</b>なら候補。0Gからは避ける。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>女神間の実G440G～</b>を目安。CZ3スルー＋中ハマり、AT間1500G～も候補。</div></div><div class="row"><div class="label">打ち切り</div><div class="value">CZまで。失敗後はスルー数・AT間で再判定。</div></div><div class="row"><div class="label">特殊条件</div><div class="value">運命の一劇失敗後は128Gまで。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="化物語">
+  <summary><div><div class="title">化物語</div><div class="chips"><span class="chip ok">150G～</span><span class="chip ok">ATまで</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>150G～</b>。200Gを越えていればより安心。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常400G～</b>。浅い通常台は見送る。</div></div><div class="row"><div class="label">打ち切り</div><div class="value">ATまで。AT後は引き戻し消化後ヤメ。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="鉄拳6">
+  <summary><div><div class="title">鉄拳6</div><div class="chips"><span class="chip ok">150G～</span><span class="chip bad">0G回避</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>150G～</b>。損失回避優先なら200G～。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value">G数だけよりスルー数優先。<b>1スルー以上は0G～／AT後2スルーは150G～／3スルーは0G～</b>。</div></div><div class="row"><div class="label">注意</div><div class="value">ボーナス後は前兆、CZストックを確認してからヤメ。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="バイオハザードRE3 バイオRE3">
+  <summary><div><div class="title">バイオハザード RE:3</div><div class="chips"><span class="chip ok">150～250G</span><span class="chip bad">0G回避</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>150G～</b>。大損回避なら200～250G～。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常500G～</b>、より安全なら600G～。CZは5スルー以上。</div></div><div class="row"><div class="label">注意</div><div class="value">通常天井1000G＋α。NEポイント・心音レベルも確認。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="ゴッドイーター GE">
+  <summary><div><div class="title">ゴッドイーター</div><div class="chips"><span class="chip ok">180G～</span><span class="chip ok">ATまで</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>180G～</b>。100～150Gは遊び寄り。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常590G～</b>。駆け抜け後は170G～を目安。</div></div><div class="row"><div class="label">打ち切り</div><div class="value">ATまで。特殊示唆なしの駆け抜け直後0Gからは追わない。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="東京リベンジャーズ 東リベ">
+  <summary><div><div class="title">東京リベンジャーズ</div><div class="chips"><span class="chip ok">リセ250G～</span><span class="chip ok">通常450G～</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>250G～</b>。遊び寄りでも150G未満は見送る。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常450G～</b>、より安全なら600G～。3スルー～、400pt～も候補。</div></div><div class="row"><div class="label">打ち切り</div><div class="value">ATまで。初当たり・AT後は1周期目と前兆を確認。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="いざ番長">
+  <summary><div><div class="title">いざ！番長</div><div class="chips"><span class="chip ok">200G～</span><span class="chip bad">0G回避</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>200G～</b>。250G～ならより安心。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独では浅追いしない。</b>通常天井までの残り・スルー数・示唆が確認できる台だけ候補。</div></div><div class="row"><div class="label">注意</div><div class="value">0Gはマイナス試算が大きいため、必ず育ち待ち。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="スーパーリオエース2 スーパーリオ2 リオ2">
+  <summary><div><div class="title">スーパーリオエース2</div><div class="chips"><span class="chip ok">200G～</span><span class="chip bad">0G回避</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>200G～</b>。150Gはほぼ境界、250G～なら優先。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常400～450G～</b>。スルー狙いは通常6スルー～。</div></div><div class="row"><div class="label">注意</div><div class="value">リセット時は3スルー～。AT・ボーナス後は示唆なしなら即ヤメ可。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="炎炎ノ消防隊2 炎炎2">
+  <summary><div><div class="title">炎炎ノ消防隊2</div><div class="chips"><span class="chip ok">200～300G</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>200G～</b>。負けにくさ重視なら250～300G～。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独の浅追いは見送り。</b>ボーナス間・AT間の天井距離と当たり履歴を併用。</div></div><div class="row"><div class="label">当たり後</div><div class="value">炎炎激闘後28G、REG後は伝導者の罠～88G+αを確認。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="かぐや様は告らせたい かぐや様">
+  <summary><div><div class="title">かぐや様は告らせたい</div><div class="chips"><span class="chip ok">リセ280G～</span><span class="chip ok">当たり方別</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>280G～</b>。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>REG後450G～／BIG後650G～</b>。CZ4スルー～、チャンス目23回～も候補。</div></div><div class="row"><div class="label">当たり後</div><div class="value">REG後は130G＋α（チャンス目9回）確認。BIG単発後は基本即ヤメ。</div></div></div>
+</details>
+
+<details data-tags="pickup strong" data-name="マギアレコード マギレコ">
+  <summary><div><div class="title">マギアレコード</div><div class="chips"><span class="chip ok">350pt～</span><span class="chip good">スルー優先</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>350pt（約233G）～</b>。G数だけでなくptを見る。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value">G数単独よりスルー数優先。<b>4スルー＋150pt～／5スルーなら0pt～</b>。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="レヴュースタァライト">
+  <summary><div><div class="title">レヴュースタァライト</div><div class="chips"><span class="chip ok">250～300G</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>250～300G～</b>を目安。0Gは見送る。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独では見送り。</b>周期・スルー・示唆が良い台だけ再判定。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="スーパーブラックジャック SBJ">
+  <summary><div><div class="title">スーパーブラックジャック</div><div class="chips"><span class="chip ok">200～350G</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">遊び優先なら<b>200G台～</b>、大損回避なら300～350G～。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独では見送り。</b>スルー数・モード示唆・天井距離が分かる台だけ候補。</div></div></div>
+</details>
+
+<details data-tags="pickup strong" data-name="タクトオーパス takt op">
+  <summary><div><div class="title">タクトオーパス</div><div class="chips"><span class="chip ok">CZ間200G～</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>CZ間200G～</b>または<b>AT間310G～</b>。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独では見送り。</b>ポイント残100pt以内、明確なCZ間・AT間ハマりを優先。</div></div><div class="row"><div class="label">打ち切り</div><div class="value">CZ間狙いはCZまで、AT間狙いはATまで。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="北斗転生2 北斗の拳転生の章2">
+  <summary><div><div class="title">北斗 転生2</div><div class="chips"><span class="chip ok">300G～</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>300G前後～</b>。250G付近はほぼ境界。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常350G前後～</b>。あべし・伝承モード等も併用。</div></div><div class="row"><div class="label">特殊条件</div><div class="value">天撃失敗後は次回ATまで。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="無職転生">
+  <summary><div><div class="title">無職転生</div><div class="chips"><span class="chip ok">ステチェン6回～</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">G数より<b>ステチェン回数</b>。6回（約330G）～、安心なら500G前後～。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>AT間27ステチェン（約1400G）／ボーナス間15回（約800G）</b>が目安。駆け抜け時はボ間天井13回へ短縮。</div></div><div class="row"><div class="label">AT後</div><div class="value">2～3回目のステチェンまで確認。</div></div></div>
+</details>
+
+<details data-tags="pickup strong" data-name="新鬼武者3 鬼武者3">
+  <summary><div><div class="title">新鬼武者3</div><div class="chips"><span class="chip ok">350G～</span><span class="chip good">特殊0Gあり</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>350G前後～</b>。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常AT後520G～</b>。</div></div><div class="row"><div class="label">特殊条件</div><div class="value">上位AT後 / 秀吉敗北後は0G～。AT後は1周期目を確認。</div></div></div>
+</details>
+
+<details data-tags="pickup strong" data-name="モンハンライズ モンスターハンターライズ">
+  <summary><div><div class="title">モンハンライズ</div><div class="chips"><span class="chip ok">400G～</span><span class="chip good">4スルー～</span></div></div><div class="score ok">○</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>400G前後～</b>。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常600G～</b>、または4スルー以上。</div></div><div class="row"><div class="label">AT後</div><div class="value">1G目は必ず確認。上位AT後は0G～候補。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="スマスロ北斗 北斗の拳">
+  <summary><div><div class="title">スマスロ北斗</div><div class="chips"><span class="chip bad">深め待ち</span></div></div><div class="score bad">△</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">0Gは期待値目的では触らず、<b>数百G育った台</b>を選ぶ。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常600G前後～</b>を目安。800G以上・天井短縮示唆・高モード示唆なら優先。</div></div><div class="row"><div class="label">遊び方</div><div class="value">設定期待で座る根拠がない日は、G数・天井距離を優先。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="戦国乙女4 乙女4">
+  <summary><div><div class="title">戦国乙女4</div><div class="chips"><span class="chip bad">条件待ち</span></div></div><div class="score bad">△</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">0G目的では触らない。<b>G数・周期・モード示唆</b>が付いた台だけ再判定。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独なら500G以上＋周期・モード確認</b>を目安。浅いデフォ状態は見送る。</div></div></div>
+</details>
+
+<details data-tags="pickup" data-name="BIRDIE WING バーディーウイング">
+  <summary><div><div class="title">BIRDIE WING</div><div class="chips"><span class="chip bad">条件待ち</span></div></div><div class="score bad">△</div></summary>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">リセット恩恵だけで0G着席はしない。<b>育ったG数・当日状態</b>を確認。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独では見送り。</b>明確な短縮・高モード・天井接近が確認できた時だけ候補。</div></div></div>
+</details>
+
+</div>
+
+<div class="notice">
+  <b class="play-note">6.25スロの使い方：</b>「勝つこと」より「大損しにくく遊ぶこと」を優先した緩めの基準です。○でも必ずプラスという意味ではありません。<b>初当たり前なら「朝一リセ育ち」、当たり履歴があれば「恩恵消化後」</b>を見てください。迷ったら表示G数の上側まで待ち、1台を浅い所から長く追うより、育った台へ移る方が安全です。
+</div>
+</section>
+
+<div class="notice">
+  <b>使い方：</b>「0Gから」だけ見たい時は上の絞り込みをタップ。機種名を検索してカードを開けば、朝一・ヤメ時・拾い条件だけ確認できます。<br><br>
+  <b>前提：</b>全台リセット想定 / 20スロは貯メダル460枚まで。6.25スロは「勝たないまでも大損を避けて遊ぶ」基準。期待値は公開解析・実戦値をもとにした目安で、設定状況・交換条件・解析更新で変わります。
+</div>
+
+<div class="foot">作成時点の会話内整理版。実戦前に最新解析へ更新推奨。</div>
+</div>
+
+<script>
+const allCards=[...document.querySelectorAll('details')];
+const q=document.getElementById('q');
+let current=document.querySelector('input[name="filter"]:checked').id.replace('filter-','');
+let rate=document.querySelector('input[name="rate"]:checked').id.replace('rate','');
+
+function activePanel(){ return document.querySelector(`[data-panel="${rate}"]`); }
+function activeCards(){ return [...activePanel().querySelectorAll('details')]; }
+
+function apply(){
+  const term=q.value.trim().toLowerCase();
+  activeCards().forEach(c=>{
+    const name=(c.dataset.name||'').toLowerCase();
+    const tags=(c.dataset.tags||'').split(' ');
+    const okTerm=!term || name.includes(term);
+    const okFilter=current==='all' || tags.includes(current);
+    c.classList.toggle('hidden', !(okTerm && okFilter));
+  });
+}
+q.addEventListener('input', apply);
+
+document.querySelectorAll('input[name="filter"]').forEach(input=>{
+  input.addEventListener('change',()=>{
+    current=input.id.replace('filter-','');
+    allCards.forEach(c=>c.classList.remove('hidden'));
+    apply();
+  });
+});
+
+document.querySelectorAll('input[name="rate"]').forEach(input=>{
+  input.addEventListener('change',()=>{
+    rate=input.id.replace('rate','');
+    q.value=''; current='all'; opened=false;
+    document.getElementById('filter-all').checked=true;
+    document.getElementById('toggleAll').textContent='全開閉';
+    allCards.forEach(c=>{c.open=false;c.classList.remove('hidden')});
+    apply();
+  });
+});
+
+let opened=false;
+document.getElementById('toggleAll').addEventListener('click',()=>{
+  opened=!opened;
+  activeCards().filter(c=>!c.classList.contains('hidden')).forEach(c=>c.open=opened);
+  document.getElementById('toggleAll').textContent=opened?'全閉じ':'全開閉';
+});
+
+// 拾いスキャンは上の早見表に書いた基準を短く表示する。G数以外が必要なら数値判定しない。
+// [表示名, 検索語, 20:初当たり前, 20:当たり後, 6.25:初当たり前, 6.25:当たり後]
+// g が数値なら表示Gで一次判定、null なら履歴や台内表示を要確認。
+const scanData=[
+  ['リコリコ','リコリス', {g:0,s:'0G～',e:'ATまで'}, {g:null,s:'駆け抜け・上位CZ失敗など',e:'当たり方を確認'}, null,null],
+  ['海門決戦','カバネリ', {g:0,s:'0G～（60G～優先）',e:'STまで'}, {g:null,s:'ST駆け抜け・景之後など',e:'状態を確認'}, null,null],
+  ['モンキーV','モンキー', {g:0,s:'0G～（50G～優先）',e:'ATまで'}, {g:400,s:'通常400G～',e:'ATまで／B以上は別'}, {g:0,s:'0G～',e:'ATまで'}, {g:400,s:'通常400G～',e:'ATまで／B以上は別'}],
+  ['東京喰種','東京喰種', {g:0,s:'0G～',e:'初回CZまで'}, {g:null,s:'CZ間300G～／AT間550G～',e:'2種類の履歴を確認'}, null,null],
+  ['アズレン','アズールレーン', {g:0,s:'0G～条件付き',e:'ATまで'}, {g:null,s:'スルー数＋ボーナス間G',e:'0・2・4スルー170G～／他240G～'}, {g:100,s:'100G～／2スルー～',e:'当たり後は履歴確認'}, {g:null,s:'スルー数＋ボーナス間G',e:'0・2・4スルー170G～／他240G～'}],
+  ['炎炎2','炎炎ノ消防隊2', {g:200,s:'200G～',e:'ボーナスまで／現金300G～'}, {g:null,s:'ボーナス間・AT間の履歴',e:'G数単独では判定不可'}, {g:250,s:'250～300G～',e:'初当たりまで'}, {g:null,s:'ボーナス間・AT間の履歴',e:'G数単独では判定不可'}],
+  ['化物語','化物語', {g:150,s:'150G～',e:'ATまで'}, {g:400,s:'通常400G～',e:'ATまで'}, {g:150,s:'150G～',e:'ATまで'}, {g:400,s:'通常400G～',e:'ATまで'}],
+  ['からくり2','からくりサーカス2', {g:100,s:'100G～',e:'CZまで'}, {g:null,s:'女神間440G～／CZスルー等',e:'カウンタを確認'}, {g:100,s:'100G～',e:'CZまで'}, {g:null,s:'女神間440G～／CZスルー等',e:'カウンタを確認'}],
+  ['ゴッドイーター','ゴッドイーター', {g:180,s:'180G～',e:'ATまで'}, {g:590,s:'通常590G～',e:'ATまで／駆け抜け別'}, {g:180,s:'180G～',e:'ATまで'}, {g:590,s:'通常590G～',e:'ATまで／駆け抜け別'}],
+  ['北斗 転生2','北斗 転生2', {g:300,s:'300G～',e:'ATまで'}, {g:350,s:'通常350G前後～',e:'ATまで／あべし確認'}, {g:300,s:'300G前後～',e:'ATまで'}, {g:350,s:'通常350G前後～',e:'ATまで／あべし確認'}],
+  ['戦国乙女5','戦国乙女5', {g:300,s:'300G～',e:'ATまで'}, {g:550,s:'通常550G前後～',e:'周期も確認'}, null,null],
+  ['マギアレコード','マギアレコード', {g:null,s:'350pt～（G数では判定不可）',e:'ポイントを見る'}, {g:null,s:'4スルー150pt～／5スルー0pt～',e:'スルー・ptを見る'}, {g:null,s:'350pt～（G数では判定不可）',e:'ポイントを見る'}, {g:null,s:'4スルー150pt～／5スルー0pt～',e:'スルー・ptを見る'}],
+  ['モンハンライズ','モンハンライズ', {g:400,s:'400G～',e:'ATまで'}, {g:600,s:'通常600G～',e:'4スルー・上位AT後は別'}, {g:400,s:'400G前後～',e:'ATまで'}, {g:600,s:'通常600G～',e:'4スルー・上位AT後は別'}],
+  ['無職転生','無職転生', {g:null,s:'ステチェン6回～',e:'G数で代用しない'}, {g:null,s:'AT間27回／ボーナス間15回',e:'ステチェンを確認'}, {g:null,s:'ステチェン6回～',e:'G数で代用しない'}, {g:null,s:'AT間27回／ボーナス間15回',e:'ステチェンを確認'}],
+  ['新鬼武者3','新鬼武者3', {g:350,s:'350G前後～',e:'ATまで'}, {g:520,s:'通常AT後520G～',e:'上位AT後等は別'}, {g:350,s:'350G前後～',e:'ATまで'}, {g:520,s:'通常AT後520G～',e:'上位AT後等は別'}],
+  ['タクトオーパス','タクトオーパス', {g:null,s:'CZ間200G～／AT間310G～',e:'カウンタを確認'}, {g:null,s:'CZ間・AT間・残ptを確認',e:'G数単独では判定不可'}, {g:null,s:'CZ間200G～／AT間310G～',e:'カウンタを確認'}, {g:null,s:'CZ間・AT間・残ptを確認',e:'G数単独では判定不可'}],
+  ['鉄拳6','鉄拳6', null,null, {g:200,s:'200G～（150Gは遊び寄り）',e:'初当たりまで'}, {g:null,s:'ボーナススルー回数を確認',e:'1スルー以上・AT後2スルー等'}],
+  ['バイオ RE:3','バイオハザードRE3', null,null, {g:200,s:'200～250G～',e:'初当たりまで'}, {g:500,s:'通常500～600G～',e:'CZスルー・NEポイントも確認'}],
+  ['東京リベンジャーズ','東京リベンジャーズ', null,null, {g:250,s:'250G～',e:'ATまで'}, {g:450,s:'通常450G～',e:'3スルー・ptは別'}],
+  ['いざ！番長','いざ番長', null,null, {g:200,s:'200G～',e:'初当たりまで'}, {g:null,s:'天井距離・スルー・示唆',e:'G数単独では判定不可'}],
+  ['スーパーリオエース2','スーパーリオエース2', null,null, {g:200,s:'200G～',e:'初当たりまで'}, {g:450,s:'通常400～450G～',e:'スルー数も確認'}],
+  ['かぐや様','かぐや様', null,null, {g:280,s:'280G～',e:'初当たりまで'}, {g:null,s:'REG後450G～／BIG後650G～',e:'直前の当たりを確認'}],
+  ['レヴュースタァライト','レヴュースタァライト', null,null, {g:300,s:'300G～',e:'初当たりまで'}, {g:null,s:'周期・スルー・示唆',e:'G数単独では判定不可'}],
+  ['スーパーブラックジャック','スーパーブラックジャック', null,null, {g:300,s:'300～350G～',e:'初当たりまで'}, {g:null,s:'スルー・モード・天井距離',e:'G数単独では判定不可'}],
+  ['スマスロ北斗','スマスロ北斗', null,null, {g:null,s:'0Gは見送り／深め待ち',e:'天井距離を確認'}, {g:600,s:'通常600G前後～',e:'ATまで'}],
+  ['戦国乙女4','戦国乙女4', null,null, {g:null,s:'G数・周期・モードを確認',e:'0Gは見送り'}, {g:null,s:'500G以上＋周期・モード',e:'G数単独では判定不可'}],
+  ['BIRDIE WING','BIRDIE WING', null,null, {g:null,s:'育ちG・当日状態を確認',e:'0Gは見送り'}, {g:null,s:'短縮・高モード・天井接近',e:'G数単独では判定不可'}]
+];
+const scanName=document.getElementById('scan-name');
+const scanGames=document.getElementById('scan-games');
+const scanResults=document.getElementById('scan-results');
+const scanHint=document.getElementById('scan-hint');
+let scanStage='reset';
+function renderScan(){
+  const term=scanName.value.trim().toLowerCase();
+  const raw=scanGames.value.trim();
+  const games=raw===''?null:Number(raw);
+  const index=(rate==='20'?2:4)+(scanStage==='normal'?1:0);
+  const rows=scanData.filter(d=>d[index] && (!term || (d[0]+' '+d[1]).toLowerCase().includes(term)))
+    .map(d=>{
+      const rule=d[index];
+      const status=games===null?'':rule.g===null?'check':games>=rule.g?'ready':'wait';
+      return {d,rule,status};
+    }).sort((a,b)=>{
+      if(games!==null){const rank={ready:0,check:1,wait:2};if(rank[a.status]!==rank[b.status])return rank[a.status]-rank[b.status];}
+      return (a.rule.g??9999)-(b.rule.g??9999) || a.d[0].localeCompare(b.d[0],'ja');
+    });
+  scanResults.replaceChildren();
+  if(!rows.length){const empty=document.createElement('div');empty.className='scan-empty';empty.textContent='該当する機種はありません';scanResults.append(empty);return;}
+  rows.forEach(({d,rule,status})=>{
+    const button=document.createElement('button');button.type='button';button.className='scan-row '+status;
+    const left=document.createElement('span');const name=document.createElement('strong');name.textContent=d[0];
+    const note=document.createElement('small');note.textContent=rule.e;left.append(name,note);
+    const verdict=document.createElement('span');verdict.className='scan-verdict';
+    verdict.textContent=(status==='ready'?'候補 · ':status==='wait'?'待ち · ':status==='check'?'要確認 · ':'')+rule.s;
+    button.append(left,verdict);
+    button.addEventListener('click',()=>{
+      document.getElementById('filter-all').checked=true;current='all';q.value=d[1];apply();
+      const target=activeCards().find(card=>!card.classList.contains('hidden'));
+      if(target){target.open=true;target.scrollIntoView({behavior:'smooth',block:'center'});}
+    });
+    scanResults.append(button);
+  });
+  scanHint.textContent=games===null?'数値を入れなければ、機種別の拾い始め目安を一覧表示します。':
+    '候補＝G数上の一次判定。表示Gの起点とCZ・AT履歴が合うか確認。要確認＝履歴・pt・示唆が必要。';
+}
+document.querySelectorAll('[data-stage]').forEach(button=>button.addEventListener('click',()=>{
+  scanStage=button.dataset.stage;
+  document.querySelectorAll('[data-stage]').forEach(item=>{
+    const active=item===button;item.classList.toggle('active',active);item.setAttribute('aria-pressed',String(active));
+  });
+  renderScan();
+}));
+scanName.addEventListener('input',renderScan);
+scanGames.addEventListener('input',renderScan);
+document.querySelectorAll('input[name="rate"]').forEach(input=>input.addEventListener('change',renderScan));
+renderScan();
+</script>
+</body>
+</html>
