@@ -118,6 +118,8 @@
   .scan{margin:12px 0 16px;padding:12px;border:1px solid var(--accent);border-radius:14px;background:#151d2a}
   .scan h2{font-size:17px;margin:0 0 4px}
   .scan-intro{font-size:12px;color:var(--muted);margin:0 0 10px}
+  .scan-update{padding:9px 10px;margin:0 0 10px;border:1px solid #456a9c;border-radius:9px;background:#1c2d48;font-size:12px;line-height:1.5}
+  .scan-update strong{display:block;color:#a8c9ff;font-size:13px}
   .scan-stages{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
   .scan-stages button{font-size:13px;padding:9px 4px}
   .scan-stages button.active{background:var(--accent);border-color:var(--accent);color:#101722}
@@ -129,6 +131,7 @@
   .scan-row small{display:block;font-size:11px;font-weight:500;color:var(--muted)}
   .scan-row .scan-verdict{font-size:12px;max-width:47vw;text-align:right;overflow-wrap:anywhere}
   .scan-row.ready .scan-verdict{color:var(--good)}
+  .scan-row.check{border-color:#806833}
   .scan-row.check .scan-verdict{color:var(--ok)}
   .scan-row.wait .scan-verdict{color:var(--muted)}
   .scan-empty{font-size:13px;color:var(--muted);padding:10px}
@@ -177,7 +180,8 @@
 
 <section class="scan" aria-label="拾いスキャン">
   <h2>拾いスキャン</h2>
-  <p class="scan-intro">空き台の機種とG数を見て、ここで候補を絞る。行をタップすると詳しいヤメ時へ。</p>
+  <p class="scan-intro">空き台の機種とG数を見て、ここで候補を絞る。</p>
+  <div class="scan-update"><strong>NEW｜条件判定・ヤメ時ガイド</strong>機種名で絞ると入力欄が開きます。AT間・CZ間、スルー数、前回の結果を選ぶと、候補かどうかと打ち切り地点を表示します。</div>
   <div class="scan-stages" role="group" aria-label="当日の履歴">
     <button type="button" data-stage="reset" class="active" aria-pressed="true">初当たり前（リセット）</button>
     <button type="button" data-stage="normal" aria-pressed="false">恩恵消化後・通常</button>
@@ -905,7 +909,13 @@ document.querySelectorAll('[data-stage]').forEach(button=>button.addEventListene
   });
   configureSelected();renderScan();
 }));
-scanName.addEventListener('input',renderScan);
+scanName.addEventListener('input',()=>{
+  const term=scanName.value.trim().toLowerCase();
+  const matches=term?scanData.filter(d=>d[scanRuleIndex()]&&(d[0]+' '+d[1]).toLowerCase().includes(term)):[];
+  if(matches.length===1 && selectedMachine!==matches[0][0]){
+    selectedMachine=matches[0][0];configureSelected();
+  }else renderScan();
+});
 scanGames.addEventListener('input',renderScan);
 scanCounter.addEventListener('change',renderScan);
 scanSkips.addEventListener('input',renderScan);
