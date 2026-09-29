@@ -132,6 +132,20 @@
   .scan-row.check .scan-verdict{color:var(--ok)}
   .scan-row.wait .scan-verdict{color:var(--muted)}
   .scan-empty{font-size:13px;color:var(--muted);padding:10px}
+  .scan-selected{margin:10px 0;padding:11px;border-radius:12px;background:#1d2737;border:1px solid #415a7a}
+  .scan-selected[hidden]{display:none}
+  .scan-selected h3{font-size:16px;margin:0 0 8px}
+  .scan-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px}
+  .scan-fields label{font-size:12px;color:var(--muted);font-weight:700}
+  .scan-fields select,.scan-fields input{width:100%;margin-top:3px;padding:8px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;font-size:15px}
+  .scan-fields label[hidden]{display:none}
+  .scan-answer{font-size:14px;line-height:1.5}
+  .scan-answer strong{display:block;font-size:16px}
+  .scan-answer .ready{color:var(--good)}
+  .scan-answer .check{color:var(--ok)}
+  .scan-answer .wait{color:var(--muted)}
+  .scan-stop{padding-top:7px;margin-top:7px;border-top:1px solid var(--line)}
+  .scan-detail{margin-top:8px;color:var(--accent);font-size:13px}
 </style>
 </head>
 <body>
@@ -171,6 +185,16 @@
   <div class="scan-inputs">
     <input id="scan-name" type="search" placeholder="機種名（省略可）" aria-label="スキャンする機種名">
     <input id="scan-games" type="number" min="0" inputmode="numeric" placeholder="G数" aria-label="現在のゲーム数">
+  </div>
+  <div id="scan-selected" class="scan-selected" hidden>
+    <h3 id="scan-selected-name"></h3>
+    <div class="scan-fields">
+      <label id="scan-counter-wrap" hidden>数値の種類<select id="scan-counter"></select></label>
+      <label id="scan-skips-wrap" hidden>ボーナス・CZスルー数<input id="scan-skips" type="number" min="0" inputmode="numeric" placeholder="回数"></label>
+      <label id="scan-last-wrap" hidden>前回の結果<select id="scan-last"></select></label>
+    </div>
+    <div id="scan-answer" class="scan-answer" aria-live="polite"></div>
+    <button id="scan-detail" class="scan-detail" type="button">機種の詳しい条件を見る</button>
   </div>
   <p class="scan-hint" id="scan-hint">数値を入れなければ、機種別の拾い始め目安を一覧表示します。</p>
   <div id="scan-results" class="scan-results" aria-live="polite"></div>
@@ -466,7 +490,7 @@
 
 <details data-tags="pickup" data-name="炎炎ノ消防隊2 炎炎2">
   <summary><div><div class="title">炎炎ノ消防隊2</div><div class="chips"><span class="chip ok">200～300G</span></div></div><div class="score ok">○</div></summary>
-  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>200G～</b>。負けにくさ重視なら250～300G～。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独の浅追いは見送り。</b>ボーナス間・AT間の天井距離と当たり履歴を併用。</div></div><div class="row"><div class="label">当たり後</div><div class="value">炎炎激闘後28G、REG後は伝導者の罠～88G+αを確認。</div></div></div>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>200G～</b>。負けにくさ重視なら250～300G～。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>ボーナス間550G～</b>を目安。AT間の天井距離と当たり履歴も確認。</div></div><div class="row"><div class="label">当たり後</div><div class="value">炎炎激闘後28G、REG後は伝導者の罠～88G+αを確認。</div></div></div>
 </details>
 
 <details data-tags="pickup" data-name="かぐや様は告らせたい かぐや様">
@@ -476,12 +500,12 @@
 
 <details data-tags="pickup strong" data-name="マギアレコード マギレコ">
   <summary><div><div class="title">マギアレコード</div><div class="chips"><span class="chip ok">350pt～</span><span class="chip good">スルー優先</span></div></div><div class="score ok">○</div></summary>
-  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>350pt（約233G）～</b>。G数だけでなくptを見る。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value">G数単独よりスルー数優先。<b>4スルー＋150pt～／5スルーなら0pt～</b>。</div></div></div>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>350pt（約233G）～</b>。G数だけでなくptを見る。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常550pt～／4スルー＋150pt～／5スルーなら0pt～</b>。</div></div></div>
 </details>
 
 <details data-tags="pickup" data-name="レヴュースタァライト">
   <summary><div><div class="title">レヴュースタァライト</div><div class="chips"><span class="chip ok">250～300G</span></div></div><div class="score ok">○</div></summary>
-  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>250～300G～</b>を目安。0Gは見送る。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独では見送り。</b>周期・スルー・示唆が良い台だけ再判定。</div></div></div>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>250～300G～</b>を目安。0Gは見送る。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>ボーナス・AT間550G～</b>を目安。カウンタの起点を確認。</div></div></div>
 </details>
 
 <details data-tags="pickup" data-name="スーパーブラックジャック SBJ">
@@ -491,7 +515,7 @@
 
 <details data-tags="pickup strong" data-name="タクトオーパス takt op">
   <summary><div><div class="title">タクトオーパス</div><div class="chips"><span class="chip ok">CZ間200G～</span></div></div><div class="score ok">○</div></summary>
-  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>CZ間200G～</b>または<b>AT間310G～</b>。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独では見送り。</b>ポイント残100pt以内、明確なCZ間・AT間ハマりを優先。</div></div><div class="row"><div class="label">打ち切り</div><div class="value">CZ間狙いはCZまで、AT間狙いはATまで。</div></div></div>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value"><b>CZ間200G～</b>または<b>AT間310G～</b>。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>AT間650G～／CZ間350G～</b>。カウンタの起点を確認。</div></div><div class="row"><div class="label">打ち切り</div><div class="value">CZ間狙いはCZまで、AT間狙いはATまで。</div></div></div>
 </details>
 
 <details data-tags="pickup" data-name="北斗転生2 北斗の拳転生の章2">
@@ -526,7 +550,7 @@
 
 <details data-tags="pickup" data-name="BIRDIE WING バーディーウイング">
   <summary><div><div class="title">BIRDIE WING</div><div class="chips"><span class="chip bad">条件待ち</span></div></div><div class="score bad">△</div></summary>
-  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">リセット恩恵だけで0G着席はしない。<b>育ったG数・当日状態</b>を確認。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>G数単独では見送り。</b>明確な短縮・高モード・天井接近が確認できた時だけ候補。</div></div></div>
+  <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">リセット恩恵だけで0G着席はしない。<b>6周期目以降</b>を目安に周期を確認。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常9周期目以降</b>を目安に周期を確認。</div></div></div>
 </details>
 
 </div>
@@ -606,18 +630,18 @@ const scanData=[
   ['ゴッドイーター','ゴッドイーター', {g:180,s:'180G～',e:'ATまで'}, {g:590,s:'通常590G～',e:'ATまで／駆け抜け別'}, {g:180,s:'180G～',e:'ATまで'}, {g:590,s:'通常590G～',e:'ATまで／駆け抜け別'}],
   ['北斗 転生2','北斗 転生2', {g:300,s:'300G～',e:'ATまで'}, {g:350,s:'通常350G前後～',e:'ATまで／あべし確認'}, {g:300,s:'300G前後～',e:'ATまで'}, {g:350,s:'通常350G前後～',e:'ATまで／あべし確認'}],
   ['戦国乙女5','戦国乙女5', {g:300,s:'300G～',e:'ATまで'}, {g:550,s:'通常550G前後～',e:'周期も確認'}, null,null],
-  ['マギアレコード','マギアレコード', {g:null,s:'350pt～（G数では判定不可）',e:'ポイントを見る'}, {g:null,s:'4スルー150pt～／5スルー0pt～',e:'スルー・ptを見る'}, {g:null,s:'350pt～（G数では判定不可）',e:'ポイントを見る'}, {g:null,s:'4スルー150pt～／5スルー0pt～',e:'スルー・ptを見る'}],
+  ['マギアレコード','マギアレコード', {g:null,s:'350pt～（G数では判定不可）',e:'ポイントを見る'}, {g:null,s:'通常550pt～／4スルー150pt～／5スルー0pt～',e:'スルー・ptを見る'}, {g:null,s:'350pt～（G数では判定不可）',e:'ポイントを見る'}, {g:null,s:'通常550pt～／4スルー150pt～／5スルー0pt～',e:'スルー・ptを見る'}],
   ['モンハンライズ','モンハンライズ', {g:400,s:'400G～',e:'ATまで'}, {g:600,s:'通常600G～',e:'4スルー・上位AT後は別'}, {g:400,s:'400G前後～',e:'ATまで'}, {g:600,s:'通常600G～',e:'4スルー・上位AT後は別'}],
   ['無職転生','無職転生', {g:null,s:'ステチェン6回～',e:'G数で代用しない'}, {g:null,s:'AT間27回／ボーナス間15回',e:'ステチェンを確認'}, {g:null,s:'ステチェン6回～',e:'G数で代用しない'}, {g:null,s:'AT間27回／ボーナス間15回',e:'ステチェンを確認'}],
   ['新鬼武者3','新鬼武者3', {g:350,s:'350G前後～',e:'ATまで'}, {g:520,s:'通常AT後520G～',e:'上位AT後等は別'}, {g:350,s:'350G前後～',e:'ATまで'}, {g:520,s:'通常AT後520G～',e:'上位AT後等は別'}],
-  ['タクトオーパス','タクトオーパス', {g:null,s:'CZ間200G～／AT間310G～',e:'カウンタを確認'}, {g:null,s:'CZ間・AT間・残ptを確認',e:'G数単独では判定不可'}, {g:null,s:'CZ間200G～／AT間310G～',e:'カウンタを確認'}, {g:null,s:'CZ間・AT間・残ptを確認',e:'G数単独では判定不可'}],
+  ['タクトオーパス','タクトオーパス', {g:null,s:'CZ間200G～／AT間310G～',e:'カウンタを確認'}, {g:null,s:'AT間650G～／CZ間350G～',e:'CZ間とAT間を区別'}, {g:null,s:'CZ間200G～／AT間310G～',e:'カウンタを確認'}, {g:null,s:'AT間650G～／CZ間350G～',e:'CZ間とAT間を区別'}],
   ['鉄拳6','鉄拳6', null,null, {g:200,s:'200G～（150Gは遊び寄り）',e:'初当たりまで'}, {g:null,s:'ボーナススルー回数を確認',e:'1スルー以上・AT後2スルー等'}],
   ['バイオ RE:3','バイオハザードRE3', null,null, {g:200,s:'200～250G～',e:'初当たりまで'}, {g:500,s:'通常500～600G～',e:'CZスルー・NEポイントも確認'}],
   ['東京リベンジャーズ','東京リベンジャーズ', null,null, {g:250,s:'250G～',e:'ATまで'}, {g:450,s:'通常450G～',e:'3スルー・ptは別'}],
   ['いざ！番長','いざ番長', null,null, {g:200,s:'200G～',e:'初当たりまで'}, {g:null,s:'天井距離・スルー・示唆',e:'G数単独では判定不可'}],
   ['スーパーリオエース2','スーパーリオエース2', null,null, {g:200,s:'200G～',e:'初当たりまで'}, {g:450,s:'通常400～450G～',e:'スルー数も確認'}],
   ['かぐや様','かぐや様', null,null, {g:280,s:'280G～',e:'初当たりまで'}, {g:null,s:'REG後450G～／BIG後650G～',e:'直前の当たりを確認'}],
-  ['レヴュースタァライト','レヴュースタァライト', null,null, {g:300,s:'300G～',e:'初当たりまで'}, {g:null,s:'周期・スルー・示唆',e:'G数単独では判定不可'}],
+  ['レヴュースタァライト','レヴュースタァライト', null,null, {g:300,s:'300G～',e:'初当たりまで'}, {g:null,s:'ボーナス・AT間550G～',e:'カウンタの起点を確認'}],
   ['スーパーブラックジャック','スーパーブラックジャック', null,null, {g:300,s:'300～350G～',e:'初当たりまで'}, {g:null,s:'スルー・モード・天井距離',e:'G数単独では判定不可'}],
   ['スマスロ北斗','スマスロ北斗', null,null, {g:null,s:'0Gは見送り／深め待ち',e:'天井距離を確認'}, {g:600,s:'通常600G前後～',e:'ATまで'}],
   ['戦国乙女4','戦国乙女4', null,null, {g:null,s:'G数・周期・モードを確認',e:'0Gは見送り'}, {g:null,s:'500G以上＋周期・モード',e:'G数単独では判定不可'}],
@@ -627,50 +651,266 @@ const scanName=document.getElementById('scan-name');
 const scanGames=document.getElementById('scan-games');
 const scanResults=document.getElementById('scan-results');
 const scanHint=document.getElementById('scan-hint');
+const scanSelectedBox=document.getElementById('scan-selected');
+const scanSelectedName=document.getElementById('scan-selected-name');
+const scanAnswer=document.getElementById('scan-answer');
+const scanCounter=document.getElementById('scan-counter');
+const scanSkips=document.getElementById('scan-skips');
+const scanLast=document.getElementById('scan-last');
+const scanCounterWrap=document.getElementById('scan-counter-wrap');
+const scanSkipsWrap=document.getElementById('scan-skips-wrap');
+const scanLastWrap=document.getElementById('scan-last-wrap');
+const metricLabels={g:'通常G（当たり後から）',bonusG:'ボーナス間G',czG:'CZ間G',atG:'AT間G',goddessG:'女神間の実G',pt:'現在の獲得pt',stageBonus:'ボーナス間ステチェン回数',stageAt:'AT間ステチェン回数',cycle:'現在の周期'};
+const afterStops={
+  'リコリコ':'AT後は100G前後の前兆・引き戻しを確認。CZ失敗時はAT間を再判定。',
+  '海門決戦':'ST後は最低20GとCZアイコン・背景を確認。',
+  'モンキーV':'AT後はヘルメットと即優出を確認。示唆がなければヤメ候補。',
+  '東京喰種':'AT後は14G前後とアイキャッチを確認。CZ失敗後はAT間を再判定。',
+  'アズレン':'ボーナス後はスルー数を更新して再判定。AT後は次のボーナス1回を確認。',
+  '炎炎2':'ボーナス後は状態を確認。炎炎激闘後28G、REG後は伝導者の罠～88G+αを確認。',
+  '化物語':'AT後は引き戻し区間を消化してヤメ。',
+  'からくり2':'CZ失敗後はスルー数とAT間を再判定。AT後は100Gゾーンを確認。',
+  'ゴッドイーター':'AT後は特殊示唆・終了枚数を確認してヤメ判断。',
+  '北斗 転生2':'AT後は状態確認。128/256あべしを追うかは示唆と残量で判断。',
+  '戦国乙女5':'AT後は1周期目を確認。',
+  'マギアレコード':'ボーナス後はスルー数とptを再判定。AT後は60G前後の引き戻しを確認。',
+  'モンハンライズ':'AT後の1G目と終了画面を確認。',
+  '無職転生':'ボーナス・AT後は2～3回目のステチェンと残り天井を確認。',
+  '新鬼武者3':'AT後は1周期目と示唆を確認。',
+  'タクトオーパス':'CZ後はAT間を再判定。AT後は状態確認、上位AT後は約30Gの引き戻しを確認。',
+  '鉄拳6':'ボーナス後は前兆・CZストックとスルー数を確認。',
+  'バイオ RE:3':'当たり後はCZスルー、NEポイントと心音レベルを確認。',
+  '東京リベンジャーズ':'AT後は1周期目と前兆を確認。',
+  'いざ！番長':'初当たり後は天井距離・スルーと示唆を再判定。',
+  'スーパーリオエース2':'AT・ボーナス後は示唆がなければヤメ候補。',
+  'かぐや様':'REG後は130G+αとチャンス目9回を確認。BIG単発後は基本即ヤメ。',
+  'レヴュースタァライト':'ボーナス・AT後はCZポイントと天井短縮・直撃示唆を確認。',
+  'スーパーブラックジャック':'当たり後はスルー数とモード示唆を再判定。',
+  'スマスロ北斗':'AT後は状態・天井短縮示唆を確認。',
+  '戦国乙女4':'AT後は周期・モード示唆を確認。',
+  'BIRDIE WING':'ボーナス後は周期を再判定。'
+};
+// 条件のある台は「数値の起点」と履歴を明示してから判定する。
+const scanConditional={
+  'モンキーV':{normal:[
+    {metric:'g',min:0,last:'モードB以上示唆',reason:'モードB以上示唆あり',stop:'示唆の周期天井まで。AT後はヘルメットを確認。'},
+    {metric:'g',min:400,reason:'通常400G～',stop:'AT当選まで。'}
+  ]},
+  'リコリコ':{normal:[
+    {metric:'g',min:0,last:'駆け抜け',reason:'AT駆け抜け後の短縮',stop:'短縮されたAT/CZを狙い、CZ失敗時はAT間を再判定。'},
+    {metric:'g',min:0,last:'上位CZ失敗',reason:'上位CZ失敗後の短縮',stop:'AT250Gの短縮天井またはAT当選まで。'}
+  ]},
+  '海門決戦':{normal:[
+    {metric:'g',min:0,last:'ST駆け抜け',reason:'駆け抜け後の短縮',stop:'次回STまで。'},
+    {metric:'g',min:0,last:'景之ST後',reason:'景之ST後の短縮',stop:'次回STまで。'}
+  ]},
+  '東京喰種':{normal:[
+    {metric:'czG',min:300,reason:'CZ間300G～',stop:'次のCZまで。CZ失敗後はAT間Gを再判定。'},
+    {metric:'atG',min:550,reason:'AT間550G～',stop:'AT当選まで。'}
+  ]},
+  'アズレン':{normal:[
+    {metric:'bonusG',min:120,skipMin:6,reason:'6スルー＋ボーナス間120G～',stop:'AT当選まで。'},
+    {metric:'bonusG',min:170,skipsIn:[0,2,4],reason:'0・2・4スルー＋ボーナス間170G～',stop:'次のボーナスまで。スルー時は再判定。'},
+    {metric:'bonusG',min:240,reason:'ボーナス間240G～（スルー数不明でも共通ライン）',stop:'次のボーナスまで。スルー時は再判定。'}
+  ]},
+  '炎炎2':{normal:[
+    {metric:'bonusG',min:550,reason:'通常ボーナス間550G～',stop:'次のボーナスまで。当たり後は状態を再判定。'}
+  ]},
+  'からくり2':{normal:[
+    {metric:'goddessG',min:440,reason:'女神間の実G440G～',stop:'次のCZまで。失敗後はスルーとAT間を再判定。'},
+    {metric:'atG',min:1500,reason:'AT間1500G～',stop:'AT当選まで。'}
+  ]},
+  'マギアレコード':{
+    reset:[{metric:'pt',min:350,reason:'リセット後350pt～',stop:'次のボーナスまで。非ATならスルー数とptを再判定。'}],
+    normal:[
+      {metric:'pt',min:0,skipMin:5,reason:'5スルー以上＋0pt～',stop:'AT当選まで。'},
+      {metric:'pt',min:150,skipMin:4,reason:'4スルー以上＋150pt～',stop:'AT当選まで。'},
+      {metric:'pt',min:550,reason:'通常550pt～',stop:'次のボーナスまで。スルー時は再判定。'}
+    ]
+  },
+  '無職転生':{
+    reset:[{metric:'stageBonus',min:6,reason:'リセット後ステチェン6回～',stop:'次のボーナスまで。AT間ステチェンも確認。'}],
+    normal:[
+      {metric:'stageAt',min:27,reason:'AT間ステチェン27回～',stop:'AT当選まで。'},
+      {metric:'stageBonus',min:13,last:'AT駆け抜け',reason:'駆け抜け後のボーナス間短縮＋13回～',stop:'次のボーナスまで。AT間も再判定。'},
+      {metric:'stageBonus',min:15,reason:'ボーナス間ステチェン15回～',stop:'次のボーナスまで。AT間も再判定。'}
+    ]
+  },
+  'タクトオーパス':{
+    reset:[
+      {metric:'czG',min:200,reason:'リセット後CZ間200G～',stop:'次のCZまで。失敗後はAT間・残ptを再判定。'},
+      {metric:'atG',min:310,reason:'リセット後AT間310G～',stop:'AT当選まで。'}
+    ],
+    normal:[
+      {metric:'atG',min:650,reason:'通常AT間650G～',stop:'AT当選まで。'},
+      {metric:'czG',min:350,reason:'通常CZ間350G～',stop:'次のCZまで。失敗後はAT間を再判定。'}
+    ]
+  },
+  '鉄拳6':{normal:[
+    {metric:'g',min:0,skipMin:3,reason:'ボーナス3スルー以上',stop:'AT当選まで。'},
+    {metric:'g',min:150,skipMin:2,reason:'AT後2スルー＋150G～',stop:'次のボーナスまで。スルー後に再判定。'}
+  ]},
+  'スーパーリオエース2':{normal:[
+    {metric:'g',min:0,skipMin:6,reason:'通常6スルー以上',stop:'AT当選まで。'},
+    {metric:'g',min:450,reason:'通常450G～',stop:'次のボーナスまで。スルー数を再判定。'}
+  ],reset:[
+    {metric:'g',min:0,skipMin:3,reason:'リセット後3スルー以上',stop:'AT当選まで。'},
+    {metric:'g',min:200,reason:'リセット後200G～',stop:'次のボーナスまで。スルー数を再判定。'}
+  ]},
+  'かぐや様':{normal:[
+    {metric:'bonusG',min:450,last:'REG',reason:'REG後450G～',stop:'次のボーナスまで。'},
+    {metric:'bonusG',min:650,reason:'650G～は前回BIG/REGのどちらでも候補',stop:'次のボーナスまで。'}
+  ]},
+  'レヴュースタァライト':{normal:[
+    {metric:'bonusG',min:550,reason:'通常ボーナス・AT間550G～',stop:'次のボーナスまたはATまで。その後の短縮・CZポイントを再判定。'}
+  ]},
+  'BIRDIE WING':{
+    reset:[{metric:'cycle',min:6,reason:'リセット後6周期目以降',stop:'次のボーナスまで。周期を再判定。'}],
+    normal:[{metric:'cycle',min:9,reason:'通常9周期目以降',stop:'次のボーナスまで。周期を再判定。'}]
+  },
+  '新鬼武者3':{normal:[
+    {metric:'g',min:0,last:'上位AT後',reason:'上位AT後の特殊条件',stop:'次回ATまで。'},
+    {metric:'g',min:0,last:'秀吉敗北',reason:'秀吉敗北後の特殊条件',stop:'次回ATまで。'},
+    {metric:'g',min:520,reason:'通常AT後520G～',stop:'AT当選まで。'}
+  ]},
+  'ゴッドイーター':{normal:[
+    {metric:'g',min:170,last:'AT駆け抜け',reason:'AT駆け抜け後170G～',stop:'AT当選まで。'},
+    {metric:'g',min:590,reason:'通常590G～',stop:'AT当選まで。'}
+  ]},
+  '北斗 転生2':{normal:[
+    {metric:'g',min:0,last:'天撃失敗後',reason:'天撃失敗後の特殊条件',stop:'次回ATまで。'},
+    {metric:'g',min:350,reason:'通常350G前後～',stop:'AT当選まで。'}
+  ]},
+  'モンハンライズ':{normal:[
+    {metric:'g',min:0,last:'上位AT後',reason:'上位AT後の特殊条件',stop:'次回ATまで。'},
+    {metric:'g',min:0,skipMin:4,reason:'4スルー以上',stop:'AT当選まで。'},
+    {metric:'g',min:600,reason:'通常600G～',stop:'AT当選まで。'}
+  ]}
+};
 let scanStage='reset';
+let selectedMachine=null;
+function scanRuleIndex(){return (rate==='20'?2:4)+(scanStage==='normal'?1:0)}
+function routesFor(d){
+  const special=scanConditional[d[0]]?.[scanStage];
+  if(special)return special;
+  const rule=d[scanRuleIndex()];
+  return rule&&rule.g!==null?[{metric:'g',min:rule.g,reason:rule.s,stop:rule.e}]:[];
+}
+function scanNumber(){return scanGames.value.trim()===''?null:Number(scanGames.value)}
+function scanContext(d){
+  const routes=routesFor(d);
+  const metrics=[...new Set(routes.map(r=>r.metric))];
+  return {value:scanNumber(),metric:metrics.length===1?metrics[0]:scanCounter.value,
+    skips:scanSkips.value===''?null:Number(scanSkips.value),last:scanLast.value};
+}
+function judgeMachine(d,ctx){
+  const routes=routesFor(d),rule=d[scanRuleIndex()];
+  if(!routes.length)return {status:'check',reason:rule?.s||'履歴・示唆の確認が必要',stop:'対象とする天井・当たり方が確定してからヤメ時を決める。'};
+  if(ctx.value===null)return {status:'check',reason:`${routes.length===1?metricLabels[routes[0].metric]:'数値'}を入力`,stop:'数値を入力すると、この狙いのヤメ時を表示。'};
+  if(!ctx.metric)return {status:'check',reason:'その数値がCZ間・AT間など、どのカウンタか選択',stop:'カウンタの起点が分からない場合は判定しない。'};
+  const matching=routes.filter(r=>r.metric===ctx.metric);
+  if(!matching.length)return {status:'check',reason:'この数値では判定できません',stop:'別のカウンタ・pt・周期を確認。'};
+  let pending=null;
+  for(const r of matching){
+    if(ctx.value<r.min)continue;
+    if(r.last && !ctx.last){pending='前回の結果を選択';continue;}
+    if(r.last && ctx.last!==r.last)continue;
+    if((r.skipMin!==undefined||r.skipsIn) && ctx.skips===null){pending='スルー回数を入力';continue;}
+    if(r.skipMin!==undefined && ctx.skips<r.skipMin)continue;
+    if(r.skipsIn && !r.skipsIn.includes(ctx.skips))continue;
+    return {status:'ready',reason:r.reason,stop:r.stop};
+  }
+  if(pending)return {status:'check',reason:pending,stop:'条件が揃ってから打ち切り地点を表示。'};
+  const min=Math.min(...matching.map(r=>r.min));
+  return {status:'wait',reason:ctx.value<min?`${metricLabels[ctx.metric]}は${min}から`:'入力した履歴では拾い条件に届いていません',stop:'今回は見送り。'};
+}
+function setOptions(select,values,placeholder){
+  select.replaceChildren();
+  const blank=document.createElement('option');blank.value='';blank.textContent=placeholder;select.append(blank);
+  values.forEach(([v,label])=>{const option=document.createElement('option');option.value=v;option.textContent=label;select.append(option)});
+}
+function configureSelected(){
+  const d=scanData.find(row=>row[0]===selectedMachine);
+  scanSelectedBox.hidden=!d||!d[scanRuleIndex()];
+  if(scanSelectedBox.hidden)return;
+  const routes=routesFor(d),metrics=[...new Set(routes.map(r=>r.metric))];
+  scanSelectedName.textContent=d[0]+' の拾い判定'+(metrics.length===1?'（'+metricLabels[metrics[0]]+'）':'');
+  scanCounterWrap.hidden=metrics.length<2;
+  setOptions(scanCounter,metrics.map(v=>[v,metricLabels[v]]),'数値の種類を選択');
+  scanSkipsWrap.hidden=!routes.some(r=>r.skipMin!==undefined||r.skipsIn);
+  scanSkips.value='';
+  const lasts=[...new Set(routes.map(r=>r.last).filter(Boolean))];
+  scanLastWrap.hidden=!lasts.length;
+  setOptions(scanLast,[['none','該当なし（確認済み）'],...lasts.map(v=>[v,v])],'前回の結果を選択');
+  const unit=metrics.length===1?metricLabels[metrics[0]]:'数値';
+  scanGames.placeholder=unit.replace('（当たり後から）','');
+  scanGames.setAttribute('aria-label',unit);
+  renderScan();
+}
+function showSelected(d){
+  const verdict=judgeMachine(d,scanContext(d));
+  scanAnswer.replaceChildren();
+  const status=document.createElement('strong');status.className=verdict.status;
+  status.textContent=(verdict.status==='ready'?'候補：':verdict.status==='wait'?'見送り：':'要確認：')+verdict.reason;
+  const stop=document.createElement('div');stop.className='scan-stop';
+  stop.textContent='どこまで打つ：'+verdict.stop+(verdict.status==='ready'?'　その後：'+(afterStops[d[0]]||'当たり後の示唆を確認して再判定。'):'');
+  scanAnswer.append(status,stop);
+}
 function renderScan(){
   const term=scanName.value.trim().toLowerCase();
-  const raw=scanGames.value.trim();
-  const games=raw===''?null:Number(raw);
-  const index=(rate==='20'?2:4)+(scanStage==='normal'?1:0);
-  const rows=scanData.filter(d=>d[index] && (!term || (d[0]+' '+d[1]).toLowerCase().includes(term)))
+  const games=scanNumber();
+  const index=scanRuleIndex();
+  const rows=scanData.filter(d=>d[index]&&(!term||(d[0]+' '+d[1]).toLowerCase().includes(term)))
     .map(d=>{
       const rule=d[index];
-      const status=games===null?'':rule.g===null?'check':games>=rule.g?'ready':'wait';
+      const verdict=d[0]===selectedMachine?judgeMachine(d,scanContext(d)):null;
+      const status=games===null?'':verdict?verdict.status:rule.g===null?'check':games>=rule.g?'ready':'wait';
       return {d,rule,status};
     }).sort((a,b)=>{
       if(games!==null){const rank={ready:0,check:1,wait:2};if(rank[a.status]!==rank[b.status])return rank[a.status]-rank[b.status];}
-      return (a.rule.g??9999)-(b.rule.g??9999) || a.d[0].localeCompare(b.d[0],'ja');
+      return (a.rule.g??9999)-(b.rule.g??9999)||a.d[0].localeCompare(b.d[0],'ja');
     });
   scanResults.replaceChildren();
-  if(!rows.length){const empty=document.createElement('div');empty.className='scan-empty';empty.textContent='該当する機種はありません';scanResults.append(empty);return;}
+  if(!rows.length){const empty=document.createElement('div');empty.className='scan-empty';empty.textContent='該当する機種はありません';scanResults.append(empty);}
   rows.forEach(({d,rule,status})=>{
     const button=document.createElement('button');button.type='button';button.className='scan-row '+status;
     const left=document.createElement('span');const name=document.createElement('strong');name.textContent=d[0];
     const note=document.createElement('small');note.textContent=rule.e;left.append(name,note);
     const verdict=document.createElement('span');verdict.className='scan-verdict';
-    verdict.textContent=(status==='ready'?'候補 · ':status==='wait'?'待ち · ':status==='check'?'要確認 · ':'')+rule.s;
+    const selectedVerdict=d[0]===selectedMachine?judgeMachine(d,scanContext(d)):null;
+    verdict.textContent=(status==='ready'?'候補 · ':status==='wait'?'待ち · ':status==='check'?'要確認 · ':'')+(selectedVerdict?.reason||rule.s);
     button.append(left,verdict);
     button.addEventListener('click',()=>{
-      document.getElementById('filter-all').checked=true;current='all';q.value=d[1];apply();
-      const target=activeCards().find(card=>!card.classList.contains('hidden'));
-      if(target){target.open=true;target.scrollIntoView({behavior:'smooth',block:'center'});}
+      if(selectedMachine!==d[0]){selectedMachine=d[0];configureSelected();}
+      else renderScan();
+      scanSelectedBox.scrollIntoView({behavior:'smooth',block:'center'});
     });
     scanResults.append(button);
   });
-  scanHint.textContent=games===null?'数値を入れなければ、機種別の拾い始め目安を一覧表示します。':
-    '候補＝G数上の一次判定。表示Gの起点とCZ・AT履歴が合うか確認。要確認＝履歴・pt・示唆が必要。';
+  const chosen=scanData.find(d=>d[0]===selectedMachine&&d[index]);
+  if(chosen)showSelected(chosen);
+  scanHint.textContent=games===null?'機種名をタップして数値と必要な履歴を入力。':
+    '候補はこの条件での一次判定。表示Gの起点が不明なら「要確認」のままにして、履歴を見てください。';
 }
+document.getElementById('scan-detail').addEventListener('click',()=>{
+  const d=scanData.find(row=>row[0]===selectedMachine);if(!d)return;
+  document.getElementById('filter-all').checked=true;current='all';q.value=d[1];apply();
+  const target=activeCards().find(card=>!card.classList.contains('hidden'));
+  if(target){target.open=true;target.scrollIntoView({behavior:'smooth',block:'center'});}
+});
 document.querySelectorAll('[data-stage]').forEach(button=>button.addEventListener('click',()=>{
   scanStage=button.dataset.stage;
   document.querySelectorAll('[data-stage]').forEach(item=>{
     const active=item===button;item.classList.toggle('active',active);item.setAttribute('aria-pressed',String(active));
   });
-  renderScan();
+  configureSelected();renderScan();
 }));
 scanName.addEventListener('input',renderScan);
 scanGames.addEventListener('input',renderScan);
-document.querySelectorAll('input[name="rate"]').forEach(input=>input.addEventListener('change',renderScan));
+scanCounter.addEventListener('change',renderScan);
+scanSkips.addEventListener('input',renderScan);
+scanLast.addEventListener('change',renderScan);
+document.querySelectorAll('input[name="rate"]').forEach(input=>input.addEventListener('change',()=>{configureSelected();renderScan()}));
 renderScan();
 </script>
 </body>
