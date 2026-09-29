@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>高田馬場 スロ期待値 早見表</title>
+<title>アライグマのパン屋さん</title>
 <meta name="description" content="高田馬場のパチスロ拾い条件をスマホで素早く確認できる早見表">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111b2d'/%3E%3Cpath d='M12 46V18h40v28z' fill='none' stroke='%238ab4ff' stroke-width='4'/%3E%3Ctext x='32' y='40' text-anchor='middle' fill='%237ddc8d' font-size='23' font-family='sans-serif'%3EG%3C/text%3E%3C/svg%3E">
 <style>
@@ -38,7 +38,6 @@
     border-bottom:1px solid var(--line);
   }
   h1{font-size:20px;margin:0 0 4px}
-  .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
   .controls{display:grid;grid-template-columns:1fr auto;gap:8px}
   .rate-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 2px}
   .rate-tab{font-size:15px;padding:10px;text-align:center;cursor:pointer;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-weight:700}
@@ -98,6 +97,7 @@
     margin:10px 0 12px;padding:10px 12px;border-radius:12px;
     background:#151922;border:1px solid var(--line);font-size:13px
   }
+  .top-actions{display:flex;justify-content:flex-end;margin:-4px 0 12px}
   .rate-panel.hidden{display:none!important}
   .play-note{color:var(--ok)}
   .hidden{display:none!important}
@@ -106,8 +106,6 @@
   #rate625:checked ~ .wrap [data-panel="20"]{display:none!important}
   #rate20:checked ~ .wrap label[for="rate20"],
   #rate625:checked ~ .wrap label[for="rate625"]{background:var(--accent);color:#101722;border-color:var(--accent)}
-  #rate20:checked ~ .wrap .subtitle625,
-  #rate625:checked ~ .wrap .subtitle20{display:none}
   #filter-all:checked ~ .wrap label[for="filter-all"],
   #filter-zero:checked ~ .wrap label[for="filter-zero"],
   #filter-pickup:checked ~ .wrap label[for="filter-pickup"],
@@ -118,8 +116,6 @@
   .scan{margin:12px 0 16px;padding:12px;border:1px solid var(--accent);border-radius:14px;background:#151d2a}
   .scan h2{font-size:17px;margin:0 0 4px}
   .scan-intro{font-size:12px;color:var(--muted);margin:0 0 10px}
-  .scan-update{padding:9px 10px;margin:0 0 10px;border:1px solid #456a9c;border-radius:9px;background:#1c2d48;font-size:12px;line-height:1.5}
-  .scan-update strong{display:block;color:#a8c9ff;font-size:13px}
   .scan-stages{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
   .scan-stages button{font-size:13px;padding:9px 4px}
   .scan-stages button.active{background:var(--accent);border-color:var(--accent);color:#101722}
@@ -160,15 +156,14 @@
 <input class="state-input" type="radio" name="filter" id="filter-strong">
 <div class="wrap">
 <header>
-  <h1>🎰 高田馬場 スロ期待値 早見表</h1>
-  <div class="sub"><span class="subtitle20">全台リセット想定 / 20スロ貯メダル460枚まで使用</span><span class="subtitle625">6.25スロ / 大損を避けながら遊ぶための緩め基準</span></div>
+  <h1>アライグマのパン屋さん</h1>
   <div class="rate-tabs">
     <label class="rate-tab" for="rate20">20スロ</label>
     <label class="rate-tab" for="rate625">6.25スロ</label>
   </div>
   <div class="controls">
     <input id="q" type="search" placeholder="機種名で検索（例：モンキー）">
-    <button id="toggleAll">全開閉</button>
+    <button id="resetPage" type="button">リセット／再読み込み</button>
   </div>
   <div class="filters">
     <label class="filter" for="filter-all">すべて</label>
@@ -181,7 +176,6 @@
 <section class="scan" aria-label="拾いスキャン">
   <h2>拾いスキャン</h2>
   <p class="scan-intro">空き台の機種とG数を見て、ここで候補を絞る。</p>
-  <div class="scan-update"><strong>NEW｜条件判定・ヤメ時ガイド</strong>機種名で絞ると入力欄が開きます。AT間・CZ間、スルー数、前回の結果を選ぶと、候補かどうかと打ち切り地点を表示します。</div>
   <div class="scan-stages" role="group" aria-label="当日の履歴">
     <button type="button" data-stage="reset" class="active" aria-pressed="true">初当たり前（リセット）</button>
     <button type="button" data-stage="normal" aria-pressed="false">恩恵消化後・通常</button>
@@ -209,6 +203,7 @@
   <span class="strong">朝一0G候補：</span>
   リコリコ / 海門決戦 / モンキーV / 東京喰種 / アズレン
 </div>
+<div class="top-actions"><button class="toggle-all" type="button">全開閉</button></div>
 
 <div class="legend">◎ 0Gから可　○ 条件付きで可　× 0Gは待ち</div>
 
@@ -423,6 +418,7 @@
   <span class="strong">朝から遊ぶなら：</span>
   モンキーV。アズレンは100G～・2スルー～なら優先。ほかは少し育った台を選ぶ。
 </div>
+<div class="top-actions"><button class="toggle-all" type="button">全開閉</button></div>
 
 <div class="notice" style="margin:0 0 12px">
   <b>見方：</b>「朝一リセ育ち」は初当たり前に捨てられた台。「恩恵消化後」は初当たり・CZ・ボーナスなどを経て通常状態へ戻った台です。昼以降はこの2つを混同しないこと。
@@ -606,17 +602,20 @@ document.querySelectorAll('input[name="rate"]').forEach(input=>{
     rate=input.id.replace('rate','');
     q.value=''; current='all'; opened=false;
     document.getElementById('filter-all').checked=true;
-    document.getElementById('toggleAll').textContent='全開閉';
+    document.querySelectorAll('.toggle-all').forEach(button=>button.textContent='全開閉');
     allCards.forEach(c=>{c.open=false;c.classList.remove('hidden')});
     apply();
   });
 });
 
 let opened=false;
-document.getElementById('toggleAll').addEventListener('click',()=>{
+document.querySelectorAll('.toggle-all').forEach(button=>button.addEventListener('click',()=>{
   opened=!opened;
   activeCards().filter(c=>!c.classList.contains('hidden')).forEach(c=>c.open=opened);
-  document.getElementById('toggleAll').textContent=opened?'全閉じ':'全開閉';
+  document.querySelectorAll('.toggle-all').forEach(item=>item.textContent=opened?'全閉じ':'全開閉');
+}));
+document.getElementById('resetPage').addEventListener('click',()=>{
+  window.location.replace(window.location.pathname+'?reload='+Date.now());
 });
 
 // 拾いスキャンは上の早見表に書いた基準を短く表示する。G数以外が必要なら数値判定しない。
