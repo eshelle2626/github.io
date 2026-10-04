@@ -514,11 +514,12 @@
   <div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">リセット恩恵だけで0G着席はしない。<b>6周期目以降</b>を目安に周期を確認。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>通常9周期目以降</b>を目安に周期を確認。</div></div></div>
 </details>
 
+<details data-tags="pickup strong" data-name="戦国コレクション6 戦コレ6"><summary><div><div class="title">戦国コレクション6</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">条件・周期を確認</span></div></div><div class="score ok">○</div></summary><div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">最大3周期・初回222コレ以内に短縮。<b>0Gからの収支優位は未確認なので待ち</b>。この表では3周期目到達を候補にする。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>AT間650G～、または6周期目到達</b>を候補。650Gは非等価を踏まえた控えめの目安。G数とコレ数を混同しない。</div></div><div class="row"><div class="label">この条件で打つなら</div><div class="value">周期天井・AT間狙いは<b>ATまで</b>。途中のCZ当選だけで天井距離をリセットしない。</div></div><div class="row"><div class="label">AT後</div><div class="value">通常は初回222コレ以内の1周期を確認する選択肢。<b>最終決戦敗北後は天国の1周期を確認</b>。120枚以下のAT後は裏モード示唆も確認。</div></div><div class="row"><div class="label">別の強い条件</div><div class="value">ガチャ紫＝チケット5枚。AT直撃とAT開始時の武将参戦に期待できるためATまでの続行候補。チケット枚数をスルー回数欄に入力しない。</div></div><div class="row"><div class="label">出典</div><div class="value"><a href="https://1geki.jp/slot/l_sencolle6/3/" target="_blank" rel="noopener">一撃・解析</a>／確認 2026-10-05</div></div></div></details>
 </div>
 
 <div class="notice">
   <b class="play-note">6.25スロの使い方：</b>「勝つこと」より「大損しにくく遊ぶこと」を優先した緩めの基準です。○でも必ずプラスという意味ではありません。<b>初当たり前なら「朝一リセ育ち」、当たり履歴があれば「恩恵消化後」</b>を見てください。迷ったら表示G数の上側まで待ち、1台を浅い所から長く追うより、育った台へ移る方が安全です。
-<details data-tags="pickup strong" data-name="戦国コレクション6 戦コレ6"><summary><div><div class="title">戦国コレクション6</div><div class="chips"><span class="chip bad">0G待ち</span><span class="chip ok">条件・周期を確認</span></div></div><div class="score ok">○</div></summary><div class="body"><div class="row"><div class="label">朝一リセ育ち</div><div class="value">最大3周期・初回222コレ以内に短縮。<b>0Gからの収支優位は未確認なので待ち</b>。この表では3周期目到達を候補にする。</div></div><div class="row"><div class="label">恩恵消化後</div><div class="value"><b>AT間650G～、または6周期目到達</b>を候補。650Gは非等価を踏まえた控えめの目安。G数とコレ数を混同しない。</div></div><div class="row"><div class="label">この条件で打つなら</div><div class="value">周期天井・AT間狙いは<b>ATまで</b>。途中のCZ当選だけで天井距離をリセットしない。</div></div><div class="row"><div class="label">AT後</div><div class="value">通常は初回222コレ以内の1周期を確認する選択肢。<b>最終決戦敗北後は天国の1周期を確認</b>。120枚以下のAT後は裏モード示唆も確認。</div></div><div class="row"><div class="label">別の強い条件</div><div class="value">ガチャ紫＝チケット5枚。AT直撃とAT開始時の武将参戦に期待できるためATまでの続行候補。チケット枚数をスルー回数欄に入力しない。</div></div><div class="row"><div class="label">出典</div><div class="value"><a href="https://1geki.jp/slot/l_sencolle6/3/" target="_blank" rel="noopener">一撃・解析</a>／確認 2026-10-05</div></div></div></details>
+
 </div>
 </section>
 
@@ -808,7 +809,7 @@ function setOptions(select,values,placeholder){
 function configureSelected(){
   const d=scanData.find(row=>row[0]===selectedMachine);
   scanSelectedBox.hidden=!d||!d[scanRuleIndex()];
-  if(scanSelectedBox.hidden)return;
+  if(scanSelectedBox.hidden){scanGames.placeholder='G数';scanGames.setAttribute('aria-label','現在のゲーム数');return;}
   const routes=routesFor(d),metrics=[...new Set(routes.map(r=>r.metric))];
   scanSelectedName.textContent=d[0]+' の拾い判定'+(metrics.length===1?'（'+metricLabels[metrics[0]]+'）':'');
   scanCounterWrap.hidden=metrics.length<2;
@@ -888,7 +889,10 @@ scanName.addEventListener('input',()=>{
   const matches=term?scanData.filter(d=>d[scanRuleIndex()]&&(d[0]+' '+d[1]).toLowerCase().includes(term)):[];
   if(matches.length===1 && selectedMachine!==matches[0][0]){
     selectedMachine=matches[0][0];configureSelected();
-  }else renderScan();
+  }else {
+    if(term && !matches.some(d=>d[0]===selectedMachine)){selectedMachine=null;configureSelected();}
+    renderScan();
+  }
 });
 scanGames.addEventListener('input',renderScan);
 scanCounter.addEventListener('change',renderScan);
