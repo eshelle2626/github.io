@@ -143,6 +143,9 @@
   .scan-answer .ready{color:var(--good)}
   .scan-answer .check{color:var(--ok)}
   .scan-answer .wait{color:var(--muted)}
+  .ceiling-detail .value>div+div{margin-top:5px}
+  .ceiling-source{font-size:12px;color:var(--muted)}
+  .scan-ceiling{font-size:13px}
   .scan-stop{padding-top:7px;margin-top:7px;border-top:1px solid var(--line)}
   .scan-detail{margin-top:8px;color:var(--accent);font-size:13px}
 </style>
@@ -533,6 +536,466 @@
 
 <script>
 const allCards=[...document.querySelectorAll('details')];
+
+const ceilingData={
+  "戦コレ6": {
+    "card": "戦国コレクション6 戦コレ6",
+    "reset": "AT間最大999G＋α、または最大3周期でAT。初回222コレ以内は周期到達でありAT確定ではない。",
+    "normal": "AT間最大999G＋α、または最大6周期でAT。",
+    "note": "実G・コレ数・周期は別の数値。CZを挟んでもAT間Gを引き継ぐ。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_sencolle6/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "サンブレイク": {
+    "card": "サンブレイク モンハンサンブレイク",
+    "reset": "AT間999G＋αでAT／CZ間333G＋αでCZ。リセット時のG数天井短縮は確認できていない。",
+    "normal": "AT間999G＋αでAT／CZ間333G＋αでCZ。CZ6連続失敗後の次回CZは成功濃厚。",
+    "note": "規定リプレイポイントは5周期目でCZ。ライズのクエスト回数とは別。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_mh_sun/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "リコリコ": {
+    "card": "リコリスリコイル リコリコ",
+    "reset": "AT間最大600Gでラッシュ濃厚のCZ／初回CZ間最大250GでCZ。",
+    "normal": "通常ラッシュ後はAT間最大850G／CZ間最大600G。CZ失敗でAT間Gはリセットしない。",
+    "note": "CZ間とAT間を別確認。内部G加算があるため表示Gとズレる場合あり。",
+    "special": {
+      "駆け抜け": "AT間最大600Gでラッシュ濃厚のCZ／初回CZ間最大250G。",
+      "上位CZ失敗": "上位CZ失敗後、AT間最大250Gでラッシュ濃厚のCZ。"
+    },
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_lycoreco/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "海門決戦": {
+    "card": "カバネリ 海門決戦",
+    "reset": "ST間596G、または最大4周期でEPボーナス（ST）。",
+    "normal": "ST間996G、または最大6周期でEPボーナス（ST）。",
+    "note": "駿城ボーナスとST当選を区別する。天井到達後の告知・前兆まで確認。",
+    "special": {
+      "ST駆け抜け": "ST間596G、または最大4周期でEPボーナス（ST）。",
+      "景之ST後": "ST間596G、または最大4周期でEPボーナス（ST）。"
+    },
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_kabaneri2/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "モンキーV": {
+    "card": "モンキーターン5 モンキーV",
+    "reset": "AT間495G＋α、または4周期目でAT。",
+    "normal": "AT間795G＋α、または6周期目でAT。",
+    "note": "通常時は左第1停止を遵守。青島VS波多野後も495G＋α／4周期に短縮。",
+    "special": {
+      "モードB以上示唆": "通常Bなら3周期以内、天国なら1周期でAT。AT間G天井は通常795G＋α。モードB確定と弱い示唆を区別。"
+    },
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_monkeyturn5/3/"
+      },
+      {
+        "label": "モード別天井",
+        "url": "https://1geki.jp/slot/l_monkeyturn5/44/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "東京喰種": {
+    "card": "東京喰種",
+    "reset": "初回CZ間は液晶最大200G＋αでCZ／AT間は実G1200G＋αでAT。",
+    "normal": "CZ間は液晶最大600G＋αでCZ／AT間は実G1200G＋αでAT。",
+    "note": "CZ間はスイカ加算を含む液晶G、AT間はメニューの実G。有馬ジャッジメント失敗後はCZ間最大100G＋α。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_tokyoghoul/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "アズレン": {
+    "card": "アズールレーン アズレン",
+    "reset": "ボーナス間350G＋α（内部約30G加算で初回は実320G前後）。ATは最大7回目のボーナス、またはAT間2000G＋α。",
+    "normal": "ボーナス間350G＋αでボーナス。ATは最大10回目のボーナス、またはAT間2000G＋α。",
+    "note": "AT間Gは非ATボーナスでリセットせず、ボーナス中のGは含めない。6スルーだけで通常時の次回AT確定とはならない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_azurlane/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "炎炎2": {
+    "card": "炎炎ノ消防隊2 炎炎2",
+    "reset": "ボーナス間650G＋αでボーナス／炎炎ループ間1500G＋αでSPエピソードボーナス。",
+    "normal": "ボーナス間850G＋αでボーナス／炎炎ループ間2000G＋αでSPエピソードボーナス。",
+    "note": "伝導者の罠5スルー後は次回ボーナスがSPエピソード。ボーナス間Gと炎炎ループ間Gを区別。",
+    "special": {},
+    "sources": [
+      {
+        "label": "なな徹",
+        "url": "https://nana-press.com/kaiseki/machine/1088/34532/"
+      },
+      {
+        "label": "リセット解析",
+        "url": "https://nana-press.com/kaiseki/machine/1088/34535/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "化物語": {
+    "card": "化物語",
+    "reset": "AT間600GでAT。",
+    "normal": "AT間1000GでAT。",
+    "note": "AT後の引き戻し「夢の時間ヲ終わラセルな」込みでカウント。CZ中到達時はクライマックス演出で告知。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_bakemonogatari/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "からくり2": {
+    "card": "からくりサーカス2 からくり2",
+    "reset": "初回女神CZ天井は液晶500G。AT間天井は実2500G。",
+    "normal": "女神CZ間は実890G、または液晶1100Gゾーン（最深1200G＋α）。AT間は実2500GでAT＋成功濃厚の激情ジャッジ。",
+    "note": "女神CZ4連続失敗後は次回をAT直撃に書き換え。幕間チャンス失敗では女神間Gをリセットしない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_karakuri2/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "ゴッドイーター": {
+    "card": "ゴッドイーター GE",
+    "reset": "AT間最大600G＋αでAT。",
+    "normal": "AT間最大1000G＋αでAT。",
+    "note": "上位AT後は600G＋α。逆鱗ハンニバル敗北後は100Gゾーンで当選濃厚。",
+    "special": {
+      "AT駆け抜け": "AT間最大600G＋αでAT（実戦上の短縮）。"
+    },
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_godeater_r/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "北斗 転生2": {
+    "card": "北斗転生2 北斗の拳転生の章2",
+    "reset": "最大1280あべしでAT（実Gではない）。",
+    "normal": "最大1536あべしでAT（実Gではない）。",
+    "note": "モードB896あべし／C576あべし／天国128あべし。実Gから一定換算しない。",
+    "special": {
+      "天撃失敗後": "次回天国：128あべし＋前兆までにAT。G数ではなく液晶あべしを確認。"
+    },
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_hokuto_tensei2/3/"
+      },
+      {
+        "label": "天撃失敗後",
+        "url": "https://1geki.jp/slot/l_hokuto_tensei2/45/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "戦国乙女5": {
+    "card": "戦国乙女5 乙女5",
+    "reset": "AT間実650G＋α、または最大4周期でAT。",
+    "normal": "AT間実999G＋α、または最大6周期でAT。",
+    "note": "AT間実Gはメニューで確認。リール左の周期Gと混同しない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_otome5/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "マギアレコード": {
+    "card": "マギアレコード マギレコ",
+    "reset": "ボーナス間最大699pt＋αでボーナス。",
+    "normal": "ボーナス間最大950pt＋αでボーナス。",
+    "note": "実Gではなく液晶pt。固定のATスルー天井はなく、8スルー以降の穢れ加算による救済。4・5スルーは次回AT確定ではない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_magireco/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "モンハンライズ": {
+    "card": "モンハンライズ モンスターハンターライズ",
+    "reset": "AT間通常999G、または7回目のクエストで赤7以上のボーナス。リセットG天井短縮は確認できていない。",
+    "normal": "AT間通常999G、または7回目のクエストで赤7以上のボーナス。",
+    "note": "クエストはAT間の累計。CZ回数や1周期のG数と混同しない。",
+    "special": {
+      "上位AT後": "G天井は通常999G。上位後に適用されるクエスト短縮は本欄では未確認。終了画面・テーブルを確認。"
+    },
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_mh_rize/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "無職転生": {
+    "card": "無職転生",
+    "reset": "ボーナス間ステチェン最大13回でボーナス／AT間最大17回でEPボーナス（AT）。",
+    "normal": "ボーナス間ステチェン最大19回でボーナス／AT間最大40回でEPボーナス（AT）。",
+    "note": "G数固定の天井ではない。魔術ボーナス（RB）失敗後はボーナス間最大13回。AT間回数は非ATボーナスでリセットしない。",
+    "special": {
+      "AT駆け抜け": "ボーナス間ステチェン最大13回でボーナス。AT間天井は別カウント（通常最大40回）。"
+    },
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_musyokutensei/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "新鬼武者3": {
+    "card": "新鬼武者3 鬼武者3",
+    "reset": "AT間最大1000G＋前兆、または最大4周期でAT。初回222BP以内は鬼モードへの移行。",
+    "normal": "AT間最大1000G＋前兆、または最大6周期でAT。",
+    "note": "G数・BP・周期は別の起点。222BPを222Gとして扱わない。",
+    "special": {
+      "上位AT後": "1周期・222BP以内にAT当選濃厚（実戦上）。固定の天井G数ではない。",
+      "秀吉敗北": "秀吉最終決戦失敗後：1周期・222BP以内にAT当選濃厚（実戦上）。固定の天井G数ではない。"
+    },
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_shinnoni3/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "タクトオーパス": {
+    "card": "タクトオーパス takt op",
+    "reset": "初回CZ間最大300G＋αでCZ／初回AT間最大699G＋αでAT。",
+    "normal": "CZ間最大500G＋αでCZ／AT間最大999G＋αでAT。",
+    "note": "CZ失敗でAT間Gはリセットしない。リセット時でも初回CZ短縮を消化した後は通常のCZ天井で確認。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_takt_op_destiny/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "鉄拳6": {
+    "card": "鉄拳6",
+    "reset": "ボーナス間747G＋α、または初回500pt＋αでボーナス。リセット後は2スルー後の3回目が赤7BB（AT）。",
+    "normal": "ボーナス間747G＋α、または900pt＋αでボーナス。3スルー後の4回目は赤7BB（AT）。",
+    "note": "ゲーム数と鉄拳ポイントを区別。AT非当選のボーナスでスルー回数を更新する。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_tekken6/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "東京リベンジャーズ": {
+    "card": "東京リベンジャーズ 東リベ",
+    "reset": "AT間900GでAT。初当たりの周期天井は最大6周期。",
+    "normal": "AT間1190GでAT。初当たりの周期天井は最大6周期。",
+    "note": "RB4スルー後の次回初当たりはAT濃厚。RBスルーではAT間Gを引き継ぐ。1周期200pt／以後500ptは周期到達でありAT確定ではない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_tokyo_revengers/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "いざ！番長": {
+    "card": "いざ番長",
+    "reset": "最大600G＋αでAT（チャンスA以上）。",
+    "normal": "最大999G＋αでAT。",
+    "note": "チャンスA600G＋α／チャンスB300G＋α／天国100G＋α。内部G加算があるため表示とズレる場合あり。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_bancho_iza/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "スーパーリオエース2": {
+    "card": "スーパーリオエース2 スーパーリオ2 リオ2",
+    "reset": "初回ボーナス間最大500G＋αでBB。リセット後は最大4スルー後、5回目のボーナスでAT。初回短縮消化後のG天井は別確認。",
+    "normal": "ボーナス間750G＋αでBB。最大7スルー後、8回目のボーナスでAT。",
+    "note": "ボーナス間GとAT非当選のボーナス回数を別確認。3／6スルーは次回AT確定ではない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_sp_rioace2/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "かぐや様": {
+    "card": "かぐや様は告らせたい かぐや様",
+    "reset": "ボーナス間800G＋αでBIG以上（リセット時）。",
+    "normal": "BIG後1100G＋α／REG後900G＋αでBIG以上。",
+    "note": "CZ失敗だけではボーナス間Gはリセットしない。直前のBIG／REGを必ず確認。",
+    "special": {
+      "REG": "REG後：ボーナス間900G＋αでBIG以上。"
+    },
+    "sources": [
+      {
+        "label": "なな徹",
+        "url": "https://nana-press.com/kaiseki/machine/804/23721/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "レヴュースタァライト": {
+    "card": "レヴュースタァライト",
+    "reset": "ボーナス・AT間最大600G＋αでAT（上位AT濃厚）。",
+    "normal": "ボーナス・AT間最大900G＋αでAT。",
+    "note": "ボーナスまたはAT後からのカウント。CZだけではリセットしない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_revuestarlight/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "スーパーブラックジャック": {
+    "card": "スーパーブラックジャック SBJ",
+    "reset": "BB間666G＋αでBB。RB4回後、5回目の初当たりはBB。",
+    "normal": "BB間999G＋αでBB。RB4回後、5回目の初当たりはBB。",
+    "note": "RBではGを引き継ぐ。初当たりBB後のリオチャンス駆け抜け時は次回666G＋αに短縮。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_sbj/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "スマスロ北斗": {
+    "card": "スマスロ北斗 北斗の拳",
+    "reset": "通常800G到達で短縮当選、最大32Gの本前兆を経てバトルボーナス。",
+    "normal": "通常最大1268G＋αでバトルボーナス（AT）。",
+    "note": "天井はAT後からの通常G。300G／777G／800Gの短縮抽選も存在。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/s_sma_hokutonoken/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "戦国乙女4": {
+    "card": "戦国乙女4 乙女4",
+    "reset": "ボーナス間799Gでボーナス。リセット時はモード・スルー回数を再抽選。",
+    "normal": "ボーナス間799Gでボーナス。AT非当選ボーナス6回後、7回目がEPボーナス。",
+    "note": "AT直撃ではボーナス間G・ボーナススルー回数をリセットしない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_otome_keigan/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  },
+  "BIRDIE WING": {
+    "card": "BIRDIE WING バーディーウイング",
+    "reset": "最大7周期で天井到達、次周期開始から前兆を経てボーナス。",
+    "normal": "最大10周期で天井到達、次周期開始から前兆を経てボーナス。",
+    "note": "固定の天井G数ではない。RBでST非当選ならラウンド（周期）を引き継ぐ。",
+    "special": {},
+    "sources": [
+      {
+        "label": "一撃",
+        "url": "https://1geki.jp/slot/l_birdie/3/"
+      }
+    ],
+    "checked": "2026-10-06"
+  }
+};
+// 天井の表示は既存の候補判定から独立させ、単位・起点を省略しない。
+function ceilingText(d,ctx){
+  const entry=ceilingData[d[0]];
+  if(!entry)return '該当条件の天井は未確認。';
+  if(scanStage==='reset')return entry.reset;
+  if(ctx.last && entry.special[ctx.last])return entry.special[ctx.last];
+  return entry.normal+(Object.keys(entry.special).length&&(!ctx.last||ctx.last==='none')?'　短縮条件は詳細欄で確認。':'');
+}
+function addCeilingDetails(){
+  allCards.forEach(card=>{
+    const entry=Object.values(ceilingData).find(e=>e.card===card.dataset.name);
+    if(!entry)return;
+    const row=document.createElement('div');row.className='row ceiling-detail';
+    const label=document.createElement('div');label.className='label';label.textContent='条件別の天井';
+    const value=document.createElement('div');value.className='value';
+    const lines=[['リセット後',entry.reset],['恩恵消化後',entry.normal],...Object.entries(entry.special),['起点・注意',entry.note]];
+    for(const [title,description] of lines){
+      const line=document.createElement('div');
+      const strong=document.createElement('b');strong.textContent=title+'：';
+      line.append(strong,document.createTextNode(description));value.append(line);
+    }
+    const source=document.createElement('div');source.className='ceiling-source';
+    for(const [i,ref] of entry.sources.entries()){
+      if(i)source.append(document.createTextNode('／'));
+      const link=document.createElement('a');link.href=ref.url;link.target='_blank';link.rel='noopener';link.textContent=ref.label;source.append(link);
+    }
+    source.append(document.createTextNode('・天井確認 '+entry.checked));
+    value.append(source);row.append(label,value);card.querySelector('.body').prepend(row);
+  });
+}
+addCeilingDetails();
+
 const q=document.getElementById('q');
 let current=document.querySelector('input[name="filter"]:checked').id.replace('filter-','');
 let rate=document.querySelector('input[name="rate"]:checked').id.replace('rate','');
@@ -831,7 +1294,9 @@ function showSelected(d){
   status.textContent=(verdict.status==='ready'?'候補：':verdict.status==='wait'?'見送り：':'要確認：')+verdict.reason;
   const stop=document.createElement('div');stop.className='scan-stop';
   stop.textContent='どこまで打つ：'+verdict.stop+(verdict.status==='ready'?'　その後：'+(afterStops[d[0]]||'当たり後の示唆を確認して再判定。'):'');
-  scanAnswer.append(status,stop);
+  const ceiling=document.createElement('div');ceiling.className='scan-stop scan-ceiling';
+  ceiling.textContent='天井：'+ceilingText(d,scanContext(d));
+  scanAnswer.append(status,stop,ceiling);
 }
 function renderScan(){
   const term=scanName.value.trim().toLowerCase();
