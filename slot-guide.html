@@ -152,7 +152,7 @@
   [hidden]{display:none!important}
   .wrap{padding-top:0}.scan{border:0;background:transparent;padding:0;margin-top:12px}
   h1{font-size:19px}.scan h2{font-size:15px;color:var(--muted)}
-  .scan-stages{margin-top:8px}.scan-stages button,.rate-tab{min-height:44px}
+  .scan-stages{margin-top:8px;grid-template-columns:repeat(3,minmax(0,1fr))}.scan-stages button,.rate-tab{min-height:44px}
   .quick-games{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:10px 0}
   .quick-games button{padding:10px 2px;min-height:44px;font-size:13px;cursor:pointer}
   .quick-games button.active{background:var(--accent);color:#101722;border-color:var(--accent)}
@@ -196,8 +196,9 @@
   <h2 id="scan-heading">リセット台を探す</h2>
   
   <div class="scan-stages" role="group" aria-label="当日の履歴">
-    <button type="button" data-stage="reset" class="active" aria-pressed="true">リセット</button>
-    <button type="button" data-stage="normal" aria-pressed="false">通常</button>
+    <button type="button" data-stage="morning" class="active" aria-pressed="true">朝イチ0G</button>
+    <button type="button" data-stage="reset" aria-pressed="false">リセ途中</button>
+    <button type="button" data-stage="normal" aria-pressed="false">当たり後</button>
   </div>
   <div class="scan-inputs" hidden>
     <input id="scan-name" type="search" placeholder="機種名（省略可）" aria-label="スキャンする機種名">
@@ -1282,6 +1283,7 @@ const scanConditional={
   ]}
 };
 let scanStage='reset';
+let scanScene='morning';
 let selectedMachine=null;
 function scanRuleIndex(){return (rate==='20'?2:4)+(scanStage==='normal'?1:0)}
 function routesFor(d){
@@ -1354,6 +1356,23 @@ function showSelected(d){
   const ceiling=document.createElement('div');ceiling.className='scan-stop scan-ceiling';
   ceiling.textContent='天井：'+ceilingText(d,scanContext(d));
   scanAnswer.append(status,stop,ceiling);
+  const expected=evAt(d,verdict.status),estimate=document.createElement('div');
+  estimate.className='scan-stop scan-ceiling';
+  estimate.textContent=expected===null?'期待値：この条件の金額は未算定。候補判定は既存の拾い条件に基づきます。':'参考期待値：'+(expected>=0?'+':'')+(expected/20).toFixed(1)+'枚（設定1・等価交換の公開試算。店舗の実額ではありません）';
+  scanAnswer.append(estimate);
+  const entry=ceilingData[d[0]];
+  if(entry){
+    const guide=document.createElement('div');guide.className='scan-stop scan-ceiling';
+    guide.textContent='起点・注意：'+entry.note;
+    scanAnswer.append(guide);
+    if(scanStage==='reset'){
+      const card=activeCards().find(c=>c.dataset.name===entry.card);
+      const morning=[...(card?.querySelectorAll('.row')||[])].find(r=>r.querySelector('.label')?.textContent==='朝一');
+      const perk=document.createElement('div');perk.className='scan-stop scan-ceiling';
+      perk.textContent='リセット時：'+(morning?.querySelector('.value')?.textContent||entry.reset);
+      scanAnswer.append(perk);
+    }
+  }
 }
 // Published reference EVs, not store-specific forecasts. No extrapolation or invented ranks.
 const referenceEV={
@@ -1372,7 +1391,7 @@ function overviewVerdict(d,games){
   return judgeMachine(d,{value:games,metric:metric[0],skips:null,last:''});
 }
 function evAt(d,status){
-  if(status!=='ready')return null;
+  if(status!=='ready'&&!(scanStage==='normal'&&status==='wait'))return null;
   const ctx=scanContext(d);
   if(d[0]===selectedMachine&&(ctx.last&&ctx.last!=='none'||ctx.skips!==null||ctx.metric&&!gameMetrics.has(ctx.metric)))return null;
   const table=referenceEV[d[0]]?.[scanStage],g=d[0]===selectedMachine?scanNumber():overviewGames;
@@ -1381,7 +1400,8 @@ function evAt(d,status){
 }
 function renderQuickGames(){
   const box=document.getElementById('quick-games');box.replaceChildren();
-  const values=scanStage==='reset'?[0,100,200,300,400,500,600,700,800,1000]:[0,200,300,400,500,600,700,800,900,1000];
+  box.hidden=scanScene==='morning';
+  const values=scanStage==='reset'?[0,100,200,300,400,500,600,700,800,1000]:[0,50,100,200,300,400,500,600,800,1000];
   values.forEach(n=>{const button=document.createElement('button');button.type='button';button.textContent=n===0?'0G':n+'G以上';button.dataset.games=n;button.classList.toggle('active',overviewGames===n);button.setAttribute('aria-pressed',String(overviewGames===n));button.onclick=()=>{overviewGames=n;scanGames.value=n;selectedMachine=null;scanSelectedBox.hidden=true;document.querySelectorAll('.rate-panel').forEach(p=>p.classList.remove('detail-visible'));renderQuickGames();renderScan()};box.append(button)});
 }
 function renderSelectedValues(){
@@ -1398,14 +1418,14 @@ function renderScan(){
   const rows=scanData.filter(d=>d[index]).map(d=>{
     const rule=d[index],verdict=d[0]===selectedMachine?judgeMachine(d,scanContext(d)):overviewVerdict(d,games);
     return {d,rule,status:verdict.status,verdict,ev:evAt(d,verdict.status)};
-  }).filter(r=>r.status!=='wait'||r.d[0]===selectedMachine).sort((a,b)=>{
+  }).filter(r=>scanScene==='morning'?r.status==='ready':(scanStage==='normal'||r.status!=='wait'||r.d[0]===selectedMachine)).sort((a,b)=>{
     const rank=r=>r.status==='ready'?(r.ev===null?1:0):r.status==='check'?2:3;
     return rank(a)-rank(b)||(a.ev!==null&&b.ev!==null?b.ev-a.ev:0)||a.d[0].localeCompare(b.d[0],'ja');
   });
   scanResults.replaceChildren();let previous='';
   if(!rows.length){const empty=document.createElement('div');empty.className='scan-empty';empty.textContent='この条件の候補はありません。G数かレートを切り替えてください。';scanResults.append(empty)}
   rows.forEach(({d,rule,status,verdict,ev})=>{
-    const group=status==='ready'?(ev!==null?'期待値参考順':'候補・期待値未算定'):status==='check'?'条件を確認する台':'見送り';
+    const group=status==='ready'?(ev!==null?'期待値参考順':'候補・期待値未算定'):status==='check'?'条件を確認する台':'今は見送り';
     if(group!==previous){const heading=document.createElement('div');heading.className='scan-group';heading.textContent=group;scanResults.append(heading);previous=group;}
     const button=document.createElement('button');button.type='button';button.className='scan-row '+status;
     const left=document.createElement('span'),name=document.createElement('strong');name.textContent=d[0];
@@ -1415,8 +1435,8 @@ function renderScan(){
     button.append(left,result);button.onclick=()=>{if(selectedMachine===d[0]){selectedMachine=null;scanSelectedBox.hidden=true;renderScan();return;}selectedMachine=d[0];scanGames.value=overviewGames;configureSelected();scanSelectedBox.scrollIntoView({behavior:'smooth',block:'nearest'})};scanResults.append(button);
   });
   const chosen=scanData.find(d=>d[0]===selectedMachine&&d[index]);if(chosen)showSelected(chosen);
-  document.getElementById('scan-heading').textContent=scanStage==='reset'?'リセット台を探す':'通常の空き台を探す';
-  scanHint.textContent='選んだG数以上の台を想定。カウンタの起点・追加条件は台名をタップして確認。';
+  document.getElementById('scan-heading').textContent=scanScene==='morning'?'朝イチ0Gからの候補':scanScene==='reset'?'リセット恩恵が残っている途中台':'リセット恩恵消化後の台';
+  scanHint.textContent=scanScene==='morning'?'全台リセット前提。機種をタップすると打ち切り地点・天井・リセット時の条件を表示。':scanScene==='reset'?'狙うリセット恩恵がまだ残っている台。G数をタップ→機種を選択。ボーナス・CZで恩恵が消えるかは機種ごとに確認。':'0Gヤメもここ。G数をタップ→機種を選択。駆け抜け・上位後・スルー数で条件が変わる台は追加確認。';
 }
 document.getElementById('scan-detail').addEventListener('click',()=>{
   const d=scanData.find(row=>row[0]===selectedMachine);if(!d)return;
@@ -1425,7 +1445,7 @@ document.getElementById('scan-detail').addEventListener('click',()=>{
   if(target){activePanel().classList.add('detail-visible');target.open=true;target.scrollIntoView({behavior:'smooth',block:'center'});}
 });
 document.querySelectorAll('[data-stage]').forEach(button=>button.addEventListener('click',()=>{
-  scanStage=button.dataset.stage;selectedMachine=null;scanSelectedBox.hidden=true;overviewGames=scanStage==='reset'?0:400;scanGames.value=overviewGames;document.querySelectorAll('.rate-panel').forEach(p=>p.classList.remove('detail-visible'));renderQuickGames();
+  scanScene=button.dataset.stage;scanStage=scanScene==='normal'?'normal':'reset';selectedMachine=null;scanSelectedBox.hidden=true;overviewGames=scanScene==='reset'?100:0;scanGames.value=overviewGames;document.querySelectorAll('.rate-panel').forEach(p=>p.classList.remove('detail-visible'));renderQuickGames();
   document.querySelectorAll('[data-stage]').forEach(item=>{
     const active=item===button;item.classList.toggle('active',active);item.setAttribute('aria-pressed',String(active));
   });
