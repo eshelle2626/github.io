@@ -148,6 +148,22 @@
   .scan-ceiling{font-size:13px}
   .scan-stop{padding-top:7px;margin-top:7px;border-top:1px solid var(--line)}
   .scan-detail{margin-top:8px;color:var(--accent);font-size:13px}
+
+  [hidden]{display:none!important}
+  .wrap{padding-top:0}.scan{border:0;background:transparent;padding:0;margin-top:12px}
+  h1{font-size:19px}.scan h2{font-size:15px;color:var(--muted)}
+  .scan-stages{margin-top:8px}.scan-stages button,.rate-tab{min-height:44px}
+  .quick-games{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:10px 0}
+  .quick-games button{padding:10px 2px;min-height:44px;font-size:13px;cursor:pointer}
+  .quick-games button.active{background:var(--accent);color:#101722;border-color:var(--accent)}
+  .scan-results{max-height:none;overflow:visible}.scan-row{min-height:58px;grid-template-columns:minmax(0,1fr) minmax(90px,44%)}
+  .scan-row small{font-size:12px}.scan-row .scan-verdict{font-size:13px}
+  .scan-group{font-size:13px;color:var(--muted);margin:12px 0 3px}
+  .rate-panel{display:none!important}.rate-panel.detail-visible{display:block!important}
+  .rate-panel .top3,.rate-panel .top-actions,.rate-panel .legend{display:none}
+  .scan-selected h3{display:flex;justify-content:space-between;gap:8px}
+  .close-selected{padding:2px 8px;font-size:16px;min-height:32px}
+  .rank-note{font-size:12px;color:var(--muted);margin-top:16px}
 </style>
 </head>
 <body>
@@ -164,11 +180,11 @@
     <label class="rate-tab" for="rate20">20スロ</label>
     <label class="rate-tab" for="rate625">6.25スロ</label>
   </div>
-  <div class="controls">
+  <div class="controls" hidden>
     <input id="q" type="search" placeholder="機種名で検索（例：モンキー）">
     <button id="resetPage" type="button">リセット／再読み込み</button>
   </div>
-  <div class="filters">
+  <div class="filters" hidden>
     <label class="filter" for="filter-all">すべて</label>
     <label class="filter" for="filter-zero">0Gから</label>
     <label class="filter" for="filter-pickup">拾い待ち</label>
@@ -177,28 +193,30 @@
 </header>
 
 <section class="scan" aria-label="拾いスキャン">
-  <h2>拾いスキャン</h2>
-  <p class="scan-intro">空き台の機種とG数を見て、ここで候補を絞る。</p>
+  <h2 id="scan-heading">リセット台を探す</h2>
+  
   <div class="scan-stages" role="group" aria-label="当日の履歴">
-    <button type="button" data-stage="reset" class="active" aria-pressed="true">初当たり前（リセット）</button>
-    <button type="button" data-stage="normal" aria-pressed="false">恩恵消化後・通常</button>
+    <button type="button" data-stage="reset" class="active" aria-pressed="true">リセット</button>
+    <button type="button" data-stage="normal" aria-pressed="false">通常</button>
   </div>
-  <div class="scan-inputs">
+  <div class="scan-inputs" hidden>
     <input id="scan-name" type="search" placeholder="機種名（省略可）" aria-label="スキャンする機種名">
     <input id="scan-games" type="number" min="0" inputmode="numeric" placeholder="G数" aria-label="現在のゲーム数">
   </div>
+  <div id="quick-games" class="quick-games" role="group" aria-label="ざっくりのゲーム数"></div>
   <div id="scan-selected" class="scan-selected" hidden>
     <h3 id="scan-selected-name"></h3>
     <div class="scan-fields">
       <label id="scan-counter-wrap" hidden>数値の種類<select id="scan-counter"></select></label>
-      <label id="scan-skips-wrap" hidden>ボーナス・CZスルー数<input id="scan-skips" type="number" min="0" inputmode="numeric" placeholder="回数"></label>
+      <label id="scan-skips-wrap" hidden>ボーナス・CZスルー数<select id="scan-skips"><option value="">未確認</option><option value="0">0回</option><option value="1">1回</option><option value="2">2回</option><option value="3">3回</option><option value="4">4回</option><option value="5">5回</option><option value="6">6回</option><option value="7">7回</option><option value="8">8回</option><option value="9">9回</option><option value="10">10回以上</option></select></label>
       <label id="scan-last-wrap" hidden>前回の結果<select id="scan-last"></select></label>
     </div>
+    <div id="selected-values" class="quick-games" role="group" aria-label="機種のカウンタ値"></div>
     <div id="scan-answer" class="scan-answer" aria-live="polite"></div>
-    <button id="scan-detail" class="scan-detail" type="button">機種の詳しい条件を見る</button>
+    <button id="scan-detail" class="scan-detail" type="button">詳しい条件</button>
   </div>
   <p class="scan-hint" id="scan-hint">数値を入れなければ、機種別の拾い始め目安を一覧表示します。</p>
-  <div id="scan-results" class="scan-results" aria-live="polite"></div>
+  <div id="scan-results" class="scan-results" aria-live="polite"></div><p class="rank-note">参考期待値：設定1・等価交換の公開試算を枚数換算。選択G数以下の掲載値を使用し、表の範囲外は未算定。高田馬場の交換率・現金投資・周期や示唆による差は含みません。確認：2026-10-09。<a href="https://nana-press.com/kaiseki/machine/1097/35407/">海門</a> / <a href="https://nana-press.com/kaiseki/machine/644/18016/">モンキー</a> / <a href="https://nana-press.com/kaiseki/machine/889/27253/">東京喰種</a></p>
 </section>
 
 <section class="rate-panel" data-panel="20">
@@ -1308,8 +1326,9 @@ function setOptions(select,values,placeholder){
 function configureSelected(){
   const d=scanData.find(row=>row[0]===selectedMachine);
   scanSelectedBox.hidden=!d||!d[scanRuleIndex()];
-  if(scanSelectedBox.hidden){scanGames.placeholder='G数';scanGames.setAttribute('aria-label','現在のゲーム数');return;}
+  if(scanSelectedBox.hidden)return;
   const routes=routesFor(d),metrics=[...new Set(routes.map(r=>r.metric))];
+  if(metrics.length===1&&!gameMetrics.has(metrics[0]))scanGames.value='';
   scanSelectedName.textContent=d[0]+' の拾い判定'+(metrics.length===1?'（'+metricLabels[metrics[0]]+'）':'');
   scanCounterWrap.hidden=metrics.length<2;
   setOptions(scanCounter,metrics.map(v=>[v,metricLabels[v]]),'数値の種類を選択');
@@ -1322,6 +1341,7 @@ function configureSelected(){
   const unit=metrics.length===1?metricLabels[metrics[0]]:'数値';
   scanGames.placeholder=unit.replace('（当たり後から）','');
   scanGames.setAttribute('aria-label',unit);
+  renderSelectedValues();
   renderScan();
 }
 function showSelected(d){
@@ -1335,52 +1355,77 @@ function showSelected(d){
   ceiling.textContent='天井：'+ceilingText(d,scanContext(d));
   scanAnswer.append(status,stop,ceiling);
 }
+// Published reference EVs, not store-specific forecasts. No extrapolation or invented ranks.
+const referenceEV={
+  '海門決戦':{reset:[[0,1000],[50,1496],[100,2046],[150,2656],[200,3333],[250,4083],[300,4915],[350,5838],[400,6861],[450,7995],[500,9253],[550,10648]],url:'https://nana-press.com/kaiseki/machine/1097/35407/',checked:'2026-10-09'},
+  'モンキーV':{reset:[[0,740],[50,1108],[100,1537],[150,2036],[200,2617],[250,3295],[300,4084],[350,5002],[400,6072],[450,7319]],normal:[[0,-600],[50,-453],[100,-281],[150,-81],[200,152],[250,424],[300,740],[350,1108],[400,1537],[450,2036],[500,2617],[550,3295],[600,4084],[650,5002],[700,6072],[750,7319]],url:'https://nana-press.com/kaiseki/machine/644/18016/',checked:'2026-10-09'},
+  '東京喰種':{reset:[[0,257],[20,603],[40,973],[60,1368],[80,1790],[100,2240],[120,2722],[140,3235],[160,3784],[180,4369]],url:'https://nana-press.com/kaiseki/machine/889/27253/',checked:'2026-10-09'}
+};
+let overviewGames=0;
+const gameMetrics=new Set(['g','bonusG','czG','atG','goddessG','lcdG']);
+function overviewVerdict(d,games){
+  const routes=routesFor(d),metric=[...new Set(routes.map(r=>r.metric))];
+  if(!routes.length)return {status:'check',reason:d[scanRuleIndex()].s};
+  // Never apply a G preset to pt, cycles, or stage changes.
+  if(metric.length===1&&!gameMetrics.has(metric[0]))return {status:'check',reason:d[scanRuleIndex()].s};
+  if(metric.length!==1)return {status:'check',reason:d[scanRuleIndex()].s};
+  return judgeMachine(d,{value:games,metric:metric[0],skips:null,last:''});
+}
+function evAt(d,status){
+  if(status!=='ready')return null;
+  const ctx=scanContext(d);
+  if(d[0]===selectedMachine&&(ctx.last&&ctx.last!=='none'||ctx.skips!==null||ctx.metric&&!gameMetrics.has(ctx.metric)))return null;
+  const table=referenceEV[d[0]]?.[scanStage],g=d[0]===selectedMachine?scanNumber():overviewGames;
+  if(!table||g===null||g>table.at(-1)[0])return null;
+  return [...table].reverse().find(([n])=>n<=g)?.[1]??null;
+}
+function renderQuickGames(){
+  const box=document.getElementById('quick-games');box.replaceChildren();
+  const values=scanStage==='reset'?[0,100,200,300,400,500,600,700,800,1000]:[0,200,300,400,500,600,700,800,900,1000];
+  values.forEach(n=>{const button=document.createElement('button');button.type='button';button.textContent=n===0?'0G':n+'G以上';button.dataset.games=n;button.classList.toggle('active',overviewGames===n);button.setAttribute('aria-pressed',String(overviewGames===n));button.onclick=()=>{overviewGames=n;scanGames.value=n;selectedMachine=null;scanSelectedBox.hidden=true;document.querySelectorAll('.rate-panel').forEach(p=>p.classList.remove('detail-visible'));renderQuickGames();renderScan()};box.append(button)});
+}
+function renderSelectedValues(){
+  const box=document.getElementById('selected-values');box.replaceChildren();
+  const d=scanData.find(d=>d[0]===selectedMachine);if(!d)return;
+  const metrics=[...new Set(routesFor(d).map(r=>r.metric))];
+  const metric=metrics.length===1?metrics[0]:scanCounter.value;
+  if(!metric)return;
+  const values=gameMetrics.has(metric)?[...new Set([0,100,200,300,400,500,600,700,800,900,1000,1500,...routesFor(d).filter(r=>r.metric===metric).map(r=>r.min)])].sort((a,b)=>a-b):metric==='pt'?[0,150,350,550,700]:metric==='cycle'?[0,1,2,3,4,5,6,9]:[0,6,13,15,17,27,40];
+  values.forEach(n=>{const button=document.createElement('button');button.type='button';button.textContent=n+(gameMetrics.has(metric)?'G':metric==='pt'?'pt':'回')+(n?'以上':'');button.classList.toggle('active',scanNumber()===n);button.onclick=()=>{scanGames.value=n;renderSelectedValues();renderScan()};box.append(button)});
+}
 function renderScan(){
-  const term=scanName.value.trim().toLowerCase();
-  const games=scanNumber();
-  const index=scanRuleIndex();
-  const rows=scanData.filter(d=>d[index]&&(!term||(d[0]+' '+d[1]).toLowerCase().includes(term)))
-    .map(d=>{
-      const rule=d[index];
-      const routes=routesFor(d),metrics=[...new Set(routes.map(r=>r.metric))];
-      const verdict=d[0]===selectedMachine?judgeMachine(d,scanContext(d)):judgeMachine(d,{value:games,metric:metrics.length===1?metrics[0]:null,skips:null,last:''});
-      const status=games===null?'':verdict.status;
-      return {d,rule,status};
-    }).sort((a,b)=>{
-      if(games!==null){const rank={ready:0,check:1,wait:2};if(rank[a.status]!==rank[b.status])return rank[a.status]-rank[b.status];}
-      return (a.rule.g??9999)-(b.rule.g??9999)||a.d[0].localeCompare(b.d[0],'ja');
-    });
-  scanResults.replaceChildren();
-  if(!rows.length){const empty=document.createElement('div');empty.className='scan-empty';empty.textContent='該当する機種はありません';scanResults.append(empty);}
-  rows.forEach(({d,rule,status})=>{
-    const button=document.createElement('button');button.type='button';button.className='scan-row '+status;
-    const left=document.createElement('span');const name=document.createElement('strong');name.textContent=d[0];
-    const note=document.createElement('small');note.textContent=rule.e;left.append(name,note);
-    const verdict=document.createElement('span');verdict.className='scan-verdict';
-    const routes=routesFor(d),metrics=[...new Set(routes.map(r=>r.metric))];
-    const selectedVerdict=d[0]===selectedMachine?judgeMachine(d,scanContext(d)):games===null?null:judgeMachine(d,{value:games,metric:metrics.length===1?metrics[0]:null,skips:null,last:''});
-    verdict.textContent=(status==='ready'?'候補 · ':status==='wait'?'待ち · ':status==='check'?'要確認 · ':'')+(selectedVerdict?.reason||rule.s);
-    button.append(left,verdict);
-    button.addEventListener('click',()=>{
-      if(selectedMachine!==d[0]){selectedMachine=d[0];configureSelected();}
-      else renderScan();
-      scanSelectedBox.scrollIntoView({behavior:'smooth',block:'center'});
-    });
-    scanResults.append(button);
+  const games=overviewGames,index=scanRuleIndex();
+  const rows=scanData.filter(d=>d[index]).map(d=>{
+    const rule=d[index],verdict=d[0]===selectedMachine?judgeMachine(d,scanContext(d)):overviewVerdict(d,games);
+    return {d,rule,status:verdict.status,verdict,ev:evAt(d,verdict.status)};
+  }).filter(r=>r.status!=='wait'||r.d[0]===selectedMachine).sort((a,b)=>{
+    const rank=r=>r.status==='ready'?(r.ev===null?1:0):r.status==='check'?2:3;
+    return rank(a)-rank(b)||(a.ev!==null&&b.ev!==null?b.ev-a.ev:0)||a.d[0].localeCompare(b.d[0],'ja');
   });
-  const chosen=scanData.find(d=>d[0]===selectedMachine&&d[index]);
-  if(chosen)showSelected(chosen);
-  scanHint.textContent=games===null?'機種名をタップして数値と必要な履歴を入力。':
-    '候補はこの条件での一次判定。表示Gの起点が不明なら「要確認」のままにして、履歴を見てください。';
+  scanResults.replaceChildren();let previous='';
+  if(!rows.length){const empty=document.createElement('div');empty.className='scan-empty';empty.textContent='この条件の候補はありません。G数かレートを切り替えてください。';scanResults.append(empty)}
+  rows.forEach(({d,rule,status,verdict,ev})=>{
+    const group=status==='ready'?(ev!==null?'期待値参考順':'候補・期待値未算定'):status==='check'?'条件を確認する台':'見送り';
+    if(group!==previous){const heading=document.createElement('div');heading.className='scan-group';heading.textContent=group;scanResults.append(heading);previous=group;}
+    const button=document.createElement('button');button.type='button';button.className='scan-row '+status;
+    const left=document.createElement('span'),name=document.createElement('strong');name.textContent=d[0];
+    const note=document.createElement('small');note.textContent=rule.e;left.append(name,note);
+    const result=document.createElement('span');result.className='scan-verdict';result.textContent=(status==='ready'?'候補 · ':status==='wait'?'待ち · ':'要確認 · ')+verdict.reason;
+    if(ev!==null){const expected=document.createElement('small');expected.textContent='参考 '+(ev>=0?'+':'')+(ev/20).toFixed(1)+'枚';result.append(expected)}
+    button.append(left,result);button.onclick=()=>{if(selectedMachine===d[0]){selectedMachine=null;scanSelectedBox.hidden=true;renderScan();return;}selectedMachine=d[0];scanGames.value=overviewGames;configureSelected();scanSelectedBox.scrollIntoView({behavior:'smooth',block:'nearest'})};scanResults.append(button);
+  });
+  const chosen=scanData.find(d=>d[0]===selectedMachine&&d[index]);if(chosen)showSelected(chosen);
+  document.getElementById('scan-heading').textContent=scanStage==='reset'?'リセット台を探す':'通常の空き台を探す';
+  scanHint.textContent='選んだG数以上の台を想定。カウンタの起点・追加条件は台名をタップして確認。';
 }
 document.getElementById('scan-detail').addEventListener('click',()=>{
   const d=scanData.find(row=>row[0]===selectedMachine);if(!d)return;
   document.getElementById('filter-all').checked=true;current='all';q.value=d[1];apply();
   const target=activeCards().find(card=>!card.classList.contains('hidden'));
-  if(target){target.open=true;target.scrollIntoView({behavior:'smooth',block:'center'});}
+  if(target){activePanel().classList.add('detail-visible');target.open=true;target.scrollIntoView({behavior:'smooth',block:'center'});}
 });
 document.querySelectorAll('[data-stage]').forEach(button=>button.addEventListener('click',()=>{
-  scanStage=button.dataset.stage;
+  scanStage=button.dataset.stage;selectedMachine=null;scanSelectedBox.hidden=true;overviewGames=scanStage==='reset'?0:400;scanGames.value=overviewGames;document.querySelectorAll('.rate-panel').forEach(p=>p.classList.remove('detail-visible'));renderQuickGames();
   document.querySelectorAll('[data-stage]').forEach(item=>{
     const active=item===button;item.classList.toggle('active',active);item.setAttribute('aria-pressed',String(active));
   });
@@ -1397,12 +1442,13 @@ scanName.addEventListener('input',()=>{
   }
 });
 scanGames.addEventListener('input',renderScan);
-scanCounter.addEventListener('change',renderScan);
-scanSkips.addEventListener('input',renderScan);
+scanCounter.addEventListener('change',()=>{scanGames.value='';renderSelectedValues();renderScan()});
+scanSkips.addEventListener('change',renderScan);
 scanLast.addEventListener('change',renderScan);
-document.querySelectorAll('input[name="rate"]').forEach(input=>input.addEventListener('change',()=>{configureSelected();renderScan()}));
-renderScan();
+document.querySelectorAll('input[name="rate"]').forEach(input=>input.addEventListener('change',()=>{selectedMachine=null;scanSelectedBox.hidden=true;document.querySelectorAll('.rate-panel').forEach(p=>p.classList.remove('detail-visible'));renderQuickGames();renderScan()}));
+scanGames.value='0';renderQuickGames();renderScan();
 </script>
 </body>
 </html>
+
 
