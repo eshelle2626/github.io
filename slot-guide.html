@@ -231,6 +231,20 @@
 
 <div id="list20" class="grid">
 
+<details data-tags="pickup" data-name="魔法少女にあこがれて まほあこ">
+  <summary><div><div class="title">魔法少女にあこがれて（まほあこ）</div><div class="chips"><span class="chip ok">好きな版権</span><span class="chip ok">0G期待値未確認</span><span class="chip">20スロのみ</span></div></div><div class="score ok">△</div></summary>
+  <div class="body">
+    <div class="row"><div class="label">設置</div><div class="value">エスパス高田馬場の<b>20スロに掲載</b>。6.25スロには掲載なし。店舗公式設置情報は2026-10-19更新、確認2026-10-20。</div></div>
+    <div class="row"><div class="label">朝一</div><div class="value"><b>好きな版権として掲載。0Gからのプラス期待値は未確認。</b>AT天井は799G＋αへ短縮。初回の百合メーターMAX時のCZ当選率も優遇されるが、メーター狙いの収支期待値は未確認。</div></div>
+    <div class="row"><div class="label">リセット途中／恩恵消化後</div><div class="value"><b>AT間Gで確認。</b>リセット後は799G＋α、AT消化後は999G＋α。途中のボーナス・CZがAT非当選ならAT間を引き継ぐ。<b>初回CZ消化＝天井短縮終了、ではない。</b>ボーナス間のデータカウンタをそのまま使わない。</div></div>
+    <div class="row"><div class="label">拾い条件・打ち切り</div><div class="value">導入直後のため<b>拾い始めG・ゾーンの期待値は未確定</b>。G数だけで自動GOにしない。天井狙いで着席する場合はAT当選まで。趣味打ちは先に投資上限を決め、天井狙いと分ける。</div></div>
+    <div class="row"><div class="label">AT終了後</div><div class="value"><b>通常AT後は前兆・高確・百合メーターと示唆を確認してヤメ候補。</b>100・300・500・700・900GにCZ抽選はあるが、100Gまで一律に追うプラス期待値は未確認。<br><b>上位AT後：</b>VSロードエノルメ、失敗時の「あの星を堕とせ」まで消化して再判定。通常AT後と区別。</div></div>
+    <div class="row"><div class="label">出典・確認</div><div class="value"><a href="https://www.p-world.co.jp/tokyo/espace-a.htm" target="_blank" rel="noopener">店舗公式設置</a> ／ <a href="https://www.newgin.co.jp/products/lmahoako/" target="_blank" rel="noopener">メーカー公式</a> ／ <a href="https://1geki.jp/slot/l_mahoako/3/" target="_blank" rel="noopener">一撃・天井</a> ／ <a href="https://chonborista.com/slot/newgin-slot/264698/" target="_blank" rel="noopener">暫定解析</a> ／ 確認2026-10-20。未判明情報は更新待ち。</div></div>
+  </div>
+</details>
+
+
+
 <details data-tags="zero strong" data-name="リコリスリコイル リコリコ">
   <summary>
     <div><div class="title">リコリス・リコイル</div><div class="chips"><span class="chip good">0Gから</span><span class="chip good">駆け抜け強</span></div></div>
@@ -568,6 +582,36 @@
 const allCards=[...document.querySelectorAll('details')];
 
 const ceilingData={
+  "まほあこ": {
+  "card": "魔法少女にあこがれて まほあこ",
+  "reset": "AT間799G＋αでAT。途中のボーナス・CZでAT非当選なら引き継ぐ。",
+  "normal": "AT間999G＋αでAT。途中のボーナス・CZでAT非当選なら引き継ぐ。",
+  "note": "データカウンタのボーナス間Gを流用しない。AT履歴からAT間Gを確認。初回メーターMAXのCZ優遇とAT天井短縮は別の恩恵で、初回CZ消化だけで短縮終了とはしない。",
+  "special": {},
+  "sources": [
+    {
+      "label": "メーカー公式",
+      "url": "https://www.newgin.co.jp/products/lmahoako/"
+    },
+    {
+      "label": "一撃・天井/リセット",
+      "url": "https://1geki.jp/slot/l_mahoako/3/"
+    },
+    {
+      "label": "一撃・規定G抽選",
+      "url": "https://1geki.jp/slot/l_mahoako/43/"
+    },
+    {
+      "label": "一撃・引き戻し",
+      "url": "https://1geki.jp/slot/l_mahoako/97/"
+    },
+    {
+      "label": "ちょんぼりすた・暫定解析",
+      "url": "https://chonborista.com/slot/newgin-slot/264698/"
+    }
+  ],
+  "checked": "2026-10-20"
+},
   "戦コレ6": {
     "card": "戦国コレクション6 戦コレ6",
     "reset": "AT間最大999G＋α、または最大3周期でAT。初回222コレ以内は周期到達でありAT確定ではない。",
@@ -1100,6 +1144,7 @@ document.getElementById('resetPage').addEventListener('click',()=>{
 // [表示名, 検索語, 20:初当たり前, 20:当たり後, 6.25:初当たり前, 6.25:当たり後]
 // g が数値なら表示Gで一次判定、null なら履歴や台内表示を要確認。
 const scanData=[
+  ["まほあこ","魔法少女にあこがれて まほあこ",{"g":null,"s":"好きな版権・0G期待値未確認","e":"AT間799G＋α／狙い目は解析待ち"},{"g":null,"s":"AT間Gを確認・拾い始め未確定","e":"AT間999G＋α／ボーナスで切れない"},null,null],
   ['スト6','ストリートファイター6 SF6',null,null,{g:null,s:'液晶600G～／0Gは待ち',e:'次のFBまで'},{g:null,s:'液晶600G～／FB3連敗後',e:'FB連敗を確認'}],
   ['戦コレ6','戦国コレクション6', {g:null,s:'リセット3周期目～',e:'周期数で確認'}, {g:null,s:'AT間650G～／6周期目～',e:'実Gと周期を区別'}, {g:null,s:'リセット3周期目～',e:'周期数で確認'}, {g:null,s:'AT間650G～／6周期目～',e:'実Gと周期を区別'}],
   ['サンブレイク','サンブレイク', {g:null,s:'解析待ち・0G推奨保留',e:'AT間/CZ間・失敗数を別確認'}, {g:null,s:'拾い始め未確定',e:'ライズの条件を流用しない'}, null,null],
@@ -1146,6 +1191,7 @@ const scanSkipsWrap=document.getElementById('scan-skips-wrap');
 const scanLastWrap=document.getElementById('scan-last-wrap');
 const metricLabels={lcdG:'FB後の液晶G（加算込み）',g:'通常G（当たり後から）',bonusG:'ボーナス間G',czG:'CZ間G',atG:'AT間G',goddessG:'女神間の実G',pt:'現在の獲得pt',stageBonus:'ボーナス間ステチェン回数',stageAt:'AT間ステチェン回数',cycle:'現在の周期'};
 const afterStops={
+  "まほあこ": "通常AT後は前兆・高確・百合メーターと示唆を確認。100GのCZ抽選を一律に追う根拠は未確認。上位AT後はVSロードエノルメ→失敗時の「あの星を堕とせ」まで消化。",
   'スト6':'コンティニューチャンス・前兆・アイキャッチを確認。リュウ赤なら液晶200G＋前兆まで。それ以外はヤメ候補。敗北後はFB連敗回数と液晶Gで再判定。',
   '戦コレ6':'AT後は222コレ以内の1周期を確認する選択肢。最終決戦敗北後は天国1周期を確認。',
   'サンブレイク':'AT後1G目と前兆・リプレイポイントを確認。',
@@ -1301,6 +1347,7 @@ function scanContext(d){
 }
 function judgeMachine(d,ctx){
   const routes=routesFor(d),rule=d[scanRuleIndex()];
+  if(d[0]==='まほあこ')return {status:'check',reason:scanScene==='morning'?'好きな版権・0G期待値未確認':'AT間Gを確認・拾い始め未確定',stop:'天井狙いならAT当選まで（ボーナス・CZ非当選では通算継続）。趣味打ちは先に投資上限を決める。'};
   if(!routes.length)return {status:'check',reason:rule?.s||'履歴・示唆の確認が必要',stop:'対象とする天井・当たり方が確定してからヤメ時を決める。'};
   if(ctx.value===null)return {status:'check',reason:`${routes.length===1?metricLabels[routes[0].metric]:'数値'}を入力`,stop:'数値を入力すると、この狙いのヤメ時を表示。'};
   if(!ctx.metric)return {status:'check',reason:'その数値がCZ間・AT間など、どのカウンタか選択',stop:'カウンタの起点が分からない場合は判定しない。'};
@@ -1418,14 +1465,14 @@ function renderScan(){
   const rows=scanData.filter(d=>d[index]).map(d=>{
     const rule=d[index],verdict=d[0]===selectedMachine?judgeMachine(d,scanContext(d)):overviewVerdict(d,games);
     return {d,rule,status:verdict.status,verdict,ev:evAt(d,verdict.status)};
-  }).filter(r=>scanScene==='morning'?r.status==='ready':(scanStage==='normal'||r.status!=='wait'||r.d[0]===selectedMachine)).sort((a,b)=>{
+  }).filter(r=>scanScene==='morning'?(r.status==='ready'||r.d[0]==='まほあこ'):(scanStage==='normal'||r.status!=='wait'||r.d[0]===selectedMachine)).sort((a,b)=>{
     const rank=r=>r.status==='ready'?(r.ev===null?1:0):r.status==='check'?2:3;
     return rank(a)-rank(b)||(a.ev!==null&&b.ev!==null?b.ev-a.ev:0)||a.d[0].localeCompare(b.d[0],'ja');
   });
   scanResults.replaceChildren();let previous='';
   if(!rows.length){const empty=document.createElement('div');empty.className='scan-empty';empty.textContent='この条件の候補はありません。G数かレートを切り替えてください。';scanResults.append(empty)}
   rows.forEach(({d,rule,status,verdict,ev})=>{
-    const group=status==='ready'?(ev!==null?'期待値参考順':'候補・期待値未算定'):status==='check'?'条件を確認する台':'今は見送り';
+    const group=status==='ready'?(ev!==null?'期待値参考順':'候補・期待値未算定'):status==='check'?(d[0]==='まほあこ'?'好きな版権・解析待ち':'条件を確認する台'):'今は見送り';
     if(group!==previous){const heading=document.createElement('div');heading.className='scan-group';heading.textContent=group;scanResults.append(heading);previous=group;}
     const button=document.createElement('button');button.type='button';button.className='scan-row '+status;
     const left=document.createElement('span'),name=document.createElement('strong');name.textContent=d[0];
@@ -1436,7 +1483,7 @@ function renderScan(){
   });
   const chosen=scanData.find(d=>d[0]===selectedMachine&&d[index]);if(chosen)showSelected(chosen);
   document.getElementById('scan-heading').textContent=scanScene==='morning'?'朝イチ0Gからの候補':scanScene==='reset'?'リセット恩恵が残っている途中台':'リセット恩恵消化後の台';
-  scanHint.textContent=scanScene==='morning'?'全台リセット前提。機種をタップすると打ち切り地点・天井・リセット時の条件を表示。':scanScene==='reset'?'狙うリセット恩恵がまだ残っている台。G数をタップ→機種を選択。ボーナス・CZで恩恵が消えるかは機種ごとに確認。':'0Gヤメもここ。G数をタップ→機種を選択。駆け抜け・上位後・スルー数で条件が変わる台は追加確認。';
+  scanHint.textContent=scanScene==='morning'?'全台リセット前提。機種をタップして打ち切り地点・天井を確認。「好きな版権・解析待ち」は0Gからの推奨候補とは別枠です。':scanScene==='reset'?'狙うリセット恩恵がまだ残っている台。G数をタップ→機種を選択。ボーナス・CZで恩恵が消えるかは機種ごとに確認。':'0Gヤメもここ。G数をタップ→機種を選択。駆け抜け・上位後・スルー数で条件が変わる台は追加確認。';
 }
 document.getElementById('scan-detail').addEventListener('click',()=>{
   const d=scanData.find(row=>row[0]===selectedMachine);if(!d)return;
