@@ -1,0 +1,78 @@
+{
+  "name": "まほあこ",
+  "fullName": "L魔法少女にあこがれて",
+  "aliases": [
+    "まほあこ",
+    "魔法少女にあこがれて"
+  ],
+  "checked": "2026-10-20",
+  "installation": {
+    "shop": "エスパス日拓高田馬場本店",
+    "rate20": true,
+    "rate625": false,
+    "sourceUpdated": "2026-10-19",
+    "source": "https://www.p-world.co.jp/tokyo/espace-a.htm"
+  },
+  "ceiling": {
+    "card": "魔法少女にあこがれて まほあこ",
+    "reset": "AT間799G＋αでAT。途中のボーナス・CZでAT非当選なら引き継ぐ。",
+    "normal": "AT間999G＋αでAT。途中のボーナス・CZでAT非当選なら引き継ぐ。",
+    "note": "データカウンタのボーナス間Gを流用しない。AT履歴からAT間Gを確認。初回メーターMAXのCZ優遇とAT天井短縮は別の恩恵で、初回CZ消化だけで短縮終了とはしない。",
+    "special": {},
+    "sources": [
+      {
+        "label": "メーカー公式",
+        "url": "https://www.newgin.co.jp/products/lmahoako/"
+      },
+      {
+        "label": "一撃・天井/リセット",
+        "url": "https://1geki.jp/slot/l_mahoako/3/"
+      },
+      {
+        "label": "一撃・規定G抽選",
+        "url": "https://1geki.jp/slot/l_mahoako/43/"
+      },
+      {
+        "label": "一撃・引き戻し",
+        "url": "https://1geki.jp/slot/l_mahoako/97/"
+      },
+      {
+        "label": "ちょんぼりすた・暫定解析",
+        "url": "https://chonborista.com/slot/newgin-slot/264698/"
+      }
+    ],
+    "checked": "2026-10-20"
+  },
+  "afterStop": "通常AT後は前兆・高確・百合メーターと示唆を確認。100GのCZ抽選を一律に追う根拠は未確認。上位AT後はVSロードエノルメ→失敗時の「あの星を堕とせ」まで消化。",
+  "policy": {
+    "favorite": true,
+    "morning": "趣味打ちとして表示。0Gのプラス期待値は未確認。",
+    "reset": "AT間799G＋α。ボーナスでAT非当選なら短縮を維持。拾い始めGは未確定。",
+    "normal": "AT間999G＋α。拾い始めGは未確定。",
+    "allowAutomaticGo": false,
+    "referenceEV": null
+  },
+  "scanRow": [
+    "まほあこ",
+    "魔法少女にあこがれて まほあこ",
+    {
+      "g": null,
+      "s": "好きな版権・0G期待値未確認",
+      "e": "AT間799G＋α／狙い目は解析待ち"
+    },
+    {
+      "g": null,
+      "s": "AT間Gを確認・拾い始め未確定",
+      "e": "AT間999G＋α／ボーナスで切れない"
+    },
+    null,
+    null
+  ],
+  "judgeRule": {
+    "status": "check",
+    "reason": "AT間Gを確認・拾い始め未確定",
+    "stop": "AT天井狙いで着席した場合はATまで。途中のボーナス・CZがAT非当選なら通算を継続。",
+    "automaticGo": false
+  },
+  "detailCard": "<details data-tags=\"pickup\" data-name=\"魔法少女にあこがれて まほあこ\">\n  <summary><div><div class=\"title\">魔法少女にあこがれて（まほあこ）</div><div class=\"chips\"><span class=\"chip ok\">好きな版権</span><span class=\"chip ok\">0G期待値未確認</span><span class=\"chip\">20スロのみ</span></div></div><div class=\"score ok\">△</div></summary>\n  <div class=\"body\">\n    <div class=\"row\"><div class=\"label\">設置</div><div class=\"value\">エスパス高田馬場の<b>20スロに掲載</b>。6.25スロには掲載なし。店舗公式設置情報は2026-10-19更新、確認2026-10-20。</div></div>\n    <div class=\"row\"><div class=\"label\">朝一</div><div class=\"value\"><b>好きな版権として掲載。0Gからのプラス期待値は未確認。</b>AT天井は799G＋αへ短縮。初回の百合メーターMAX時のCZ当選率も優遇されるが、メーター狙いの収支期待値は未確認。</div></div>\n    <div class=\"row\"><div class=\"label\">リセット途中／恩恵消化後</div><div class=\"value\"><b>AT間Gで確認。</b>リセット後は799G＋α、AT消化後は999G＋α。途中のボーナス・CZがAT非当選ならAT間を引き継ぐ。<b>初回CZ消化＝天井短縮終了、ではない。</b>ボーナス間のデータカウンタをそのまま使わない。</div></div>\n    <div class=\"row\"><div class=\"label\">拾い条件・打ち切り</div><div class=\"value\">導入直後のため<b>拾い始めG・ゾーンの期待値は未確定</b>。G数だけで自動GOにしない。天井狙いで着席する場合はAT当選まで。趣味打ちは先に投資上限を決め、天井狙いと分ける。</div></div>\n    <div class=\"row\"><div class=\"label\">AT終了後</div><div class=\"value\"><b>通常AT後は前兆・高確・百合メーターと示唆を確認してヤメ候補。</b>100・300・500・700・900GにCZ抽選はあるが、100Gまで一律に追うプラス期待値は未確認。<br><b>上位AT後：</b>VSロードエノルメ、失敗時の「あの星を堕とせ」まで消化して再判定。通常AT後と区別。</div></div>\n    <div class=\"row\"><div class=\"label\">出典・確認</div><div class=\"value\"><a href=\"https://www.p-world.co.jp/tokyo/espace-a.htm\" target=\"_blank\" rel=\"noopener\">店舗公式設置</a> ／ <a href=\"https://www.newgin.co.jp/products/lmahoako/\" target=\"_blank\" rel=\"noopener\">メーカー公式</a> ／ <a href=\"https://1geki.jp/slot/l_mahoako/3/\" target=\"_blank\" rel=\"noopener\">一撃・天井</a> ／ <a href=\"https://chonborista.com/slot/newgin-slot/264698/\" target=\"_blank\" rel=\"noopener\">暫定解析</a> ／ 確認2026-10-20。未判明情報は更新待ち。</div></div>\n  </div>\n</details>\n\n"
+}
