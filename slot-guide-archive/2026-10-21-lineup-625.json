@@ -1,0 +1,215 @@
+{
+  "checked": "2026-10-21",
+  "sourceUpdated": "2026-10-19",
+  "source": "https://www.p-world.co.jp/tokyo/espace-a.htm",
+  "rate": 6.25,
+  "installed": [
+    "スマスロモンキーターンＶ",
+    "Ｌパチスロ 炎炎ノ消防隊２",
+    "スマスロ マギアレコード 魔法少女まどか☆マギカ外伝",
+    "スマスロ 北斗の拳 転生の章２",
+    "スマスロ やじきた道中記参る！",
+    "スマスロ ストリートファイター６",
+    "戦国コレクション６",
+    "Ｌパチスロ からくりサーカス２",
+    "スマスロ 化物語",
+    "スマスロスーパーリオエース２",
+    "スマスロ モンスターハンターライズ",
+    "スマスロ デビル メイ クライ５ スタイリッシュトライブ",
+    "スマスロ BIRDIE WING -Golf Girls’ Story-",
+    "Ｌ戦国乙女４ 戦乱に閃く炯眼の軍師",
+    "Ｌ 無職転生 ～異世界行ったら本気だす～",
+    "Ｌタクトオーパス デスティニー",
+    "Ｌ虚構推理",
+    "スマスロ 新鬼武者３",
+    "Ｌ少女☆歌劇 レヴュースタァライト -The SLOT-",
+    "スマスロ鉄拳６",
+    "スマスロ 東京リベンジャーズ",
+    "いざ！番長",
+    "スマスロスーパーブラックジャック",
+    "パチスロ かぐや様は告らせたい",
+    "スマスロ ゴッドイーター リザレクション",
+    "スマスロ北斗の拳"
+  ],
+  "added": [
+    {
+      "name": "やじきた",
+      "card": "やじきた道中記参る やじきた",
+      "title": "やじきた道中記参る！",
+      "source": "https://1geki.jp/slot/l_yajikita/3/",
+      "reset": "最大999まいる＋前兆で関所チャレンジ。特殊Aなら最大399まいる、通常Bなら699まいる。リセットだから399まいる確定、ではない。",
+      "normal": "最大999まいる＋前兆でCZ。規定回数に含まれる関所チャレンジの7回目は勝利濃厚。",
+      "note": "実Gとまいるを区別。AT終了時の扉から入る関所は天井回数に含めない。持ち越しまいる・テーブル示唆も確認。",
+      "morning": "0Gは推奨保留。設定1のリセット振り分けは通常B37.5%・特殊A50%・特殊B12.5%。リセット時の優遇と収支期待値は分けて考える。",
+      "pickup": "現在まいる・関所スルー回数・テーブル示唆を確認。まいる狙い／スルー狙いの拾い始めは未設定。実GだけでGOにしない。",
+      "stop": "まいる狙いで座るなら次の関所チャレンジまで。失敗時はスルー回数と残まいるを再判定し、無条件にATまで追わない。",
+      "after": "AT後の扉演出・関所・持ち越しまいるを確認。大量の持ち越しや次回天国示唆がある場合は再判定。",
+      "scanRow": [
+        "やじきた",
+        "やじきた道中記参る",
+        null,
+        null,
+        {
+          "g": null,
+          "s": "まいる・関所スルーを確認",
+          "e": "次の関所まで／実Gと混同しない"
+        },
+        {
+          "g": null,
+          "s": "持越しまいる・関所スルー確認",
+          "e": "AT終了時の扉CZは天井回数から除外"
+        }
+      ],
+      "ceiling": {
+        "card": "やじきた道中記参る やじきた",
+        "reset": "最大999まいる＋前兆で関所チャレンジ。特殊Aなら最大399まいる、通常Bなら699まいる。リセットだから399まいる確定、ではない。",
+        "normal": "最大999まいる＋前兆でCZ。規定回数に含まれる関所チャレンジの7回目は勝利濃厚。",
+        "note": "実Gとまいるを区別。AT終了時の扉から入る関所は天井回数に含めない。持ち越しまいる・テーブル示唆も確認。",
+        "special": {},
+        "sources": [
+          {
+            "label": "一撃・天井/リセット",
+            "url": "https://1geki.jp/slot/l_yajikita/3/"
+          }
+        ],
+        "checked": "2026-10-21"
+      },
+      "detailCard": "<details data-tags=\"pickup\" data-name=\"やじきた道中記参る やじきた\"><summary><div><div class=\"title\">やじきた道中記参る！</div><div class=\"chips\"><span class=\"chip bad\">0G待ち</span><span class=\"chip ok\">起点・履歴確認</span></div></div><div class=\"score ok\">○</div></summary><div class=\"body\"><div class=\"row\"><div class=\"label\">朝一</div><div class=\"value\">0Gは推奨保留。設定1のリセット振り分けは通常B37.5%・特殊A50%・特殊B12.5%。リセット時の優遇と収支期待値は分けて考える。</div></div><div class=\"row\"><div class=\"label\">恩恵消化後・拾い条件</div><div class=\"value\">現在まいる・関所スルー回数・テーブル示唆を確認。まいる狙い／スルー狙いの拾い始めは未設定。実GだけでGOにしない。</div></div><div class=\"row\"><div class=\"label\">この条件で打つなら</div><div class=\"value\">まいる狙いで座るなら次の関所チャレンジまで。失敗時はスルー回数と残まいるを再判定し、無条件にATまで追わない。</div></div><div class=\"row\"><div class=\"label\">ヤメ時</div><div class=\"value\">AT後の扉演出・関所・持ち越しまいるを確認。大量の持ち越しや次回天国示唆がある場合は再判定。</div></div><div class=\"row\"><div class=\"label\">出典・確認</div><div class=\"value\"><a href=\"https://1geki.jp/slot/l_yajikita/3/\" target=\"_blank\" rel=\"noopener\">一撃</a>／確認 2026-10-21</div></div></div></details>"
+    },
+    {
+      "name": "DMC5",
+      "card": "デビルメイクライ5 DMC5 スタイリッシュトライブ",
+      "title": "デビルメイクライ5 スタイリッシュトライブ",
+      "source": "https://1geki.jp/slot/l_dmc5_st/3/",
+      "extraSource": "https://nana-press.com/kaiseki/machine/959/29919/",
+      "reset": "右上の液晶Gで800G＋α（最大25G）→エピソードボーナス・ST。CZ周期10回目の天井はCZ当選で、ST確定ではない。",
+      "normal": "右上の液晶Gで最大1000G＋α（最大25G）→エピソードボーナス・ST。DMCボーナスがST非当選ならGを引き継ぐ。",
+      "special": {
+        "ST駆け抜け": "右上の液晶Gで最大800G＋αに短縮。",
+        "上位ST後": "通常C以上、右上の液晶Gで最大800G＋α。天国なら100G＋α。"
+      },
+      "note": "データカウンタではなく右上の液晶G。ST駆け抜け・上位ST後は短縮を選択。CZ周期は左下で確認し、G数天井と分ける。",
+      "morning": "0Gは待ち。リセットで800G＋αへ短縮。6.25は液晶550G～を候補（なな徹の5.6枚交換推奨Gを保守的な目安として採用、店舗実額の期待値ではない）。",
+      "pickup": "通常は液晶700G～。ST駆け抜け／上位ST後を確認できれば液晶550G～。なな徹の公開試算に基づく目安で、6.25の実額期待値は未算定。",
+      "stop": "ゲーム数天井狙いはエピソードボーナス→STを消化するまで。ST非当選のDMCボーナスだけでは天井Gは切れない。",
+      "after": "ST後の前兆・天国示唆を確認。通常ST後に100Gを一律続行する扱いにはしない。上位ST後は100G＋前兆を確認して再判定（次回STまで無条件には追わない）。",
+      "scanRow": [
+        "DMC5",
+        "デビルメイクライ5 DMC5",
+        null,
+        null,
+        {
+          "g": null,
+          "s": "液晶550G～／0Gは待ち",
+          "e": "STまで・DMCボーナス非STなら継続"
+        },
+        {
+          "g": null,
+          "s": "液晶700G～／短縮後550G～",
+          "e": "右上液晶G・直前STの結果を確認"
+        }
+      ],
+      "conditional": {
+        "reset": [
+          {
+            "metric": "dmcG",
+            "min": 550,
+            "reason": "リセット液晶550G～（保守的な参考目安）",
+            "stop": "エピソードボーナス・ST当選まで。非STのDMCボーナスではGを引き継ぐ。"
+          }
+        ],
+        "normal": [
+          {
+            "metric": "dmcG",
+            "min": 550,
+            "last": "ST駆け抜け",
+            "reason": "ST駆け抜け後・液晶550G～",
+            "stop": "エピソードボーナス・ST当選まで。"
+          },
+          {
+            "metric": "dmcG",
+            "min": 550,
+            "last": "上位ST後",
+            "reason": "上位ST後・液晶550G～",
+            "stop": "エピソードボーナス・ST当選まで。"
+          },
+          {
+            "metric": "dmcG",
+            "min": 700,
+            "reason": "通常液晶700G～（短縮不明でも共通目安）",
+            "stop": "エピソードボーナス・ST当選まで。"
+          }
+        ]
+      },
+      "ceiling": {
+        "card": "デビルメイクライ5 DMC5 スタイリッシュトライブ",
+        "reset": "右上の液晶Gで800G＋α（最大25G）→エピソードボーナス・ST。CZ周期10回目の天井はCZ当選で、ST確定ではない。",
+        "normal": "右上の液晶Gで最大1000G＋α（最大25G）→エピソードボーナス・ST。DMCボーナスがST非当選ならGを引き継ぐ。",
+        "note": "データカウンタではなく右上の液晶G。ST駆け抜け・上位ST後は短縮を選択。CZ周期は左下で確認し、G数天井と分ける。",
+        "special": {
+          "ST駆け抜け": "右上の液晶Gで最大800G＋αに短縮。",
+          "上位ST後": "通常C以上、右上の液晶Gで最大800G＋α。天国なら100G＋α。"
+        },
+        "sources": [
+          {
+            "label": "一撃・天井/リセット",
+            "url": "https://1geki.jp/slot/l_dmc5_st/3/"
+          },
+          {
+            "label": "なな徹・期待値/推奨G",
+            "url": "https://nana-press.com/kaiseki/machine/959/29919/"
+          }
+        ],
+        "checked": "2026-10-21"
+      },
+      "detailCard": "<details data-tags=\"pickup\" data-name=\"デビルメイクライ5 DMC5 スタイリッシュトライブ\"><summary><div><div class=\"title\">デビルメイクライ5 スタイリッシュトライブ</div><div class=\"chips\"><span class=\"chip bad\">0G待ち</span><span class=\"chip ok\">液晶G確認</span></div></div><div class=\"score ok\">○</div></summary><div class=\"body\"><div class=\"row\"><div class=\"label\">朝一</div><div class=\"value\">0Gは待ち。リセットで800G＋αへ短縮。6.25は液晶550G～を候補（なな徹の5.6枚交換推奨Gを保守的な目安として採用、店舗実額の期待値ではない）。</div></div><div class=\"row\"><div class=\"label\">恩恵消化後・拾い条件</div><div class=\"value\">通常は液晶700G～。ST駆け抜け／上位ST後を確認できれば液晶550G～。なな徹の公開試算に基づく目安で、6.25の実額期待値は未算定。</div></div><div class=\"row\"><div class=\"label\">この条件で打つなら</div><div class=\"value\">ゲーム数天井狙いはエピソードボーナス→STを消化するまで。ST非当選のDMCボーナスだけでは天井Gは切れない。</div></div><div class=\"row\"><div class=\"label\">ヤメ時</div><div class=\"value\">ST後の前兆・天国示唆を確認。通常ST後に100Gを一律続行する扱いにはしない。上位ST後は100G＋前兆を確認して再判定（次回STまで無条件には追わない）。</div></div><div class=\"row\"><div class=\"label\">出典・確認</div><div class=\"value\"><a href=\"https://1geki.jp/slot/l_dmc5_st/3/\" target=\"_blank\" rel=\"noopener\">一撃</a>／<a href=\"https://nana-press.com/kaiseki/machine/959/29919/\" target=\"_blank\" rel=\"noopener\">なな徹・推奨G</a>／確認 2026-10-21</div></div></div></details>"
+    },
+    {
+      "name": "虚構推理",
+      "card": "虚構推理 きょこうすいり",
+      "title": "虚構推理",
+      "source": "https://1geki.jp/slot/l_kyokousuiri/3/",
+      "reset": "虚構真偽間で最大700G。一部300G。ボーナス＋雪女ストック1個以上。通常の初当たりボーナス間とは異なる。",
+      "normal": "虚構真偽間で最大1000G（短縮振り分けあり）。ボーナス＋雪女ストック1個以上。",
+      "note": "虚構真偽＝ボーナス昇格ゾーン。鋼人七瀬攻略議会CZや初当たりボーナスとは別。CZのEP進行・引き戻し・虚構連の状態を分けて確認。",
+      "morning": "0Gは推奨保留。最大700Gへの短縮、初期高確や初回CZの優遇があるが、0Gの収支期待値は未確認。",
+      "pickup": "虚構真偽間G・CZのEP進行を確認。初当たりボーナス間Gから天井までの距離を決めつけない。このアプリの拾い始めは未設定。",
+      "stop": "天井狙いなら虚構真偽間の天井恩恵を受け取るまで。CZ狙いの場合は初回CZと引き戻しを確認し、EP進行・天井距離で再判定。",
+      "after": "ボーナス直後は即ヤメせず虚構連モードと引き戻しの終了を確認。雪女ストック示唆・EP進行が残る場合は再判定。",
+      "scanRow": [
+        "虚構推理",
+        "虚構推理",
+        null,
+        null,
+        {
+          "g": null,
+          "s": "虚構真偽間G・EPを確認",
+          "e": "ボーナス間とは別／0G推奨保留"
+        },
+        {
+          "g": null,
+          "s": "虚構真偽間G・EPを確認",
+          "e": "虚構連・CZ引き戻し終了を確認"
+        }
+      ],
+      "ceiling": {
+        "card": "虚構推理 きょこうすいり",
+        "reset": "虚構真偽間で最大700G。一部300G。ボーナス＋雪女ストック1個以上。通常の初当たりボーナス間とは異なる。",
+        "normal": "虚構真偽間で最大1000G（短縮振り分けあり）。ボーナス＋雪女ストック1個以上。",
+        "note": "虚構真偽＝ボーナス昇格ゾーン。鋼人七瀬攻略議会CZや初当たりボーナスとは別。CZのEP進行・引き戻し・虚構連の状態を分けて確認。",
+        "special": {},
+        "sources": [
+          {
+            "label": "一撃・天井/リセット",
+            "url": "https://1geki.jp/slot/l_kyokousuiri/3/"
+          }
+        ],
+        "checked": "2026-10-21"
+      },
+      "detailCard": "<details data-tags=\"pickup\" data-name=\"虚構推理 きょこうすいり\"><summary><div><div class=\"title\">虚構推理</div><div class=\"chips\"><span class=\"chip bad\">0G待ち</span><span class=\"chip ok\">起点・履歴確認</span></div></div><div class=\"score ok\">○</div></summary><div class=\"body\"><div class=\"row\"><div class=\"label\">朝一</div><div class=\"value\">0Gは推奨保留。最大700Gへの短縮、初期高確や初回CZの優遇があるが、0Gの収支期待値は未確認。</div></div><div class=\"row\"><div class=\"label\">恩恵消化後・拾い条件</div><div class=\"value\">虚構真偽間G・CZのEP進行を確認。初当たりボーナス間Gから天井までの距離を決めつけない。このアプリの拾い始めは未設定。</div></div><div class=\"row\"><div class=\"label\">この条件で打つなら</div><div class=\"value\">天井狙いなら虚構真偽間の天井恩恵を受け取るまで。CZ狙いの場合は初回CZと引き戻しを確認し、EP進行・天井距離で再判定。</div></div><div class=\"row\"><div class=\"label\">ヤメ時</div><div class=\"value\">ボーナス直後は即ヤメせず虚構連モードと引き戻しの終了を確認。雪女ストック示唆・EP進行が残る場合は再判定。</div></div><div class=\"row\"><div class=\"label\">出典・確認</div><div class=\"value\"><a href=\"https://1geki.jp/slot/l_kyokousuiri/3/\" target=\"_blank\" rel=\"noopener\">一撃</a>／確認 2026-10-21</div></div></div></details>"
+    }
+  ],
+  "removed": [],
+  "preserved": "All previously registered 23 machines remain installed. Existing cards, judgments and 20-slot lineup are preserved.",
+  "policy": "Keep analysis, scanRow, conditional rules, counter origin and stop rules when hiding cards for future reintroduction."
+}
